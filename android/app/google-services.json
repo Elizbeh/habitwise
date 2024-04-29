@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "704019757717",
+    "project_id": "habitwise-e8dc4",
+    "storage_bucket": "habitwise-e8dc4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:704019757717:android:a0ca31290d595fe408f99c",
+        "android_client_info": {
+          "package_name": "com.example.habitwise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqiOs99zZhD3Q7g48oLPx3XCr0Jt5ywgs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
