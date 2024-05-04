@@ -26,7 +26,8 @@ class AuthMethod {
   Future<String> signUpUser({
     required String email,
     required String password,
-    required String username, required String confirmPassword,
+    required String username, 
+    required String confirmPassword,
   }) async {
     try {
       if (email.isEmpty || password.isEmpty || username.isEmpty) {
@@ -80,7 +81,7 @@ class AuthMethod {
     }
   }
 
-  Future<HabitWiseUser?> getUserDetails() async {
+  Future<HabitWiseUser> getUserDetails() async {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
@@ -89,10 +90,10 @@ class AuthMethod {
           return HabitWiseUser.fromMap(snapshot.data() as Map<String, dynamic>);
         }
       }
-      return null;
+      throw Exception('User details not found');
     } catch (e) {
       logger.e('Error getting user details $e');
-      return null;
+      throw Exception('Error getting user details');
     }
   }
 

@@ -17,12 +17,13 @@ class UserProvider extends ChangeNotifier {
     getUserDetails();
   }
 
-  Future<void> getUserDetails() async {
+  Future<HabitWiseUser?> getUserDetails() async {
     _isLoading = true;
     notifyListeners();
     _user = await _authMethod.getUserDetails();
     _isLoading = false;
     notifyListeners();
+    return _user;
   }
 
   Future<void> loginUser({required String email, required String password}) async {
@@ -45,7 +46,12 @@ class UserProvider extends ChangeNotifier {
   }) async {
     _isLoading = true;
     notifyListeners();
-    String result = await _authMethod.signUpUser(email: email, password: password, username: username, confirmPassword: '');
+    String result = await _authMethod.signUpUser(
+      email: email, 
+      password: password, 
+      username: username, 
+      confirmPassword: ''
+    );
     if (result == 'success') {
       await getUserDetails();
     } else {

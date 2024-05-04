@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:habitwise/models/user.dart';
+import 'package:habitwise/screens/home_screen.dart';
+import 'package:provider/provider.dart';
+import '../../providers/user_provider.dart';
 import '/methods/auth_methods.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -102,8 +106,23 @@ class LoginScreen extends StatelessWidget {
                         );
 
                         if (result == 'success') {
-                          // Navigate to home screen or dashboard
-                          onLoginSuccess(email.split('@')[0]);
+                          // Fetch user data using UserProvider
+                          UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
+                          HabitWiseUser? user = await userProvider.getUserDetails();
+                          if (user != null) {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => HomeScreen(user: user),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('User data is not available'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
