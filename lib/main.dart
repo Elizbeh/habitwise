@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/methods/auth_methods.dart';
 import 'package:habitwise/screens/auth/login_screen.dart';
 import 'package:habitwise/screens/auth/signup_screen.dart';
 import 'package:habitwise/screens/home_screen.dart';
+
 import 'models/user.dart';
 
 Future main() async {
-  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
-    apiKey: dotenv.env['FIREBASE_API_KEY'] ?? '',
-    appId: dotenv.env['FIREBASE_APP_ID']!,
-    messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
-    projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
-    storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+      apiKey: 'AIzaSyDqiOs99zZhD3Q7g48oLPx3XCr0Jt5ywgs',
+      appId: '1:704019757717:android:a0ca31290d595fe408f99c',
+      messagingSenderId: '704019757717',
+      projectId: 'habitwise-e8dc4',
+      storageBucket: 'habitwise-e8dc4.appspot.com',
     ),
   );
 
