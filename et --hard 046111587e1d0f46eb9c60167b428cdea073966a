@@ -1,0 +1,29 @@
+[33mcommit 175e9459fad265b47e7ea63b13bd797269760425[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Elizbeh <eliz01_01@yahoo.com>
+Date:   Fri May 17 23:10:18 2024 +0200
+
+    Safety push
+
+[33mcommit 046111587e1d0f46eb9c60167b428cdea073966a[m
+Author: Elizbeh <eliz01_01@yahoo.com>
+Date:   Sun May 5 22:58:28 2024 +0200
+
+    Added Firestore syncing for habits and implemented provider files and Firestore service
+
+[33mcommit ec553cf98e3fccfbb83070d25d1316a42c7ae787[m
+Author: Elizbeh <eliz01_01@yahoo.com>
+Date:   Sat May 4 11:39:36 2024 +0200
+
+    Added dashboard and goal screens, refactored login functionality
+
+[33mcommit 476abe72cafab4a2c34898f7b6274763357c84af[m
+Author: Elizbeh <eliz01_01@yahoo.com>
+Date:   Mon Apr 29 23:51:04 2024 +0200
+
+    Initial setup: Added main.dart, login, signup screens, and Firebase configuration
+
+[33mcommit 32344fa783239e89a010ccbcdda0eb1ceedd7120[m
+Author: Elizbeh <105496336+Elizbeh@users.noreply.github.com>
+Date:   Fri Apr 26 12:00:33 2024 +0200
+
+    Initial commit
