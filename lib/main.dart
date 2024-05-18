@@ -1,44 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:habitwise/providers/habit_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/methods/auth_methods.dart';
 import 'package:habitwise/screens/auth/login_screen.dart';
 import 'package:habitwise/screens/auth/signup_screen.dart';
-import 'package:habitwise/screens/home_screen.dart';
+import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/landing_page.dart';
 
 import 'models/user.dart';
 
-Future main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: dotenv.env['API_KEY']!,
-      appId: dotenv.env['APP_ID']!,
-      messagingSenderId: dotenv.env['MESSAGING_SENDER_ID']!,
-      projectId: dotenv.env['PROJECT_ID']!,
-      storageBucket: dotenv.env['STORAGE_BUCKET']!,
+   options: FirebaseOptions(
+      apiKey: FirebaseConfig.apiKey,
+      appId: FirebaseConfig.appId,
+      messagingSenderId: FirebaseConfig.messagingSenderId,
+      projectId: FirebaseConfig.projectId,
+      storageBucket: FirebaseConfig.storageBucket,
     ),
   );
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => UserProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => HabitProvider()..fetchHabits()),
+      ],
       child: MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  final TextEditingController loginEmailController = TextEditingController();
-  final TextEditingController loginPasswordController = TextEditingController();
-  final TextEditingController signupEmailController = TextEditingController();
-  final TextEditingController signupUsernameController = TextEditingController();
-  final TextEditingController signupPasswordController = TextEditingController();
-  final TextEditingController signupConfirmPasswordController = TextEditingController();
-
-  MyApp({Key? key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -46,51 +43,46 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
       ),
-      home: LoginScreen(
-        emailController: loginEmailController,
-        passwordController: loginPasswordController,
-        onLoginSuccess: (username) async {
-          // Fetch user data using UserProvider
-          UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
-          HabitWiseUser? user = await userProvider.getUserDetails();
-          if (user != null) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(user: user),
-              ),
-            );
-          } else {
-            // Handle error if user data isn't available
-          }
-        },
-      ),
+      initialRoute: '/',
       routes: {
+        '/': (context) => LandingPage(),
         '/login': (context) => LoginScreen(
-          emailController: loginEmailController,
-          passwordController: loginPasswordController,
-          onLoginSuccess: (username) async{
-            // Access UserProvider from context
+          emailController: TextEditingController(),
+          passwordController: TextEditingController(),
+          onLoginSuccess: (username) async {
             UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
             HabitWiseUser? user = await userProvider.getUserDetails();
             if (user != null) {
-              // Use the context from the MaterialApp widget
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                  builder: (context) => HomeScreen(user: user),
+                  builder: (context) => DashboardScreen(user: user),
                 ),
               );
             } else {
-              // Handle Error if user Data is not available
+              // Handle error if user data isn't available
             }
           },
         ),
         '/signup': (context) => SignUpScreen(
-          emailController: signupEmailController,
-          usernameController: signupUsernameController,
-          passwordController: signupPasswordController,
-          passwordConfirmController: signupConfirmPasswordController,
+          emailController: TextEditingController(),
+          usernameController: TextEditingController(),
+          passwordController: TextEditingController(),
+          passwordConfirmController: TextEditingController(),
+          onSignupSuccess: (username) async {
+            UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
+            HabitWiseUser? user = await userProvider.getUserDetails();
+            if (user != null) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => DashboardScreen(user: user),
+                ),
+              );
+            } else {
+              // Handle error if user data isn't available
+            }
+          },
         ),
-        '/home': (context) => FutureBuilder<HabitWiseUser>(
+        '/dashboard': (context) => FutureBuilder<HabitWiseUser>(
           future: AuthMethod().getUserDetails(),
           builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -98,7 +90,7 @@ class MyApp extends StatelessWidget {
                 body: Center(child: CircularProgressIndicator()),
               );
             } else if (snapshot.hasData && snapshot.data != null) {
-              return HomeScreen(user: snapshot.data!);
+              return DashboardScreen(user: snapshot.data!);
             } else if (snapshot.hasError) {
               return Scaffold(
                 body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
@@ -110,6 +102,7 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
+        '/habit': (context) => HabitScreen(),
       },
     );
   }

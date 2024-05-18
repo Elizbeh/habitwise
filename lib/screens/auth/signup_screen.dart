@@ -14,7 +14,7 @@ class SignUpScreen extends StatelessWidget {
     required this.emailController,
     required this.usernameController,
     required this.passwordController,
-    required this.passwordConfirmController,
+    required this.passwordConfirmController, required Future<Null> Function(dynamic username) onSignupSuccess,
   }) : super(key: key);
 
   @override

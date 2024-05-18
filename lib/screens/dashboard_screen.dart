@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/user.dart';
+import 'package:habitwise/screens/habit_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final HabitWiseUser user;
@@ -37,7 +38,8 @@ class DashboardScreen extends StatelessWidget {
             SizedBox(height: 10.0),
             ElevatedButton(
               onPressed: () {
-                //Navigate to habits screen
+                // Navigate to HabitScreen
+                Navigator.pushNamed(context, '/habit');
               },
               child: Text('View Habit'),
             ),

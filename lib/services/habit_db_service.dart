@@ -6,32 +6,22 @@ class FirestoreService {
     FirebaseFirestore.instance.collection('habits');
 
   Future<void> addHabit(Habit habit) async {
-    await habitCollection.add({
-      'id' : habit.id,
-      'title': habit.title,
-      'description': habit.description,
-      'createdAt': habit.createdAt.toIso8601String(),
-      'isCompleted': habit.isCompleted,
-    });
+    await habitCollection.doc(habit.id).set(habit.toMap());
   }
 
   Stream<List<Habit>> getHabits() {
     return habitCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return Habit(
-          id: doc.id,
-          title: doc['title'],
-          description: doc['description'],
-          createdAt: DateTime.parse(doc['createdAt']),
-          isCompleted: doc['isCompleted'],
-        );
+        return Habit.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();
     });
   }
 
-  void removeHabit(String habitId) {
-
+  Future<void> removeHabit(String habitId) async {
+    await habitCollection.doc(habitId).delete();
   }
 
-  void updateHabit(Habit updatedHabit) {}
+  Future<void> updateHabit(Habit updatedHabit) async {
+    await habitCollection.doc(updatedHabit.id).update(updatedHabit.toMap());
+  }
 }
