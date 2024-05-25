@@ -21,17 +21,21 @@ class HabitProvider extends ChangeNotifier {
    _firestoreService.removeHabit(habitId);
   }
 
-  void updateHabit(int index, Habit updatedHabit) {
-    _habits[index] = updatedHabit;
+  void updateHabit(String habitId, Habit updatedHabit) {
+    final index = _habits.indexWhere((habit) => habit.id == habitId);
+    if (index != -1) {
+      _habits[index] = updatedHabit;
     notifyListeners();
     _firestoreService.updateHabit(updatedHabit);
+    }
   }
 
   Future<void> fetchHabits() async {
     _habits.clear();
-    final habits = _firestoreService.getHabits();
-    _habits.addAll(habits as Iterable<Habit>);
-    notifyListeners();
+    _firestoreService.getHabits().listen((fetchedHabits) {
+      _habits.addAll(fetchedHabits);
+      notifyListeners();
+    });
   }
 
   Habit? getHabitById(String id) {

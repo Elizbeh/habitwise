@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/user.dart';
-import 'package:habitwise/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '/methods/auth_methods.dart';
+import '../dashboard_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController;
@@ -29,7 +29,7 @@ class LoginScreen extends StatelessWidget {
               'HabitWise',
               style: TextStyle(
                 fontFamily: 'Billabong',
-                color: Color.fromARGB(255, 100, 15, 114),
+                color: Color.fromRGBO(126, 35, 191, 0.498),
                 fontSize: 50,
               ),
             ),
@@ -37,8 +37,8 @@ class LoginScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Color.fromARGB(255, 165, 160, 19), // Outline color
-                  width: 4, // Outline width
+                  color: Color.fromRGBO(126, 35, 191, 0.498),
+                  width: 4,
                 ),
               ),
               child: ClipOval(
@@ -112,12 +112,12 @@ class LoginScreen extends StatelessWidget {
                           if (user != null) {
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                builder: (context) => HomeScreen(user: user),
+                                builder: (context) => DashboardScreen(user: user),
                               ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text('User data is not available'),
                                 duration: Duration(seconds: 2),
                               ),
@@ -133,13 +133,13 @@ class LoginScreen extends StatelessWidget {
                         }
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(const Color.fromARGB(255, 100, 15, 114)),
+                        backgroundColor: MaterialStateProperty.all(Color.fromRGBO(126, 35, 191, 0.498)),
                         padding: MaterialStateProperty.all(
                           EdgeInsets.symmetric(vertical: 16),
                         ),
                         shape: MaterialStateProperty.all(
                           RoundedRectangleBorder(
-                            borderRadius: BorderRadius.zero,
+                            borderRadius: BorderRadius.circular(30),
                           ),
                         ),
                       ),
@@ -189,7 +189,7 @@ class LoginScreen extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color:  Color.fromARGB(255, 165, 160, 19),
+                            color: Color.fromRGBO(126, 35, 191, 0.498),
                           ),
                         ),
                       ),

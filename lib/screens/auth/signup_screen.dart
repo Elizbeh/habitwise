@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/methods/auth_methods.dart';
 
-class SignUpScreen extends StatelessWidget {
+class SignUpScreen extends StatefulWidget {
   final AuthMethod authMethod = AuthMethod();
 
   final TextEditingController emailController;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   final TextEditingController passwordConfirmController;
+  final Future<Null> Function(String username) onSignupSuccess;
 
   SignUpScreen({
     Key? key,
     required this.emailController,
     required this.usernameController,
     required this.passwordController,
-    required this.passwordConfirmController, required Future<Null> Function(dynamic username) onSignupSuccess,
+    required this.passwordConfirmController,
+    required this.onSignupSuccess,
   }) : super(key: key);
+
+  @override
+  _SignUpScreenState createState() => _SignUpScreenState();
+}
+
+class _SignUpScreenState extends State<SignUpScreen> {
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +40,24 @@ class SignUpScreen extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Billabong',
                 fontSize: 50,
-                color: Color.fromARGB(255, 100, 15, 114),
+                color: const Color.fromRGBO(126, 35, 191, 0.498),
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color.fromRGBO(126, 35, 191, 0.498),
+                  width: 4, // Outline width
+                ),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 100,
+                  height: 80,
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -41,7 +68,7 @@ class SignUpScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 28),
                   TextField(
-                    controller: emailController,
+                    controller: widget.emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       hintText: 'Email',
@@ -55,7 +82,7 @@ class SignUpScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 28),
                   TextField(
-                    controller: usernameController,
+                    controller: widget.usernameController,
                     keyboardType: TextInputType.text,
                     decoration: InputDecoration(
                       hintText: 'Username',
@@ -69,8 +96,8 @@ class SignUpScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 28),
                   TextField(
-                    controller: passwordController,
-                    obscureText: true,
+                    controller: widget.passwordController,
+                    obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       hintText: 'Password',
                       filled: true,
@@ -79,12 +106,22 @@ class SignUpScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10.0),
                         borderSide: BorderSide.none,
                       ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
                   ),
                   SizedBox(height: 28),
                   TextField(
-                    controller: passwordConfirmController,
-                    obscureText: true,
+                    controller: widget.passwordConfirmController,
+                    obscureText: !_isConfirmPasswordVisible,
                     decoration: InputDecoration(
                       hintText: 'Confirm password',
                       filled: true,
@@ -93,6 +130,16 @@ class SignUpScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10.0),
                         borderSide: BorderSide.none,
                       ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
                   ),
                   SizedBox(height: 48),
@@ -100,10 +147,10 @@ class SignUpScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        String email = emailController.text.trim();
-                        String username = usernameController.text.trim();
-                        String password = passwordController.text.trim();
-                        String confirmPassword = passwordConfirmController.text.trim();
+                        String email = widget.emailController.text.trim();
+                        String username = widget.usernameController.text.trim();
+                        String password = widget.passwordController.text.trim();
+                        String confirmPassword = widget.passwordConfirmController.text.trim();
 
                         // Validate email
                         if (email.isEmpty) {
@@ -146,7 +193,7 @@ class SignUpScreen extends StatelessWidget {
                         }
 
                         // Call sign up method
-                        String result = await authMethod.signUpUser(
+                        String result = await widget.authMethod.signUpUser(
                           email: email,
                           username: username,
                           password: password,
@@ -160,6 +207,7 @@ class SignUpScreen extends StatelessWidget {
                               duration: Duration(seconds: 2),
                             ),
                           );
+                          widget.onSignupSuccess(username);
                           // Navigate to success screen or login screen
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -169,9 +217,23 @@ class SignUpScreen extends StatelessWidget {
                           );
                         }
                       },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(126, 35, 191, 0.498)),
+                        padding: MaterialStateProperty.all(
+                          EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          )
+                        ),
+                      ),
                       child: Text(
                         'Sign Up',
-                        style: TextStyle(color: Colors.white),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold
+                          ),
                       ),
                     ),
                   ),
@@ -194,7 +256,7 @@ class SignUpScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 100, 15, 114),
+                            color: const Color.fromRGBO(126, 35, 191, 0.498),
                           ),
                         ),
                       ),

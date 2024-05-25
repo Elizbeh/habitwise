@@ -1,26 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
-import 'package:habitwise/methods/auth_methods.dart';
 import 'package:habitwise/screens/auth/login_screen.dart';
 import 'package:habitwise/screens/auth/signup_screen.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/goals_screen.dart';
 import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/screens/landing_page.dart';
-
+import 'package:habitwise/screens/profile_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:habitwise/methods/auth_methods.dart';
 import 'models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-   options: FirebaseOptions(
-      apiKey: FirebaseConfig.apiKey,
-      appId: FirebaseConfig.appId,
-      messagingSenderId: FirebaseConfig.messagingSenderId,
-      projectId: FirebaseConfig.projectId,
-      storageBucket: FirebaseConfig.storageBucket,
+    options: const FirebaseOptions(
+      apiKey: 'AIzaSyDqiOs99zZhD3Q7g48oLPx3XCr0Jt5ywgs',
+      appId: '1:704019757717:android:a0ca31290d595fe408f99c',
+      messagingSenderId: '704019757717',
+      projectId: 'habitwise-e8dc4',
+      storageBucket: 'habitwise-e8dc4.appspot.com',
     ),
   );
 
@@ -29,6 +31,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => HabitProvider()..fetchHabits()),
+        ChangeNotifierProvider(create: (_) => GoalProvider()..fetchGoals()),
       ],
       child: MyApp(),
     ),
@@ -39,9 +42,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'HabitWise',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
+         primarySwatch: Colors.deepPurple,
+        primaryColor: Color.fromRGBO(126, 35, 191, 0.498),
       ),
       initialRoute: '/',
       routes: {
@@ -82,6 +87,7 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
+        // Default route for handling user-dependent screens
         '/dashboard': (context) => FutureBuilder<HabitWiseUser>(
           future: AuthMethod().getUserDetails(),
           builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
@@ -102,7 +108,66 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-        '/habit': (context) => HabitScreen(),
+        '/habit': (context) => FutureBuilder<HabitWiseUser>(
+          future: AuthMethod().getUserDetails(),
+          builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasData && snapshot.data != null) {
+              return HabitScreen(user: snapshot.data!);
+            } else if (snapshot.hasError) {
+              return Scaffold(
+                body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+              );
+            } else {
+              return Scaffold(
+                body: Center(child: Text('User data not found')),
+              );
+            }
+          },
+        ),
+        '/goals': (context) => FutureBuilder<HabitWiseUser>(
+          future: AuthMethod().getUserDetails(),
+          builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasData && snapshot.data != null) {
+              return GoalScreen(user: snapshot.data!);
+            } else if (snapshot.hasError) {
+              return Scaffold(
+                body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+              );
+            } else {
+              return Scaffold(
+                body: Center(child: Text('User data not found')),
+              );
+            }
+          },
+        ),
+        '/profile': (context) => FutureBuilder<HabitWiseUser>(
+          future: AuthMethod().getUserDetails(),
+          builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            } else if (snapshot.hasData && snapshot.data != null) {
+              return ProfilePage(user: snapshot.data!);
+            } else if (snapshot.hasError) {
+              return Scaffold(
+                body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+              );
+            } else {
+              return Scaffold(
+                body: Center(child: Text('User data not found')),
+              );
+            }
+          },
+        ),
       },
     );
   }

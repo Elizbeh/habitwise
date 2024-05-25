@@ -9,6 +9,7 @@ class HabitWiseUser {
   final Map<String, dynamic> soloStats;
   final String familyId;
   final List<String> groupIds;
+  final String? profilePictureUrl;
 
   HabitWiseUser({
     required this.uid,
@@ -19,6 +20,7 @@ class HabitWiseUser {
     required this.soloStats,
     required this.familyId,
     required this.groupIds,
+    this.profilePictureUrl,
   });
 
   factory HabitWiseUser.fromMap(Map<String, dynamic> data) {
@@ -31,6 +33,7 @@ class HabitWiseUser {
       soloStats: Map<String, dynamic>.from(data['soloStats']),
       familyId: data['familyId'],
       groupIds: List<String>.from(data['groupIds']),
+      profilePictureUrl: data['profilePictureUrl'],
     );
   }
 
@@ -44,6 +47,7 @@ class HabitWiseUser {
       'soloStats': soloStats,
       'familyId': familyId,
       'groupIds': groupIds,
+      'profilePictureUrl': 'profilePictureUrl',
     };
   }
 }
