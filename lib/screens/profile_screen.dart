@@ -5,11 +5,16 @@ import 'package:habitwise/providers/goal_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   final HabitWiseUser user;
 
   ProfilePage({required this.user});
 
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,7 +51,7 @@ class ProfilePage extends StatelessWidget {
               Navigator.of(context).pushReplacementNamed('/habit');
             } else if (index == 3) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => ProfilePage(user: user)),
+                MaterialPageRoute(builder: (context) => ProfilePage(user: widget.user)),
               );
             }
           }
@@ -60,8 +65,8 @@ class ProfilePage extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 40,
-          backgroundImage: (user.profilePictureUrl != null && user.profilePictureUrl!.isNotEmpty)
-              ? NetworkImage(user.profilePictureUrl!)
+          backgroundImage: (widget.user.profilePictureUrl != null && widget.user.profilePictureUrl!.isNotEmpty)
+              ? NetworkImage(widget.user.profilePictureUrl!)
               : AssetImage('assets/images/default_avatar.png') as ImageProvider,
         ),
         const SizedBox(width: 20),
@@ -69,11 +74,11 @@ class ProfilePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              user.username,
+              widget.user.username,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
-              user.email,
+              widget.user.email,
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
           ],
@@ -114,6 +119,7 @@ class ProfilePage extends StatelessWidget {
       builder: (context, provider, child) {
         final totalGoals = provider.goals.length;
         final completedGoals = provider.goals.where((goal) => goal.isCompleted).length;
+        print('Total Goals: $totalGoals, Completed Goals: $completedGoals');
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

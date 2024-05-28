@@ -1,13 +1,31 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/services/habit_db_service.dart';
 
 class HabitProvider extends ChangeNotifier {
-  final List<Habit> _habits = [];
+  List<Habit> _habits = [];
   
   final FirestoreService _firestoreService = FirestoreService();
+  StreamSubscription? _habitsSubscription;
 
   List<Habit> get habits => _habits;
+
+  HabitProvider() {
+    _initializeHabits();
+  }
+
+  void _initializeHabits() {
+    _habitsSubscription = _firestoreService.getHabits().listen((fetchHabits) {
+      _habits = fetchHabits;
+      notifyListeners();
+    });
+  }
+  @override
+  void dispose() {
+    _habitsSubscription?.cancel();
+    super.dispose();
+  }
 
   void addHabit(Habit habit) {
     _habits.add(habit);
@@ -15,8 +33,14 @@ class HabitProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> fetchHabits() async {
+    _habits.clear(); // Clear the existing habits
+    notifyListeners(); // Notify listeners to update UI
+  }
+
+
   void removeHabit(String habitId) {
-   _habits.removeWhere((habit) => habitId == habitId);
+   _habits.removeWhere((habit) => habit.id == habitId);
    notifyListeners();
    _firestoreService.removeHabit(habitId);
   }
@@ -27,15 +51,8 @@ class HabitProvider extends ChangeNotifier {
       _habits[index] = updatedHabit;
     notifyListeners();
     _firestoreService.updateHabit(updatedHabit);
+    notifyListeners();
     }
-  }
-
-  Future<void> fetchHabits() async {
-    _habits.clear();
-    _firestoreService.getHabits().listen((fetchedHabits) {
-      _habits.addAll(fetchedHabits);
-      notifyListeners();
-    });
   }
 
   Habit? getHabitById(String id) {

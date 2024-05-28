@@ -47,4 +47,8 @@ class FirestoreService {
       'isCompleted': updatedGoal.isCompleted,
     });
   }
+
+   Future<void> markGoalAsCompleted(String goalId) async {
+    await goalCollection.doc(goalId).update({'isCompleted': true});
+  }
 }

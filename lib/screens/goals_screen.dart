@@ -12,9 +12,9 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 
 class GoalScreen extends StatefulWidget {
-  final HabitWiseUser user; // Add this line
+  final HabitWiseUser user;
 
-  GoalScreen({required this.user}); // Modify constructor
+  GoalScreen({required this.user});
 
   @override
   _GoalScreenState createState() => _GoalScreenState();
@@ -26,7 +26,7 @@ class _GoalScreenState extends State<GoalScreen> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   final DateTime _focusedDay = DateTime.now();
   late DateTime _selectedDay;
-  int _currentIndex = 1; // Assuming GoalScreen is at index 1
+  int _currentIndex = 1;
 
   @override
   void initState() {

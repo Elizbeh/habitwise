@@ -24,7 +24,7 @@ class LandingPage extends StatelessWidget {
         children: [
           // Gradient Background
           Positioned.fill(
-            top: MediaQuery.of(context).size.height * 0.33,
+            top: MediaQuery.of(context).size.height * 0.26,
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -32,7 +32,7 @@ class LandingPage extends StatelessWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                      Color.fromRGBO(126, 35, 191, 0.498),
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withOpacity(0.5),
                   ],
                 ),
               ),
@@ -63,7 +63,7 @@ class LandingPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 100.0),
+                const SizedBox(height: 200.0),
                 // Logo or App Name
                 const Text(
                   'HabitWise',
@@ -74,7 +74,7 @@ class LandingPage extends StatelessWidget {
                     shadows: [
                       Shadow(
                         offset: Offset(2.0, 2.0),
-                        blurRadius: 3.0,
+                        blurRadius: 2.0,
                         color: Color.fromARGB(225, 0, 0, 0),
                       )
                     ]
@@ -102,12 +102,11 @@ class LandingPage extends StatelessWidget {
                   'Welcome to HabitWise',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 30.0,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 30,
                     shadows: [
                       Shadow(
                         offset: Offset(2.0, 2.0),
-                        blurRadius: 3.0,
+                        blurRadius: 2.0,
                         color: Color.fromARGB(225, 0, 0, 0),
                       )
                     ]
@@ -129,7 +128,7 @@ class LandingPage extends StatelessWidget {
                       Navigator.pushNamed(context, '/login');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Color.fromARGB(255, 237, 236, 228),
+                      backgroundColor: Colors.grey[200],
                       elevation: 1,
                       padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 15.0),
                       shape: RoundedRectangleBorder(
@@ -139,9 +138,10 @@ class LandingPage extends StatelessWidget {
                     child: Text(
                       'Get Started',
                       style: TextStyle(
-                        color: Colors.black,
+                        color: Colors.deepPurple,
                         fontSize: 22.0,
                         fontWeight: FontWeight.bold,
+                        
                       ),
                     ),
                   ),
@@ -191,10 +191,16 @@ class _AnimatedSubtitleState extends State<AnimatedSubtitle> with SingleTickerPr
       child: Text(
         'Develop habits. Achieve goals. Transform your life.',
         style: TextStyle(
-          color: Colors.white,
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-        ),
+                    color: Colors.white,
+                    fontSize: 20,
+                    shadows: [
+                      Shadow(
+                        offset: Offset(2.0, 2.0),
+                        blurRadius: 2.0,
+                        color: Color.fromARGB(225, 0, 0, 0),
+                      )
+                    ]
+                  ),
         textAlign: TextAlign.center,
       ),
     );

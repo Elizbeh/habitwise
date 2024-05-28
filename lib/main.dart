@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
@@ -16,27 +17,35 @@ import 'models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   await Firebase.initializeApp(
     options: FirebaseOptions(
-      apiKey: dotenv.env['API_KEY']!,
-      appId: dotenv.env['APP_ID']!,
-      messagingSenderId: dotenv.env['MESSAGING_SENDER_ID']!,
-      projectId: dotenv.env['PROJECT_ID']!,
-      storageBucket: dotenv.env['STORAGE_BUCKET']!,
+      apiKey: dotenv.env['API_KEY'],
+      appId: dotenv.env['APP_ID'],
+      messagingSenderId: dotenv.env['MESSAGING_SENDER_ID'],
+      projectId: dotenv.env['PROJECT_ID'],
+      storageBucket: dotenv.env['STORAGE_BUCKET'],
     ),
   );
+
+  final userProvider = UserProvider();
+  final habitProvider = HabitProvider();
+  final goalProvider = GoalProvider();
+
+  await userProvider.getUserDetails(); // Fetch user details once
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => HabitProvider()..fetchHabits()),
-        ChangeNotifierProvider(create: (_) => GoalProvider()..fetchGoals()),
+        ChangeNotifierProvider.value(value: userProvider),
+        ChangeNotifierProvider.value(value: habitProvider),
+        ChangeNotifierProvider.value(value: goalProvider),
       ],
       child: MyApp(),
     ),
   );
 }
+
 
 class MyApp extends StatelessWidget {
   @override
@@ -64,7 +73,7 @@ class MyApp extends StatelessWidget {
                 ),
               );
             } else {
-              // Handle error if user data isn't available
+              // Handle error if user data isn't available: Todo..
             }
           },
         ),
@@ -83,7 +92,7 @@ class MyApp extends StatelessWidget {
                 ),
               );
             } else {
-              // Handle error if user data isn't available
+              // Handle error if user data isn't available. todo...
             }
           },
         ),

@@ -23,7 +23,7 @@ class HabitScreen extends StatefulWidget {
 class _HabitScreenState extends State<HabitScreen> {
   String sortingCriteria = 'Priority';
   String selectedCategory = 'All'; // Default category selection
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  CalendarFormat _calendarFormat = CalendarFormat.week;
   final DateTime _focusedDay = DateTime.now();
   late DateTime _selectedDay;
   int _currentIndex = 2; // Assuming HabitScreen is at index 2
@@ -32,7 +32,6 @@ class _HabitScreenState extends State<HabitScreen> {
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
-    Provider.of<HabitProvider>(context, listen: false).fetchHabits();
   }
 
   // Filter habits based on category
@@ -156,8 +155,8 @@ class _HabitScreenState extends State<HabitScreen> {
               },
             ),
             Consumer<HabitProvider>(
-              builder: (context, provider, child) {
-                final filteredHabits = _sortAndFilterHabits(provider.habits); // apply sorting and filtering
+              builder: (context, HabitProvider, child) {
+                final filteredHabits = _sortAndFilterHabits(HabitProvider.habits); // apply sorting and filtering
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),

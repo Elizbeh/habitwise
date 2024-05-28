@@ -57,7 +57,7 @@ class Goal {
       id: json['id'],
       title: json['title'],
       description: json['description'],
-      progress: json['progress'],
+      progress: json.containsKey('progress') ? json['progress'] : 0,
       target: json['target'],
       targetDate: (json['targetDate'] as Timestamp).toDate(),
       category: json['category'],

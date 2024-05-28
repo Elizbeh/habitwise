@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/providers/goal_provider.dart';
+import 'package:habitwise/screens/dialogs/edit_goal_dialog.dart';
 import 'package:provider/provider.dart';
 
 class GoalTile extends StatelessWidget {
@@ -10,11 +11,11 @@ class GoalTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-     // Provide deafault values if goal.progress or goal target is null
-      final num progress = goal.progress ??  0.0;
-      final num target = goal.target ?? 1.0;
+    // Provide default values if goal.progress or goal target is null
+    final num progress = goal.progress ?? 0;
+    final num target = goal.target ?? 1;
 
-      print('Goal progress: $progress, Goal target: $target');
+    print('Goal progress: $progress, Goal target: $target');
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       padding: EdgeInsets.all(12.0),
@@ -37,10 +38,27 @@ class GoalTile extends StatelessWidget {
           children: [
             Text(goal.description),
             SizedBox(height: 4),
-            LinearProgressIndicator(
-              value: goal.progress / goal.target,
-              backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+            Row(
+              children: List.generate(target.toInt(), (index) {
+                return IconButton(
+                  icon: Icon(
+                    progress > index ? Icons.check_circle : Icons.radio_button_unchecked,
+                    color: progress > index ? Colors.green : Colors.grey,
+                  ),
+                  onPressed: () {
+                    final updatedProgress = index + 1;
+                    print('Updating goal progress to: $updatedProgress');
+                    Provider.of<GoalProvider>(context, listen: false).updateGoal(
+                      goal.copyWith(progress: updatedProgress),
+                    );
+                    // check if all progress steps have been completed
+                    if (updatedProgress == target) {
+                       print('All progress steps completed');
+                      Provider.of<GoalProvider>(context, listen: false).markGoalAsCompleted(goal.id);
+                    }
+                  },
+                );
+              }),
             ),
             SizedBox(height: 4),
             Text('Progress: ${goal.progress}/${goal.target}'),
@@ -52,7 +70,13 @@ class GoalTile extends StatelessWidget {
             IconButton(
               icon: Icon(Icons.edit),
               onPressed: () {
-                // Implement edit goal functionality. TODO...
+                // Navigate to the edit goal screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditGoalDialog(goal: goal),
+                  ),
+                );
               },
             ),
             IconButton(
