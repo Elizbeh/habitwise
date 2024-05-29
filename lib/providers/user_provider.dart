@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import '/models/user.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/user.dart';
+import '../services/user_db_service.dart';
 import '../methods/auth_methods.dart';
 
 class UserProvider extends ChangeNotifier {
+  final AuthMethod _authMethod = AuthMethod();
+  final UserDBService _userDBService = UserDBService();
+
   HabitWiseUser? _user;
   bool _isLoading = false;
   String _errorMessage = '';
@@ -11,23 +16,39 @@ class UserProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
 
-  final AuthMethod _authMethod = AuthMethod();
-
   UserProvider() {
     getUserDetails();
   }
 
-  Future<HabitWiseUser?> getUserDetails() async {
-    _isLoading = true;
-    notifyListeners();
-    _user = await _authMethod.getUserDetails();
+  Future<HabitWiseUser> getUserDetails() async {
+  _isLoading = true;
+  _errorMessage = '';
+  notifyListeners();
+  
+  try {
+    final currentUser = _authMethod.getCurrentUser();
+    if (currentUser != null) {
+      _user = await _userDBService.getUserById(currentUser.uid);
+      _isLoading = false;
+      notifyListeners();
+      return _user!;
+    } else {
+      _isLoading = false;
+      notifyListeners();
+      throw Exception('Current user is null');
+    }
+  } catch (e) {
+    _errorMessage = 'Error getting user details: $e';
     _isLoading = false;
     notifyListeners();
-    return _user;
+    throw Exception(_errorMessage);
   }
+}
 
+ 
   Future<void> loginUser({required String email, required String password}) async {
     _isLoading = true;
+    _errorMessage = '';
     notifyListeners();
     String result = await _authMethod.login(email: email, password: password);
     if (result == 'success') {
@@ -39,33 +60,42 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> signUpUser({
-    required String email,
-    required String password,
-    required String username,
-  }) async {
+  Future<void> signUpUser({required String email, required String password, required String username, required String confirmPassword}) async {
     _isLoading = true;
+    _errorMessage = '';
     notifyListeners();
-    String result = await _authMethod.signUpUser(
-      email: email, 
-      password: password, 
-      username: username, 
-      confirmPassword: ''
-    );
-    if (result == 'success') {
+    AuthResult result = await _authMethod.signUpUser(email: email, password: password, username: username, confirmPassword: confirmPassword);
+    if (result == AuthResult.success) {
       await getUserDetails();
     } else {
-      _errorMessage = result;
+      _errorMessage = _handleAuthError(result);
       _isLoading = false;
       notifyListeners();
     }
   }
 
   Future<void> logoutUser() async {
+    await _authMethod.logout();
     _user = null;
     _isLoading = false;
     _errorMessage = '';
-    await _authMethod.logout();
     notifyListeners();
+  }
+
+  String _handleAuthError(AuthResult result) {
+    switch (result) {
+      case AuthResult.invalidInput:
+        return 'Please fill in all fields.';
+      case AuthResult.emailInUse:
+        return 'Email is already in use.';
+      case AuthResult.weakPassword:
+        return 'Password is too weak.';
+      case AuthResult.networkError:
+        return 'Network error occurred.';
+      case AuthResult.unknownError:
+        return 'An unknown error occurred.';
+      default:
+        return 'An error occurred.';
+    }
   }
 }

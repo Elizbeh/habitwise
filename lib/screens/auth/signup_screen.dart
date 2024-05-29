@@ -193,12 +193,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         }
 
                         // Call sign up method
-                        String result = await widget.authMethod.signUpUser(
+                        String result = '';
+                        try {
+                          AuthResult authResult = await widget.authMethod.signUpUser(
                           email: email,
                           username: username,
                           password: password,
                           confirmPassword: confirmPassword,
-                        );
+                        ); if (authResult == AuthResult.success) {
+                          result = 'success';
+                        } else {
+                          result = 'An error occurred during sign up';
+                        }
+                      } catch (e) {
+                        result = 'An error occured during signup';
+                      }
 
                         if (result == 'success') {
                           ScaffoldMessenger.of(context).showSnackBar(

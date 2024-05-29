@@ -2,20 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
-import '/methods/auth_methods.dart';
 import '../dashboard_screen.dart';
 
 class LoginScreen extends StatelessWidget {
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
-  final Function(String username) onLoginSuccess;
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-  const LoginScreen({
-    Key? key,
-    required this.emailController,
-    required this.passwordController,
-    required this.onLoginSuccess,
-  }) : super(key: key);
+  LoginScreen({Key? key, required TextEditingController passwordController, required TextEditingController emailController, required Future<Null> Function(dynamic username) onLoginSuccess}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +17,7 @@ class LoginScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(height: 28),
+            const SizedBox(height: 28),
             const Text(
               'HabitWise',
               style: TextStyle(
@@ -53,7 +46,7 @@ class LoginScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  SizedBox(height: 28),
+                  const SizedBox(height: 28),
                   TextField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -67,7 +60,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   TextField(
                     controller: passwordController,
                     obscureText: true,
@@ -81,7 +74,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 48),
+                  const SizedBox(height: 48),
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -99,20 +92,16 @@ class LoginScreen extends StatelessWidget {
                           );
                           return;
                         }
+                        await Provider.of<UserProvider>(context, listen: false).loginUser(email: email, password: password);
 
-                        String result = await AuthMethod().login(
-                          email: email,
-                          password: password,
-                        );
+                        UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
+                        HabitWiseUser? user;
 
-                        if (result == 'success') {
-                          // Fetch user data using UserProvider
-                          UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
-                          HabitWiseUser? user = await userProvider.getUserDetails();
-                          if (user != null) {
+                        if (userProvider.errorMessage.isEmpty) {
+                          if (userProvider.user != null) {
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                builder: (context) => DashboardScreen(user: user),
+                                builder: (context) => DashboardScreen(user: userProvider.user!),
                               ),
                             );
                           } else {
@@ -126,7 +115,7 @@ class LoginScreen extends StatelessWidget {
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(result),
+                              content: Text(userProvider.errorMessage),
                               duration: Duration(seconds: 2),
                             ),
                           );
@@ -135,7 +124,7 @@ class LoginScreen extends StatelessWidget {
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(Color.fromRGBO(126, 35, 191, 0.498)),
                         padding: MaterialStateProperty.all(
-                          EdgeInsets.symmetric(vertical: 16),
+                          const EdgeInsets.symmetric(vertical: 16),
                         ),
                         shape: MaterialStateProperty.all(
                           RoundedRectangleBorder(
@@ -143,23 +132,22 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Log in',
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "Forgot your login details? ",
                         style: TextStyle(fontSize: 14),
                       ),
                       TextButton(
                         onPressed: () {
-                          // Navigate to password reset screen
                           Navigator.pushNamed(context, '/forgot_password');
                         },
                         child: const Text(

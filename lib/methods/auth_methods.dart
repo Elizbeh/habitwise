@@ -1,94 +1,91 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:logger/logger.dart';
 import '../models/user.dart';
+import '../services/user_db_service.dart';
 
 final logger = Logger();
 
+enum AuthResult {
+  success,
+  invalidInput,
+  emailInUse,
+  weakPassword,
+  networkError,
+  unknownError,
+}
+
 class AuthMethod {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final UserDBService _userDBService = UserDBService();
 
   Future<String> login({required String email, required String password}) async {
     try {
-      if (email.isEmpty || password.isEmpty) {
-        return "Please fill all the fields";
+      UserCredential authResult = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      if (authResult.user != null) {
+        return 'success';
+      } else {
+        return 'Login failed';
       }
-
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return "success";
     } catch (e) {
-      logger.e('Error occurred while logging in: $e');
       return e.toString();
     }
   }
 
-  Future<String> signUpUser({
+  Future<AuthResult> signUpUser({
     required String email,
     required String password,
-    required String username, 
+    required String username,
     required String confirmPassword,
   }) async {
+    if (email.isEmpty || password.isEmpty || username.isEmpty) {
+      return AuthResult.invalidInput;
+    }
+
+    if (password.length < 6) {
+      return AuthResult.weakPassword;
+    }
+
     try {
-      if (email.isEmpty || password.isEmpty || username.isEmpty) {
-        return "Please fill all the fields";
-      }
-
-      if (password.length < 6) {
-        return "Password must be at least 6 characters long";
-      }
-
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      User? user = userCredential.user;
 
+      User? user = userCredential.user;
       if (user != null) {
-        await _firestore.collection("users").doc(user.uid).set({
-          'uid': user.uid,
-          'email': email,
-          'username': username,
-          'goals': [],
-          'habits': [],
-          'soloStats': {},
-          'familyId': '',
-          'groupIds': [],
-        });
-        return 'success';
+        HabitWiseUser habitWiseUser = HabitWiseUser(
+          uid: user.uid,
+          email: email,
+          username: username,
+          goals: [],
+          habits: [],
+          soloStats: {},
+          familyId: '',
+          groupIds: [],
+        );
+
+        await _userDBService.createUser(habitWiseUser);
+        return AuthResult.success;
       } else {
-        return 'An error occurred while signing up';
+        return AuthResult.unknownError;
       }
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        return 'The email address is already in use';
-      } else if (e.code == 'weak-password') {
-        return 'The password provided is too weak';
-      } else {
-        logger.e('Firebase Auth Error: $e');
-        return 'An error occurred while signing up';
-      }
-    } on FirebaseException catch (e) {
-      if (e.code == 'network-request-failed') {
-        return 'A network error has occurred. Please check your internet connection and try again.';
-      } else {
-        logger.e('Firebase Error: $e');
-        return 'An error occurred while signing up';
-      }
+      logger.e('Firebase Auth Error: $e');
+      return _handleFirebaseAuthError(e);
     } catch (e) {
       logger.e('Error signing up: $e');
-      return 'An error occurred while signing up';
+      return AuthResult.unknownError;
     }
   }
 
-  Future<HabitWiseUser> getUserDetails() async {
+  Future<HabitWiseUser?> getUserDetails() async {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        DocumentSnapshot snapshot = await _firestore.collection('users').doc(user.uid).get();
-        if (snapshot.exists) {
-          return HabitWiseUser.fromMap(snapshot.data() as Map<String, dynamic>);
-        }
+        return await _userDBService.getUserById(user.uid);
       }
       throw Exception('User details not found');
     } catch (e) {
@@ -97,5 +94,24 @@ class AuthMethod {
     }
   }
 
-  logout() {}
+  Future<void> logout() async {
+    await _auth.signOut();
+  }
+
+  User? getCurrentUser() {
+    return _auth.currentUser;
+  }
+
+  AuthResult _handleFirebaseAuthError(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        return AuthResult.emailInUse;
+      case 'weak-password':
+        return AuthResult.weakPassword;
+      case 'network-request-failed':
+        return AuthResult.networkError;
+      default:
+        return AuthResult.unknownError;
+    }
+  }
 }

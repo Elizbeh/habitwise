@@ -21,6 +21,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
         title: Text('Profile'),
+        
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -67,7 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
           radius: 40,
           backgroundImage: (widget.user.profilePictureUrl != null && widget.user.profilePictureUrl!.isNotEmpty)
               ? NetworkImage(widget.user.profilePictureUrl!)
-              : AssetImage('assets/images/default_avatar.png') as ImageProvider,
+              : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
         ),
         const SizedBox(width: 20),
         Column(

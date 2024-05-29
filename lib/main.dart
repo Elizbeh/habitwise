@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
@@ -32,14 +32,18 @@ void main() async {
   final habitProvider = HabitProvider();
   final goalProvider = GoalProvider();
 
-  await userProvider.getUserDetails(); // Fetch user details once
-
+  // Check if user is signed in before fetching user details
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser != null) {
+    await userProvider.getUserDetails(); // Fetch user details once if user is signed in
+  }
+  
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: userProvider),
-        ChangeNotifierProvider.value(value: habitProvider),
-        ChangeNotifierProvider.value(value: goalProvider),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => HabitProvider()),
+        ChangeNotifierProvider(create: (_) => GoalProvider()),
       ],
       child: MyApp(),
     ),
@@ -97,9 +101,9 @@ class MyApp extends StatelessWidget {
           },
         ),
         // Default route for handling user-dependent screens
-        '/dashboard': (context) => FutureBuilder<HabitWiseUser>(
+        '/dashboard': (context) => FutureBuilder<HabitWiseUser?>(
           future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
+          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Scaffold(
                 body: Center(child: CircularProgressIndicator()),
@@ -117,9 +121,9 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-        '/habit': (context) => FutureBuilder<HabitWiseUser>(
+        '/habit': (context) => FutureBuilder<HabitWiseUser?>(
           future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
+          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Scaffold(
                 body: Center(child: CircularProgressIndicator()),
@@ -137,9 +141,9 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-        '/goals': (context) => FutureBuilder<HabitWiseUser>(
+        '/goals': (context) => FutureBuilder<HabitWiseUser?>(
           future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
+          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Scaffold(
                 body: Center(child: CircularProgressIndicator()),
@@ -157,9 +161,9 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-        '/profile': (context) => FutureBuilder<HabitWiseUser>(
+        '/profile': (context) => FutureBuilder<HabitWiseUser?>(
           future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser> snapshot) {
+          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return Scaffold(
                 body: Center(child: CircularProgressIndicator()),
@@ -177,7 +181,7 @@ class MyApp extends StatelessWidget {
             }
           },
         ),
-      },
+      }, 
     );
   }
 }

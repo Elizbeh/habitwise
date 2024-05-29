@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/models/user.dart';
+import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/screens/goals_screen.dart';
 import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/screens/profile_screen.dart';
+import 'package:habitwise/providers/user_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:habitwise/providers/habit_provider.dart';
 import '../widgets/line_chart_widget.dart';
 import '../widgets/pie_chart_widget.dart';
 import '../widgets/bottom_navigation_bar.dart';
@@ -21,6 +22,15 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Dashboard'),
         backgroundColor:  Color.fromRGBO(126, 35, 191, 0.498),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Provider.of<UserProvider>(context, listen: false).logoutUser();
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            },
+          ),
+        ],
       ),
       body: Center(
         child: Consumer<HabitProvider>(
