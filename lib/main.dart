@@ -1,55 +1,46 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
+import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/screens/auth/login_screen.dart';
 import 'package:habitwise/screens/auth/signup_screen.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
 import 'package:habitwise/screens/goals_screen.dart';
+import 'package:habitwise/screens/group/create_group_screen.dart';
+import 'package:habitwise/screens/group/group_details_screen.dart';
 import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/screens/landing_page.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:habitwise/methods/auth_methods.dart';
 import 'models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: dotenv.env['API_KEY'],
-      appId: dotenv.env['APP_ID'],
-      messagingSenderId: dotenv.env['MESSAGING_SENDER_ID'],
-      projectId: dotenv.env['PROJECT_ID'],
-      storageBucket: dotenv.env['STORAGE_BUCKET'],
+    options: const FirebaseOptions(
+      apiKey: 'AIzaSyDqiOs99zZhD3Q7g48oLPx3XCr0Jt5ywgs',
+      appId: '1:704019757717:android:a0ca31290d595fe408f99c',
+      messagingSenderId: '704019757717',
+      projectId: 'habitwise-e8dc4',
+      storageBucket: 'habitwise-e8dc4.appspot.com',
     ),
   );
 
-  final userProvider = UserProvider();
-  final habitProvider = HabitProvider();
-  final goalProvider = GoalProvider();
-
-  // Check if user is signed in before fetching user details
-  final currentUser = FirebaseAuth.instance.currentUser;
-  if (currentUser != null) {
-    await userProvider.getUserDetails(); // Fetch user details once if user is signed in
-  }
-  
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => HabitProvider()),
         ChangeNotifierProvider(create: (_) => GoalProvider()),
+        ChangeNotifierProvider(create: (_) => GroupProvider()),
       ],
       child: MyApp(),
     ),
   );
 }
-
 
 class MyApp extends StatelessWidget {
   @override
@@ -77,7 +68,7 @@ class MyApp extends StatelessWidget {
                 ),
               );
             } else {
-              // Handle error if user data isn't available: Todo..
+              // Handle error if user data isn't available... Todo!
             }
           },
         ),
@@ -96,88 +87,122 @@ class MyApp extends StatelessWidget {
                 ),
               );
             } else {
-              // Handle error if user data isn't available. todo...
+              // Handle error if user data isn't available.. Todo.
             }
           },
         ),
         // Default route for handling user-dependent screens
-        '/dashboard': (context) => FutureBuilder<HabitWiseUser?>(
-          future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            } else if (snapshot.hasData && snapshot.data != null) {
-              return DashboardScreen(user: snapshot.data!);
-            } else if (snapshot.hasError) {
-              return Scaffold(
-                body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+        '/dashboard': (context) => Consumer<UserProvider>(
+          builder: (context, userProvider, _) {
+            if (userProvider.user == null) {
+              return FutureBuilder<HabitWiseUser?>(
+                future: userProvider.getUserDetails(),
+                builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    return DashboardScreen(user: snapshot.data!);
+                  } else if (snapshot.hasError) {
+                    return Scaffold(
+                      body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+                    );
+                  } else {
+                    return Scaffold(
+                      body: Center(child: Text('User data not found')),
+                    );
+                  }
+                },
               );
             } else {
-              return Scaffold(
-                body: Center(child: Text('User data not found')),
-              );
+              return DashboardScreen(user: userProvider.user!);
             }
           },
         ),
-        '/habit': (context) => FutureBuilder<HabitWiseUser?>(
-          future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            } else if (snapshot.hasData && snapshot.data != null) {
-              return HabitScreen(user: snapshot.data!);
-            } else if (snapshot.hasError) {
-              return Scaffold(
-                body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+        '/createGroup': (context) => CreateGroupScreen(),
+        '/groupDetails': (context) => GroupDetailsScreen(),
+        '/habit': (context) => Consumer<UserProvider>(
+          builder: (context, userProvider, _) {
+            if (userProvider.user == null) {
+              return FutureBuilder<HabitWiseUser?>(
+                future: userProvider.getUserDetails(),
+                builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    return HabitScreen(user: snapshot.data!);
+                  } else if (snapshot.hasError) {
+                    return Scaffold(
+                      body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+                    );
+                  } else {
+                    return Scaffold(
+                      body: Center(child: Text('User data not found')),
+                    );
+                  }
+                },
               );
             } else {
-              return Scaffold(
-                body: Center(child: Text('User data not found')),
-              );
+              return HabitScreen(user: userProvider.user!);
             }
           },
         ),
-        '/goals': (context) => FutureBuilder<HabitWiseUser?>(
-          future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            } else if (snapshot.hasData && snapshot.data != null) {
-              return GoalScreen(user: snapshot.data!);
-            } else if (snapshot.hasError) {
-              return Scaffold(
-                body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+        '/goals': (context) => Consumer<UserProvider>(
+          builder: (context, userProvider, _) {
+            if (userProvider.user == null) {
+              return FutureBuilder<HabitWiseUser?>(
+                future: userProvider.getUserDetails(),
+                builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    return GoalScreen(user: snapshot.data!);
+                  } else if (snapshot.hasError) {
+                    return Scaffold(
+                      body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+                    );
+                  } else {
+                    return Scaffold(
+                      body: Center(child: Text('User data not found')),
+                    );
+                  }
+                },
               );
             } else {
-              return Scaffold(
-                body: Center(child: Text('User data not found')),
-              );
+              return GoalScreen(user: userProvider.user!);
             }
           },
         ),
-        '/profile': (context) => FutureBuilder<HabitWiseUser?>(
-          future: AuthMethod().getUserDetails(),
-          builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Scaffold(
-                body: Center(child: CircularProgressIndicator()),
-              );
-            } else if (snapshot.hasData && snapshot.data != null) {
-              return ProfilePage(user: snapshot.data!);
-            } else if (snapshot.hasError) {
-              return Scaffold(
-                body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+        '/profile': (context) => Consumer<UserProvider>(
+          builder: (context, userProvider, _) {
+            if (userProvider.user == null) {
+              return FutureBuilder<HabitWiseUser?>(
+                future: userProvider.getUserDetails(),
+                builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Scaffold(
+                      body: Center(child: CircularProgressIndicator()),
+                    );
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    return ProfilePage(user: snapshot.data!);
+                  } else if (snapshot.hasError) {
+                    return Scaffold(
+                      body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+                    );
+                  } else {
+                    return Scaffold(
+                      body: Center(child: Text('User data not found')),
+                    );
+                  }
+                },
               );
             } else {
-              return Scaffold(
-                body: Center(child: Text('User data not found')),
-              );
+              return ProfilePage(user: userProvider.user!);
             }
           },
         ),

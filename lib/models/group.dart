@@ -1,6 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-
 class HabitWiseGroup {
   final String groupId;
   final String groupName;
@@ -22,7 +19,7 @@ class HabitWiseGroup {
 
   factory HabitWiseGroup.fromMap(Map<String, dynamic> data) {
     return HabitWiseGroup(
-      groupId:  data['groudId'],
+      groupId:  data['groupId'],
       groupName:  data['groupName'],
       members: List<String>.from(data['members']),
       goals: List<String>.from(data['goals']),

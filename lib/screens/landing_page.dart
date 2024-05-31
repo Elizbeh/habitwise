@@ -64,20 +64,13 @@ class LandingPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 200.0),
-                // Logo or App Name
+                // Logo App Name
                 const Text(
                   'HabitWise',
                   style: TextStyle(
                     fontFamily: 'Billabong',
                     color: Colors.white,
                     fontSize: 50,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(2.0, 2.0),
-                        blurRadius: 2.0,
-                        color: Color.fromARGB(225, 0, 0, 0),
-                      )
-                    ]
                   ),
                 ),
                 Container(
@@ -103,13 +96,7 @@ class LandingPage extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 30,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(2.0, 2.0),
-                        blurRadius: 2.0,
-                        color: Color.fromARGB(225, 0, 0, 0),
-                      )
-                    ]
+                    
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -193,13 +180,6 @@ class _AnimatedSubtitleState extends State<AnimatedSubtitle> with SingleTickerPr
         style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
-                    shadows: [
-                      Shadow(
-                        offset: Offset(2.0, 2.0),
-                        blurRadius: 2.0,
-                        color: Color.fromARGB(225, 0, 0, 0),
-                      )
-                    ]
                   ),
         textAlign: TextAlign.center,
       ),
