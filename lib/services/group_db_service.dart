@@ -17,9 +17,14 @@ class GroupDBService {
   Future<List<HabitWiseGroup>> getAllGroups() async {
     try {
       QuerySnapshot querySnapshot = await groupsCollection.get();
-      return querySnapshot.docs
-          .map((doc) => HabitWiseGroup.fromMap(doc.data() as Map<String, dynamic>))
-          .toList();
+      return querySnapshot.docs.map((doc) {
+        try {
+          return HabitWiseGroup.fromMap(doc.data() as Map<String, dynamic>);
+        } catch (e) {
+          print('Error parsing group data: ${doc.id} - $e');
+          throw e;
+        }
+      }).toList();
     } catch (e) {
       throw Exception('Error fetching groups: $e');
     }
@@ -62,6 +67,28 @@ class GroupDBService {
       await groupsCollection.doc(groupId).delete();
     } catch (e) {
       throw Exception('Error deleting group: $e');
+    }
+  }
+
+  Future<void> addGoalToGroup(String groupId, String goal) async {
+    try {
+      await groupsCollection.doc(groupId).update({
+      'goals': FieldValue.arrayUnion([goal]),
+    });
+    } catch (e) {
+      print('Error adding goal to group: $e');
+      throw e;
+    }
+  }
+
+  Future<void> addHabitToGroup(String groupId, String habit) async {
+    try {
+      await groupsCollection.doc(groupId).update({
+        'habits': FieldValue.arrayUnion([habit]),
+      });
+    } catch (e) {
+      print('Error adding habit to group: $e');
+      throw e;
     }
   }
 }

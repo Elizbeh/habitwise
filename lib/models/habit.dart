@@ -28,7 +28,7 @@ class Habit {
     this.isCompleted = false,
     this.reminder,
     this.category,
-    this.priority = 2,
+    this.priority = 2, String? groupId,
   });
 
   // Method to copy a habit with optional parameters

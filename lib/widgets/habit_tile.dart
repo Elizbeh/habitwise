@@ -1,11 +1,15 @@
+// This widget represents a tile for displaying a habit item, including its title, description, progress, and actions like editing and deleting.
+
 import 'package:flutter/material.dart';
-import 'package:habitwise/providers/habit_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/models/habit.dart';
+import 'package:habitwise/providers/habit_provider.dart';
+
 class HabitTile extends StatefulWidget {
   final Habit habit;
+  final String groupId;
 
-  const HabitTile({required this.habit});
+  const HabitTile({required this.groupId, required this.habit});
 
   @override
   _HabitTileState createState() => _HabitTileState();
@@ -15,8 +19,8 @@ class _HabitTileState extends State<HabitTile> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-      padding: EdgeInsets.all(12.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: Colors.white, // Background color of the tile
         borderRadius: BorderRadius.circular(10.0), // Radius
@@ -24,7 +28,7 @@ class _HabitTileState extends State<HabitTile> {
           BoxShadow(
             color: Colors.black26,
             blurRadius: 4.0,
-            offset: Offset(2, 2),
+            offset: const Offset(2, 2),
           ),
         ],
       ),
@@ -35,13 +39,13 @@ class _HabitTileState extends State<HabitTile> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.habit.description),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             LinearProgressIndicator(
               value: widget.habit.progress / widget.habit.frequency,
               backgroundColor: Colors.grey[200],
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text('Progress: ${widget.habit.progress}/${widget.habit.frequency}'),
           ],
         ),
@@ -49,15 +53,15 @@ class _HabitTileState extends State<HabitTile> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.edit),
+              icon: const Icon(Icons.edit),
               onPressed: () {
-                _showEditHabitDialog(context, widget.habit);
+                _showEditHabitDialog(context, widget.habit); // Show edit habit dialog
               },
             ),
             IconButton(
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
               onPressed: () {
-                Provider.of<HabitProvider>(context, listen: false).removeHabit(widget.habit.id);
+                Provider.of<HabitProvider>(context, listen: false).removeHabit(widget.groupId, widget.habit.id); // Remove habit from provider
               },
             ),
           ],
@@ -66,12 +70,13 @@ class _HabitTileState extends State<HabitTile> {
           Provider.of<HabitProvider>(context, listen: false).updateHabit(
             widget.habit.id,
             widget.habit.incrementProgress(),
-          );
+          ); // Update habit progress
         },
       ),
     );
   }
 
+  // Method to show edit habit dialog
   void _showEditHabitDialog(BuildContext context, Habit habit) {
     final TextEditingController titleController = TextEditingController(text: habit.title);
     final TextEditingController descriptionController = TextEditingController(text: habit.description);
@@ -84,27 +89,27 @@ class _HabitTileState extends State<HabitTile> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Edit Habit'),
+              title: const Text('Edit Habit'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: titleController,
-                      decoration: InputDecoration(labelText: 'Title'),
+                      decoration: const InputDecoration(labelText: 'Title'),
                     ),
                     TextField(
                       controller: descriptionController,
-                      decoration: InputDecoration(labelText: 'Description'),
+                      decoration: const InputDecoration(labelText: 'Description'),
                     ),
                     TextField(
                       controller: frequencyController,
-                      decoration: InputDecoration(labelText: 'Frequency (times per day)'),
+                      decoration: const InputDecoration(labelText: 'Frequency (times per day)'),
                       keyboardType: TextInputType.number,
                     ),
                     DropdownButton<String>(
                       value: selectedCategory,
-                      hint: Text('Select Category'),
+                      hint: const Text('Select Category'),
                       onChanged: (String? newValue) {
                         setState(() {
                           selectedCategory = newValue;
@@ -134,7 +139,7 @@ class _HabitTileState extends State<HabitTile> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -147,10 +152,10 @@ class _HabitTileState extends State<HabitTile> {
                     Provider.of<HabitProvider>(context, listen: false).updateHabit(
                       habit.id,
                       updatedHabit,
-                    );
+                    ); // Update habit in provider
                     Navigator.pop(context);
                   },
-                  child: Text('Save Changes'),
+                  child: const Text('Save Changes'),
                 ),
               ],
             );
@@ -160,5 +165,3 @@ class _HabitTileState extends State<HabitTile> {
     );
   }
 }
-
-  

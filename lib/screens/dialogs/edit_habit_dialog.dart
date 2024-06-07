@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:habitwise/services/habit_db_service.dart';
 
-
- void _showEditHabitDialog(BuildContext context, Habit habit) {
+void _showEditHabitDialog(BuildContext context, Habit habit, bool isGroupHabit, String? groupId) {
   final TextEditingController titleController = TextEditingController(text: habit.title);
   final TextEditingController descriptionController = TextEditingController(text: habit.description);
   final TextEditingController frequencyController = TextEditingController(text: habit.frequency.toString());
@@ -80,8 +80,21 @@ import 'package:provider/provider.dart';
                     isCompleted: habit.isCompleted,
                     category: editedCategory,
                   );
-                  Provider.of<HabitProvider>(context, listen: false).updateHabit(habit.id,updatedHabit);
-                  Navigator.pop(context);
+                  if (isGroupHabit && groupId != null) {
+                    HabitDBService().updateGroupHabit(groupId, updatedHabit).then((_) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Habit updated successfully!')),
+                      );
+                      Navigator.pop(context);
+                    }).catchError((error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error updating habit: $error')),
+                      );
+                    });
+                  } else {
+                    Provider.of<HabitProvider>(context, listen: false).updateHabit(habit.id, updatedHabit);
+                    Navigator.pop(context);
+                  }
                 },
                 child: const Text('Save Changes'),
               ),
@@ -92,6 +105,3 @@ import 'package:provider/provider.dart';
     },
   );
 }
-
-
-

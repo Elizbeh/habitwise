@@ -29,4 +29,18 @@ class UserDBService {
       throw e;
     }
   }
+
+  Future<String> getUserNameById(String userId) async {
+    try {
+      DocumentSnapshot snapshot = await _firestore.collection('users').doc(userId).get();
+      if (snapshot.exists) {
+        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+        return data['username'] ?? 'Unknown';
+      }
+      return 'Unknown';
+    } catch (e) {
+      logger.e('Error getting username: $e');
+      throw e;
+    }
+  }
 }

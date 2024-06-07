@@ -20,12 +20,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: dotenv.env['API_KEY'],
-      appId: dotenv.env['APP_ID'],
-      messagingSenderId: dotenv.env['MESSAGING_SENDER_ID'],
-      projectId: dotenv.env['PROJECT_ID'],
-      storageBucket: dotenv.env['STORAGE_BUCKET'],
+    options: const FirebaseOptions(
+      
     ),
   );
 
@@ -34,7 +30,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => HabitProvider()),
-        ChangeNotifierProvider(create: (_) => GoalProvider()),
+        ChangeNotifierProvider(create: (_) => GoalProvider('exampleGroupId')),
         ChangeNotifierProvider(create: (_) => GroupProvider()),
       ],
       child: MyApp(),

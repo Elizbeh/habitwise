@@ -12,9 +12,9 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 
 class HabitScreen extends StatefulWidget {
-  final HabitWiseUser user; // Add this line
+  final HabitWiseUser user;
 
-  HabitScreen({required this.user}); // Modify constructor
+  HabitScreen({required this.user});
 
   @override
   _HabitScreenState createState() => _HabitScreenState();
@@ -22,11 +22,11 @@ class HabitScreen extends StatefulWidget {
 
 class _HabitScreenState extends State<HabitScreen> {
   String sortingCriteria = 'Priority';
-  String selectedCategory = 'All'; // Default category selection
+  String selectedCategory = 'All';
   CalendarFormat _calendarFormat = CalendarFormat.week;
   final DateTime _focusedDay = DateTime.now();
   late DateTime _selectedDay;
-  int _currentIndex = 2; // Assuming HabitScreen is at index 2
+  int _currentIndex = 2;
 
   @override
   void initState() {
@@ -34,19 +34,17 @@ class _HabitScreenState extends State<HabitScreen> {
     _selectedDay = _focusedDay;
   }
 
-  // Filter habits based on category
   List<Habit> filterHabitsByCategory(List<Habit> habits, String category) {
     if (category == 'All') {
-      return habits; // No need for filtering, returns all habits
+      return habits;
     } else {
       return habits.where((habit) => habit.category == category).toList();
     }
   }
 
-  // Filter habits based on the selected date
   List<Habit> filterHabitsByDate(List<Habit> habits, DateTime? selectedDate) {
     if (selectedDate == null) {
-      return habits; // Returns all habits if no date is selected
+      return habits;
     } else {
       return habits.where((habit) =>
         habit.startDate.isBefore(selectedDate.add(Duration(days: 1))) &&
@@ -55,11 +53,10 @@ class _HabitScreenState extends State<HabitScreen> {
     }
   }
 
-    List<Habit> _sortAndFilterHabits(List<Habit> habits) {
+  List<Habit> _sortAndFilterHabits(List<Habit> habits) {
     List<Habit> filteredHabits = filterHabitsByCategory(habits, selectedCategory);
     filteredHabits = filterHabitsByDate(filteredHabits, _selectedDay);
     
-    // Sort filtered habits based on sorting criteria
     if (sortingCriteria == 'Priority') {
       filteredHabits.sort((a, b) => a.priority.compareTo(b.priority));
     } else if (sortingCriteria == 'Completion Status') {
@@ -74,9 +71,33 @@ class _HabitScreenState extends State<HabitScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor:  Color.fromRGBO(126, 35, 191, 0.498),
-        title: const Text('Habits'),
+        elevation: 0,
+        toolbarHeight: 80,
+        title: const Text(
+          'Habits',
+          style: TextStyle(
+            color: Colors.white
+          ),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(255, 222, 144, 236),
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(57, 181, 77, 199),
+                Color.fromARGB(255, 201, 5, 236)
+              ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topLeft,
+            ),
+          ),
+        ),
         actions: [
           PopupMenuButton<String>(
             onSelected: (String result) {
@@ -104,7 +125,7 @@ class _HabitScreenState extends State<HabitScreen> {
             value: selectedCategory,
             onChanged: (String? newValue) {
               setState(() {
-                selectedCategory = newValue ?? 'All'; // Update selected category
+                selectedCategory = newValue ?? 'All';
               });
             },
             items: <String>[
@@ -123,12 +144,13 @@ class _HabitScreenState extends State<HabitScreen> {
                 child: Text(value),
               );
             }).toList(),
-          )
+          ),
         ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            SizedBox(height: 100),
             TableCalendar(
               firstDay: DateTime.utc(2024, 1, 1),
               lastDay: DateTime.utc(2035, 1, 1),
@@ -139,13 +161,7 @@ class _HabitScreenState extends State<HabitScreen> {
               },
               onFormatChanged: (format) {
                 setState(() {
-                  if (format == CalendarFormat.week) {
-                    _calendarFormat = CalendarFormat.week;
-                  } else if (format == CalendarFormat.twoWeeks) {
-                    _calendarFormat = CalendarFormat.twoWeeks;
-                  } else {
-                    _calendarFormat = CalendarFormat.month;
-                  }
+                  _calendarFormat = format;
                 });
               },
               onDaySelected: (selectedDay, focusedDay) {
@@ -156,14 +172,14 @@ class _HabitScreenState extends State<HabitScreen> {
             ),
             Consumer<HabitProvider>(
               builder: (context, HabitProvider, child) {
-                final filteredHabits = _sortAndFilterHabits(HabitProvider.habits); // apply sorting and filtering
+                final filteredHabits = _sortAndFilterHabits(HabitProvider.habits);
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: filteredHabits.length,
                   itemBuilder: (context, index) {
                     final habit = filteredHabits[index];
-                    return HabitTile(habit: habit);
+                    return HabitTile(habit: habit, groupId: '',);
                   },
                 );
               },
@@ -176,7 +192,7 @@ class _HabitScreenState extends State<HabitScreen> {
         onPressed: () {
           showDialog(
             context: context,
-            builder: (context) => AddHabitDialog(),
+            builder: (context) => const AddHabitDialog(isGroupHabit: false),
           );
         },
         child: const Icon(Icons.add),
@@ -187,19 +203,19 @@ class _HabitScreenState extends State<HabitScreen> {
           if (index != _currentIndex) {
             if (index == 0) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => DashboardScreen(user: widget.user)), // Pass the user
+                MaterialPageRoute(builder: (context) => DashboardScreen(user: widget.user)),
               );
             } else if (index == 1) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => GoalScreen(user: widget.user)), // Pass the user
+                MaterialPageRoute(builder: (context) => GoalScreen(user: widget.user)),
               );
             } else if (index == 2) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => HabitScreen(user: widget.user)), // Pass the user
+                MaterialPageRoute(builder: (context) => HabitScreen(user: widget.user)),
               );
             } else if (index == 3) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => ProfilePage(user: widget.user)), // Pass the user
+                MaterialPageRoute(builder: (context) => ProfilePage(user: widget.user)),
               );
             }
           }
