@@ -3,12 +3,18 @@ import 'package:habitwise/models/user.dart';
 import 'package:provider/provider.dart';
 import '../../providers/user_provider.dart';
 import '../dashboard_screen.dart';
+import '../../methods/auth_methods.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  LoginScreen({Key? key, required TextEditingController passwordController, required TextEditingController emailController, required Future<Null> Function(dynamic username) onLoginSuccess}) : super(key: key);
+  LoginScreen(
+      {Key? key,
+      required TextEditingController passwordController,
+      required TextEditingController emailController,
+      required Future<Null> Function(dynamic username) onLoginSuccess})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -92,19 +98,27 @@ class LoginScreen extends StatelessWidget {
                           );
                           return;
                         }
-                        await Provider.of<UserProvider>(context, listen: false).loginUser(email: email, password: password);
 
-                        UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
-                        HabitWiseUser? user;
+                        // Authenticate user using email and password
+                        String loginResult = await AuthMethod().login(
+                          email: email,
+                          password: password,
+                        );
 
-                        if (userProvider.errorMessage.isEmpty) {
-                          if (userProvider.user != null) {
+                        if (loginResult == 'success') {
+                          // If login is successful, retrieve user details
+                          HabitWiseUser? user =
+                              await AuthMethod().getUserDetails();
+
+                          if (user != null) {
+                            // If user details are available, navigate to dashboard
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
-                                builder: (context) => DashboardScreen(user: userProvider.user!),
+                                builder: (context) => DashboardScreen(user: user),
                               ),
                             );
                           } else {
+                            // Handle case where user details are not available
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('User data is not available'),
@@ -113,16 +127,18 @@ class LoginScreen extends StatelessWidget {
                             );
                           }
                         } else {
+                          // If login fails, show error message
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(userProvider.errorMessage),
+                              content: Text(loginResult),
                               duration: Duration(seconds: 2),
                             ),
                           );
                         }
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color.fromRGBO(126, 35, 191, 0.498)),
+                        backgroundColor: MaterialStateProperty.all(
+                            Color.fromRGBO(126, 35, 191, 0.498)),
                         padding: MaterialStateProperty.all(
                           const EdgeInsets.symmetric(vertical: 16),
                         ),

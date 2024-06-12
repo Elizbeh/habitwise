@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/goal_provider.dart';
+import 'package:habitwise/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 
@@ -18,10 +20,44 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
-        title: Text('Profile'),
-        
+        elevation: 0,
+        toolbarHeight: 80,
+        title: Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(255, 222, 144, 236),
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(57, 181, 77, 199),
+                Color.fromARGB(255, 201, 5, 236)
+              ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topLeft,
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            color: Colors.white,
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Provider.of<UserProvider>(context, listen: false).logoutUser();
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            },
+          ),
+        ], 
+        systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -29,6 +65,7 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 110),
               _buildProfileHeader(context),
               const SizedBox(height: 20),
               _buildHabitStats(context),
@@ -65,10 +102,10 @@ class _ProfilePageState extends State<ProfilePage> {
     return Row(
       children: [
         CircleAvatar(
-          radius: 40,
+          radius: 60,
           backgroundImage: (widget.user.profilePictureUrl != null && widget.user.profilePictureUrl!.isNotEmpty)
               ? NetworkImage(widget.user.profilePictureUrl!)
-              : const AssetImage('assets/images/default_avatar.png') as ImageProvider,
+              : const AssetImage('assets/images/default_avatar.png',) as ImageProvider,
         ),
         const SizedBox(width: 20),
         Column(

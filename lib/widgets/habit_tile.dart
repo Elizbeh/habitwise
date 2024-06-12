@@ -8,8 +8,9 @@ import 'package:habitwise/providers/habit_provider.dart';
 class HabitTile extends StatefulWidget {
   final Habit habit;
   final String groupId;
+  final IconData leadingIcon;
 
-  const HabitTile({required this.groupId, required this.habit});
+  const HabitTile({required this.groupId, required this.habit, required this.leadingIcon});
 
   @override
   _HabitTileState createState() => _HabitTileState();
@@ -26,7 +27,7 @@ class _HabitTileState extends State<HabitTile> {
         borderRadius: BorderRadius.circular(10.0), // Radius
         boxShadow: [
           BoxShadow(
-            color: Colors.black26,
+            color: Color.fromRGBO(126, 35, 191, 0.498),
             blurRadius: 4.0,
             offset: const Offset(2, 2),
           ),
@@ -34,6 +35,7 @@ class _HabitTileState extends State<HabitTile> {
       ),
       child: ListTile(
         contentPadding: EdgeInsets.zero, // Remove default ListTile padding
+        leading: Icon(widget.leadingIcon),
         title: Text(widget.habit.title),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +45,7 @@ class _HabitTileState extends State<HabitTile> {
             LinearProgressIndicator(
               value: widget.habit.progress / widget.habit.frequency,
               backgroundColor: Colors.grey[200],
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color.fromRGBO(126, 35, 191, 0.498)),
             ),
             const SizedBox(height: 4),
             Text('Progress: ${widget.habit.progress}/${widget.habit.frequency}'),

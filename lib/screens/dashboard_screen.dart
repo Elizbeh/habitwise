@@ -14,7 +14,6 @@ import '../widgets/line_chart_widget.dart';
 import '../widgets/pie_chart_widget.dart';
 import '../widgets/bottom_navigation_bar.dart';
 
-
 class DashboardScreen extends StatelessWidget {
   final HabitWiseUser user;
 
@@ -23,22 +22,53 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Dashboard'),
-        backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
+        iconTheme: IconThemeData(color: Colors.white),
+        elevation: 0,
+        toolbarHeight: 80,
+        title: Text(
+          'Dashboard',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(255, 222, 144, 236),
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(57, 181, 77, 199),
+                Color.fromARGB(255, 201, 5, 236)
+              ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topLeft,
+            ),
+          ),
+        ),
         actions: [
           IconButton(
+            color: Colors.white,
             icon: const Icon(Icons.logout),
             onPressed: () {
               Provider.of<UserProvider>(context, listen: false).logoutUser();
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(
+                  context, '/login', (route) => false);
             },
           ),
         ],
       ),
-      body: Center(
-        child: Consumer<HabitProvider>(
-          builder: (context, habitProvider, child) {
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          child: Consumer<HabitProvider>(builder: (context, habitProvider, child) {
             final List<Habit> habits = habitProvider.habits;
 
             return SingleChildScrollView(
@@ -46,13 +76,21 @@ class DashboardScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Welcome back, ${user.username}!',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    'Welcome back, ',
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '${user.username}!',
+                    style: TextStyle(
+                        fontSize: 50,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple),
                   ),
                   SizedBox(height: 20.0),
                   Text(
                     'Your progress and statistics will be displayed here.',
                     textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 20.0),
                   // Group section
@@ -79,7 +117,7 @@ class DashboardScreen extends StatelessWidget {
                 ],
               ),
             );
-          },
+          }),
         ),
       ),
       bottomNavigationBar: BottomNavigationBarWidget(
@@ -100,86 +138,132 @@ class DashboardScreen extends StatelessWidget {
               );
             }
           }
-        }, 
+        },
       ),
     );
   }
 
   Widget _buildGroupSection(BuildContext context) {
-  return Consumer<GroupProvider>(
-    builder: (context, groupProvider, child) {
-      List<HabitWiseGroup> joinedGroups = groupProvider.groups;
+    return Consumer<GroupProvider>(
+      builder: (context, groupProvider, child) {
+        List<HabitWiseGroup> joinedGroups = groupProvider.groups;
 
-      return Container(
-        padding: EdgeInsets.all(10.0),
-        color: Colors.grey[200],
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Groups',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            // Display joined groups using GridView
-            if (joinedGroups.isNotEmpty)
-              GridView.count(
-                shrinkWrap: true,
-                crossAxisCount: 2, // Number of columns in the grid
-                crossAxisSpacing: 10.0, // Spacing between columns
-                mainAxisSpacing: 10.0, // Spacing between rows
-                children: joinedGroups.map((group) {
-                  return Card(
-                    margin: EdgeInsets.all(8.0),
-                    child: InkWell(
-                      onTap: () {
-                        // Navigate to group details screen or perform action
-                        Navigator.pushNamed(
-                          context,
-                          '/groupDetails',
-                          arguments: {'groupId': group.groupId},
-                        );
-                      },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(group.groupName),
-                          SizedBox(height: 8),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/groupDetails',
-                                arguments: group.groupId,
-                              );
-                            },
-                            child: Text('View Details'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList(),
-              )
-            else
+        return Container(
+          padding: EdgeInsets.all(10.0),
+          color: Colors.grey[200],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Text(
-                'No joined groups',
-                style: TextStyle(color: Color.fromRGBO(126, 35, 191, 0.498)),
+                'Groups',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            SizedBox(height: 10),
-            // Button to navigate to create group screen
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => CreateGroupScreen()),
-                );
-              },
-              child: Text('Create a group'),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
+              SizedBox(height: 10),
+              // Display joined groups using ListView instead of GridView
+              if (joinedGroups.isNotEmpty)
+                SizedBox(
+                  height: 200,
+                  width: 150, // Set a fixed height for ListView
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: joinedGroups.length,
+                    separatorBuilder: (context, index) =>
+                        SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      HabitWiseGroup group = joinedGroups[index];
+                      return Card(
+                        margin: EdgeInsets.symmetric(horizontal: 8.0),
+                        child: Stack(
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                // Navigate to group details screen or perform action
+                                Navigator.pushNamed(
+                                  context,
+                                  '/groupDetails',
+                                  arguments: {'groupId': group.groupId},
+                                );
+                              },
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.group_rounded),
+                                  Text(group.groupName),
+                                  SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/groupDetails',
+                                        arguments: group.groupId,
+                                      );
+                                    },
+                                    child: Text('View Details'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: IconButton(
+                                icon: Icon(Icons.close),
+                                onPressed: () {
+                                  // Provide a confirmation dialog before deleting the group
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text("Confirm Delete"),
+                                        content: Text("Are you sure you want to delete this group?"),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text("Cancel"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              // Delete the group when confirmed
+                                              String groupId = group.groupId;
+                                              Provider.of<GroupProvider>(context, listen: false).deleteGroup(groupId);
+                                              Navigator.pop(context); // Close the dialog
+                                            },
+                                            child: Text("Delete"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                )
+              else
+                Text(
+                  'No joined groups',
+                  style: TextStyle(color: Color.fromRGBO(126, 35, 191, 0.498)),
+                ),
+              SizedBox(height: 10),
+              // Button to navigate to create group screen
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => CreateGroupScreen()),
+                  );
+                },
+                child: Text('Create a group'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }

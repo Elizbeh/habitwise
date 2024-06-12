@@ -1,9 +1,16 @@
+
+
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/data/habit_templates.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:habitwise/screens/data/icons/category_icons.dart';
 
 
 class AddHabitDialog extends StatefulWidget {
@@ -26,6 +33,27 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
   final TextEditingController frequencyController = TextEditingController();
   String selectedCategory = 'All';
   String? selectedTemplate;
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  Future<void> _selectDate(BuildContext context, bool isStart) async {
+    final DateTime? picked = await showDatePicker(
+      context: context, 
+      initialDate: isStart ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now()),
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2090),
+    );
+
+    if (picked != null && picked != (isStart ? _startDate : _endDate)) {
+      setState(() {
+        if (isStart) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
+      });
+    } 
+  }
 
   void applyTemplate(Map<String, dynamic> template) {
     setState(() {
@@ -48,6 +76,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedCategory = newValue!;
+                  IconData icon = categoryIcons[selectedCategory] ?? Icons.star;
                   selectedTemplate = null;
                 });
               },
@@ -90,6 +119,28 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               decoration: const InputDecoration(labelText: 'Frequency per Day'),
               keyboardType: TextInputType.number,
             ),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => _selectDate(context, true), 
+                    child: Text(_startDate == null
+                      ? 'Select Start Date'
+                      : 'Start Date: ${DateFormat.yMd().format(_startDate!)}'),
+                  ),
+                ),
+                //const SizedBox(width: 10),
+
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => _selectDate(context, false),
+                    child: Text(_endDate == null
+                      ? 'Select End Date'
+                      : 'End Date: ${DateFormat.yMd().format(_endDate!)}'),
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),
@@ -107,7 +158,8 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               title: titleController.text,
               description: descriptionController.text,
               createdAt: DateTime.now(),
-              startDate: DateTime.now(),
+              startDate: _startDate ?? DateTime.now(),
+              endDate: _endDate,
               frequency: int.tryParse(frequencyController.text) ?? 1,
               isCompleted: false,
               category: selectedCategory,

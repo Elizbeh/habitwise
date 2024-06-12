@@ -22,7 +22,6 @@ void main() async {
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       
-    ),
   );
 
   runApp(
@@ -30,7 +29,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => HabitProvider()),
-        ChangeNotifierProvider(create: (_) => GoalProvider('exampleGroupId')),
+        ChangeNotifierProvider(create: (_) => GoalProvider()),
         ChangeNotifierProvider(create: (_) => GroupProvider()),
       ],
       child: MyApp(),

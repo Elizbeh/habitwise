@@ -1,54 +1,109 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:habitwise/models/goal.dart';
 
-class FirestoreService {
+class GoalDBService {
   final CollectionReference goalCollection =
       FirebaseFirestore.instance.collection('goals');
 
-  Future<void> addGoal(Goal goal) async {
-    await goalCollection.doc(goal.id).set({
-      'id': goal.id,
-      'title': goal.title,
-      'description': goal.description,
-      'target': goal.target,
-      'targetDate': goal.targetDate,
-      'category': goal.category,
-      'isCompleted': goal.isCompleted,
+  final CollectionReference groupCollection =
+      FirebaseFirestore.instance.collection('groups');
+
+  // Function to add a goal
+  Future<void> addGoal(Goal goal, {String? groupId}) async {
+    try {
+      await goalCollection.doc(goal.id).set(goal.toMap());
+      if (groupId != null && groupId.isNotEmpty) {
+        await addGoalToGroup(groupId, goal.id);
+      }
+    } catch (error) {
+      print("Error adding goal: $error");
+      throw error;
+    }
+  }
+
+  // Function to add a goal to a group
+  Future<void> addGoalToGroup(String groupId, String goalId) async {
+    try {
+      await groupCollection.doc(groupId).update({
+        'goals': FieldValue.arrayUnion([goalId])
+      });
+    } catch (error) {
+      print("Error adding goal to group: $error");
+      throw error;
+    }
+  }
+
+   // Function to get a stream of goals for a specific group
+  Stream<List<Goal>> getGroupGoalsStream(String groupId) {
+    return groupCollection.doc(groupId).snapshots().asyncMap((groupDoc) async {
+      List<String> goalIds = List<String>.from(groupDoc['goals'] ?? []);
+      List<Goal> goals = [];
+      for (String goalId in goalIds) {
+        DocumentSnapshot goalDoc = await goalCollection.doc(goalId).get();
+        if (goalDoc.exists) {
+          goals.add(Goal.fromMap(goalDoc.data() as Map<String, dynamic>));
+        }
+      }
+      return goals;
     });
   }
 
+
+  // Function to get goals
   Stream<List<Goal>> getGoals() {
     return goalCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return Goal(
-          id: doc.id,
-          title: doc['title'],
-          description: doc['description'],
-          target: doc['target'],
-          targetDate: doc['targetDate'].toDate(),
-          category: doc['category'],
-          isCompleted: doc['isCompleted'],
-        );
+        return Goal.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();
     });
   }
 
+  // Function to get goals for a specific group
+  Future<List<Goal>> getGroupGoals(String groupId) async {
+    try {
+      DocumentSnapshot groupDoc = await groupCollection.doc(groupId).get();
+      List<String> goalIds = List<String>.from(groupDoc['goals'] ?? []);
+      List<Goal> goals = [];
+      for (String goalId in goalIds) {
+        DocumentSnapshot goalDoc = await goalCollection.doc(goalId).get();
+        if (goalDoc.exists) {
+          goals.add(Goal.fromMap(goalDoc.data() as Map<String, dynamic>));
+        }
+      }
+      return goals;
+    } catch (error) {
+      print("Error fetching group goals: $error");
+      throw error;
+    }
+  }
+
+  // Function to remove a goal
   Future<void> removeGoal(String goalId) async {
-    await goalCollection.doc(goalId).delete();
+    try {
+      await goalCollection.doc(goalId).delete();
+    } catch (error) {
+      print("Error removing goal: $error");
+      throw error;
+    }
   }
 
+  // Function to update a goal
   Future<void> updateGoal(Goal updatedGoal) async {
-    await goalCollection.doc(updatedGoal.id).update({
-      'title': updatedGoal.title,
-      'description': updatedGoal.description,
-      'target': updatedGoal.target,
-      'targetDate': updatedGoal.targetDate,
-      'category': updatedGoal.category,
-      'isCompleted': updatedGoal.isCompleted,
-    });
+    try {
+      await goalCollection.doc(updatedGoal.id).update(updatedGoal.toMap());
+    } catch (error) {
+      print("Error updating goal: $error");
+      throw error;
+    }
   }
 
-   Future<void> markGoalAsCompleted(String goalId) async {
-    await goalCollection.doc(goalId).update({'isCompleted': true});
+  // Function to mark a goal as completed
+  Future<void> markGoalAsCompleted(String goalId) async {
+    try {
+      await goalCollection.doc(goalId).update({'isCompleted': true});
+    } catch (error) {
+      print("Error marking goal as completed: $error");
+      throw error;
+    }
   }
 }

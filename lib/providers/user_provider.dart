@@ -17,60 +17,72 @@ class UserProvider extends ChangeNotifier {
   String get errorMessage => _errorMessage;
 
   UserProvider() {
-    getUserDetails();
+    // Schedule the call to getUserDetails after the current microtask completes.
+    Future.microtask(() => getUserDetails());
   }
 
-  Future<HabitWiseUser> getUserDetails() async {
-  _isLoading = true;
-  _errorMessage = '';
-  notifyListeners();
-  
-  try {
-    final currentUser = _authMethod.getCurrentUser();
-    if (currentUser != null) {
-      _user = await _userDBService.getUserById(currentUser.uid);
+  Future<HabitWiseUser?> getUserDetails() async {
+    _isLoading = true;
+    _errorMessage = '';
+    _safeNotifyListeners();
+    
+    try {
+      final currentUser = _authMethod.getCurrentUser();
+      if (currentUser != null) {
+        _user = await _userDBService.getUserById(currentUser.uid);
+        _isLoading = false;
+        _safeNotifyListeners();
+        return _user;
+      } else {
+        _isLoading = false;
+        _safeNotifyListeners();
+        throw Exception('Current user is null');
+      }
+    } catch (e) {
+      _errorMessage = 'Error getting user details: $e';
       _isLoading = false;
-      notifyListeners();
-      return _user!;
-    } else {
-      _isLoading = false;
-      notifyListeners();
-      throw Exception('Current user is null');
+      _safeNotifyListeners();
+      throw Exception(_errorMessage);
     }
-  } catch (e) {
-    _errorMessage = 'Error getting user details: $e';
-    _isLoading = false;
-    notifyListeners();
-    throw Exception(_errorMessage);
   }
-}
 
- 
   Future<void> loginUser({required String email, required String password}) async {
     _isLoading = true;
     _errorMessage = '';
-    notifyListeners();
-    String result = await _authMethod.login(email: email, password: password);
-    if (result == 'success') {
-      await getUserDetails();
-    } else {
-      _errorMessage = result;
+    _safeNotifyListeners();
+
+    try {
+      String result = await _authMethod.login(email: email, password: password);
+      if (result == 'success') {
+        await getUserDetails(); // Fetch the logged-in user's details
+      } else {
+        _errorMessage = result;
+      }
+    } catch (e) {
+      _errorMessage = 'Error logging in: $e';
+    } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
   Future<void> signUpUser({required String email, required String password, required String username, required String confirmPassword}) async {
     _isLoading = true;
     _errorMessage = '';
-    notifyListeners();
-    AuthResult result = await _authMethod.signUpUser(email: email, password: password, username: username, confirmPassword: confirmPassword);
-    if (result == AuthResult.success) {
-      await getUserDetails();
-    } else {
-      _errorMessage = _handleAuthError(result);
+    _safeNotifyListeners();
+
+    try {
+      AuthResult result = await _authMethod.signUpUser(email: email, password: password, username: username, confirmPassword: confirmPassword);
+      if (result == AuthResult.success) {
+        await getUserDetails(); // Fetch the new user's details
+      } else {
+        _errorMessage = _handleAuthError(result);
+      }
+    } catch (e) {
+      _errorMessage = 'Error signing up: $e';
+    } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -79,7 +91,7 @@ class UserProvider extends ChangeNotifier {
     _user = null;
     _isLoading = false;
     _errorMessage = '';
-    notifyListeners();
+    _safeNotifyListeners();
   }
 
   String _handleAuthError(AuthResult result) {
@@ -97,5 +109,21 @@ class UserProvider extends ChangeNotifier {
       default:
         return 'An error occurred.';
     }
+  }
+
+  void _safeNotifyListeners() {
+    Future.microtask(() {
+      if (!_isDisposed) {
+        notifyListeners();
+      }
+    });
+  }
+
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

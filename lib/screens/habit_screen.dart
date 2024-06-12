@@ -3,6 +3,7 @@ import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/data/icons/category_icons.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
 import 'package:habitwise/screens/goals_screen.dart';
 import 'package:habitwise/screens/profile_screen.dart';
@@ -179,7 +180,8 @@ class _HabitScreenState extends State<HabitScreen> {
                   itemCount: filteredHabits.length,
                   itemBuilder: (context, index) {
                     final habit = filteredHabits[index];
-                    return HabitTile(habit: habit, groupId: '',);
+                    final leadingIcon = categoryIcons[habit.category ?? ''] ?? Icons.sunny;
+                    return HabitTile(habit: habit, groupId: '', leadingIcon: leadingIcon);
                   },
                 );
               },

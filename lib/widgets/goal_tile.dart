@@ -1,9 +1,11 @@
+// Import necessary packages
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/screens/dialogs/edit_goal_dialog.dart';
 import 'package:provider/provider.dart';
 
+// Widget for displaying a single goal in a tile format
 class GoalTile extends StatelessWidget {
   final Goal goal;
 
@@ -11,20 +13,19 @@ class GoalTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Provide default values if goal.progress or goal target is null
+    // Calculate progress and target values
     final num progress = goal.progress ?? 0;
     final num target = goal.target ?? 1;
 
-    print('Goal progress: $progress, Goal target: $target');
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-      padding: EdgeInsets.all(12.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10.0),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black26,
+            color: Color.fromRGBO(126, 35, 191, 0.498),
             blurRadius: 4.0,
             offset: Offset(2, 2),
           ),
@@ -32,12 +33,13 @@ class GoalTile extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
-        title: Text(goal.title),
+        title: Text(goal.title, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(goal.description),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
+            // Display progress indicators based on progress and target
             Row(
               children: List.generate(target.toInt(), (index) {
                 return IconButton(
@@ -47,40 +49,50 @@ class GoalTile extends StatelessWidget {
                   ),
                   onPressed: () {
                     final updatedProgress = index + 1;
-                    print('Updating goal progress to: $updatedProgress');
                     Provider.of<GoalProvider>(context, listen: false).updateGoal(
                       goal.copyWith(progress: updatedProgress),
                     );
-                    // check if all progress steps have been completed
                     if (updatedProgress == target) {
-                       print('All progress steps completed');
                       Provider.of<GoalProvider>(context, listen: false).markGoalAsCompleted(goal.id);
                     }
                   },
                 );
               }),
             ),
-            SizedBox(height: 4),
-            Text('Progress: ${goal.progress}/${goal.target}'),
+            const SizedBox(height: 4),
+            Text('Progress: $progress/$target', style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 4),
+            // Display due date
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Text('Due: ${goal.targetDate.toLocal().toString().split(' ')[0]}', style: const TextStyle(color: Colors.grey)),
+              ],
+            ),
           ],
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Edit button
             IconButton(
-              icon: Icon(Icons.edit),
+              icon: const Icon(Icons.edit),
               onPressed: () {
-                // Navigate to the edit goal screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditGoalDialog(goal: goal),
+                showDialog(
+                  context: context,
+                  builder: (context) => EditGoalDialog(
+                    goal: goal,
+                    addGoalToGroup: (Goal newGoal) {
+                      Provider.of<GoalProvider>(context, listen: false).updateGoal(newGoal);
+                    },
                   ),
                 );
               },
             ),
+            // Delete button
             IconButton(
-              icon: Icon(Icons.delete),
+              icon: const Icon(Icons.delete),
               onPressed: () {
                 Provider.of<GoalProvider>(context, listen: false).removeGoal(goal.id);
               },

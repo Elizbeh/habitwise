@@ -27,15 +27,21 @@ class LandingPage extends StatelessWidget {
             top: MediaQuery.of(context).size.height * 0.26,
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                     Color.fromRGBO(126, 35, 191, 0.498),
-                    Colors.black.withOpacity(0.5),
-                  ],
-                ),
-              ),
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(255, 222, 144, 236),
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(217, 155, 100, 179),
+                Color.fromARGB(57, 181, 77, 199),
+                Color.fromARGB(239, 128, 76, 154),
+                Color.fromARGB(239, 128, 76, 154),
+              ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topLeft,
+            ),
+          ),
             ),
           ),
           // Background Image
@@ -118,14 +124,11 @@ class LandingPage extends StatelessWidget {
                       backgroundColor: Colors.grey[200],
                       elevation: 1,
                       padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 15.0),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
                     ),
                     child: Text(
                       'Get Started',
                       style: TextStyle(
-                        color: Colors.deepPurple,
+                        color: Color.fromARGB(152, 151, 11, 251),
                         fontSize: 22.0,
                         fontWeight: FontWeight.bold,
                         

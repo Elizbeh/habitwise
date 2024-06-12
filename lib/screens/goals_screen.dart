@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
-import 'package:habitwise/screens/dashboard_screen.dart';
 import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
-import 'package:habitwise/screens/habit_screen.dart';
-import 'package:habitwise/screens/profile_screen.dart';
-import 'package:habitwise/widgets/goal_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:habitwise/screens/dialogs/edit_goal_dialog.dart';
+import 'package:habitwise/widgets/goal_tile.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/profile_screen.dart';
 
 class GoalScreen extends StatefulWidget {
   final HabitWiseUser user;
+  final String? groupId;
 
-  GoalScreen({required this.user});
+  GoalScreen({required this.user, this.groupId});
 
   @override
   _GoalScreenState createState() => _GoalScreenState();
@@ -22,9 +24,9 @@ class GoalScreen extends StatefulWidget {
 
 class _GoalScreenState extends State<GoalScreen> {
   String sortingCriteria = 'Priority';
-  String selectedCategory = 'All'; // Default category selection
+  String selectedCategory = 'All';
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  final DateTime _focusedDay = DateTime.now();
+  DateTime _focusedDay = DateTime.now(); // Remove final keyword
   late DateTime _selectedDay;
   int _currentIndex = 1;
 
@@ -32,41 +34,31 @@ class _GoalScreenState extends State<GoalScreen> {
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
-    Provider.of<GoalProvider>(context, listen: false).fetchGoals();
-  }
-
-  // Filter goals based on category
-  List<Goal> filterGoalsByCategory(List<Goal> goals, String category) {
-    if (category == 'All') {
-      return goals; // No need for filtering, returns all goals
+    if (widget.groupId != null) {
+      Provider.of<GoalProvider>(context, listen: false).fetchGroupGoals(widget.groupId!);
     } else {
-      return goals.where((goal) => goal.category == category).toList();
-    }
-  }
-
-  // Filter goals based on the selected date
-  List<Goal> filterGoalsByDate(List<Goal> goals, DateTime? selectedDate) {
-    if (selectedDate == null) {
-      return goals; // Returns all goals if no date is selected
-    } else {
-      return goals.where((goal) =>
-        goal.targetDate.isBefore(selectedDate.add(Duration(days: 1))) &&
-        (goal.endDate?.isAfter(selectedDate.subtract(Duration(days: 1))) ?? true)
-      ).toList();
+      Provider.of<GoalProvider>(context, listen: false).fetchGoals();
     }
   }
 
   List<Goal> _sortAndFilterGoals(List<Goal> goals) {
-    List<Goal> filteredGoals = filterGoalsByCategory(goals, selectedCategory);
-    filteredGoals = filterGoalsByDate(filteredGoals, _selectedDay);
-    
-    // Sort filtered goals based on sorting criteria
+    List<Goal> filteredGoals = goals.where((goal) {
+      if (selectedCategory != 'All' && goal.category != selectedCategory) {
+        return false;
+      }
+      if (goal.targetDate == null) {
+        return false;
+      }
+      return goal.targetDate.isBefore(_selectedDay.add(Duration(days: 1))) &&
+          (goal.endDate?.isAfter(_selectedDay.subtract(Duration(days: 1))) ?? true);
+    }).toList();
+
     if (sortingCriteria == 'Priority') {
       filteredGoals.sort((a, b) => a.priority.compareTo(b.priority));
     } else if (sortingCriteria == 'Completion Status') {
       filteredGoals.sort((a, b) => (a.isCompleted ? 1 : 0).compareTo(b.isCompleted ? 1 : 0));
     } else if (sortingCriteria == 'Category') {
-      filteredGoals.sort((a, b) => (a.category ?? '').compareTo(b.category ?? ''));
+      filteredGoals.sort((a, b) => a.category.compareTo(b.category));
     }
 
     return filteredGoals;
@@ -75,9 +67,33 @@ class _GoalScreenState extends State<GoalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor:  Color.fromRGBO(126, 35, 191, 0.498),
-        title: const Text('Goals'),
+        elevation: 0,
+        toolbarHeight: 80,
+        title: const Text(
+          'Goals',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30)),
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(255, 222, 144, 236),
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(57, 181, 77, 199),
+                Color.fromARGB(255, 201, 5, 236)
+              ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topLeft,
+            ),
+          ),
+        ),
         actions: [
           PopupMenuButton<String>(
             onSelected: (String result) {
@@ -105,7 +121,7 @@ class _GoalScreenState extends State<GoalScreen> {
             value: selectedCategory,
             onChanged: (String? newValue) {
               setState(() {
-                selectedCategory = newValue ?? 'All'; // Update selected category
+                selectedCategory = newValue ?? 'All';
               });
             },
             items: <String>[
@@ -124,10 +140,10 @@ class _GoalScreenState extends State<GoalScreen> {
                 child: Text(value),
               );
             }).toList(),
-          )
+          ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
         child: Column(
           children: [
             TableCalendar(
@@ -140,31 +156,39 @@ class _GoalScreenState extends State<GoalScreen> {
               },
               onFormatChanged: (format) {
                 setState(() {
-                  if (format == CalendarFormat.week) {
-                    _calendarFormat = CalendarFormat.week;
-                  } else if (format == CalendarFormat.twoWeeks) {
-                    _calendarFormat = CalendarFormat.twoWeeks;
-                  } else {
-                    _calendarFormat = CalendarFormat.month;
-                  }
+                  _calendarFormat = format;
                 });
               },
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
                   _selectedDay = selectedDay;
+                  _focusedDay = focusedDay; // Update the focused day
                 });
               },
             ),
             Consumer<GoalProvider>(
               builder: (context, provider, child) {
-                final filteredGoals = _sortAndFilterGoals(provider.goals); // apply sorting and filtering
+                final filteredGoals = _sortAndFilterGoals(provider.goals);
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: filteredGoals.length,
                   itemBuilder: (context, index) {
                     final goal = filteredGoals[index];
-                    return GoalTile(goal: goal);
+                    return GestureDetector(
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => EditGoalDialog(
+                            goal: goal,
+                            addGoalToGroup: (Goal newGoal) {
+                              // Handle the updated goal here
+                            },
+                          ),
+                        );
+                      },
+                      child: GoalTile(goal: goal),
+                    );
                   },
                 );
               },
@@ -177,7 +201,28 @@ class _GoalScreenState extends State<GoalScreen> {
         onPressed: () {
           showDialog(
             context: context,
-            builder: (context) => AddGoalDialog(),
+            builder: (context) => AddGoalDialog(
+              addGoalToGroup: (goal) async {
+                try {
+                  if (widget.groupId != null && widget.groupId!.isNotEmpty) {
+                    await Provider.of<GoalProvider>(context, listen: false).addGoalToGroup(goal, widget.groupId!);
+                  } else {
+                    await Provider.of<GoalProvider>(context, listen: false).addGoal(goal);
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Goal added successfully!'),
+                    duration: Duration(seconds: 2),
+                  ));
+                } catch (error) {
+                  print("Error adding goal: $error");
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Error adding goal: $error'),
+                    duration: Duration(seconds: 2),
+                  ));
+                }
+              },
+              groupId: widget.groupId ?? '',
+            ),
           );
         },
         child: const Icon(Icons.add),
@@ -188,17 +233,20 @@ class _GoalScreenState extends State<GoalScreen> {
           if (index != _currentIndex) {
             if (index == 0) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => DashboardScreen(user: widget.user)), // Pass the user
+                MaterialPageRoute(
+                    builder: (context) => DashboardScreen(user: widget.user)),
               );
             } else if (index == 1) {
-              // Already on GoalScreen, do nothing
+              // Do nothing, already on GoalScreen
             } else if (index == 2) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => HabitScreen(user: widget.user)), // Pass the user
+                MaterialPageRoute(
+                    builder: (context) => HabitScreen(user: widget.user)),
               );
             } else if (index == 3) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => ProfilePage(user: widget.user)), // Pass the user
+                MaterialPageRoute(
+                    builder: (context) => ProfilePage(user: widget.user)),
               );
             }
           }

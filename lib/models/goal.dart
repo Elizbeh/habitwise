@@ -1,84 +1,89 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
 
 class Goal {
   final String id;
   final String title;
   final String description;
-  int progress;
+  final String category;
+  final int priority;
+  final int progress;
   final int target;
   final DateTime targetDate;
-  final String category;
-  bool isCompleted;
-  int priority;
   final DateTime? endDate;
+  final bool isCompleted;
 
   Goal({
     required this.id,
     required this.title,
     required this.description,
-    this.progress = 0,
+    required this.category,
+    required this.priority,
+    required this.progress,
     required this.target,
     required this.targetDate,
-    required this.category,
-    this.isCompleted = false,
-    this.priority = 0,
-    this.endDate,
+    required this.endDate,
+    required this.isCompleted,
   });
 
   Goal copyWith({
     String? id,
     String? title,
     String? description,
+    String? category,
+    int? priority,
     int? progress,
     int? target,
     DateTime? targetDate,
-    String? category,
-    bool? isCompleted,
-    int? priority,
     DateTime? endDate,
+    bool? isCompleted,
   }) {
     return Goal(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
+      category: category ?? this.category,
+      priority: priority ?? this.priority,
       progress: progress ?? this.progress,
       target: target ?? this.target,
       targetDate: targetDate ?? this.targetDate,
-      category: category ?? this.category,
-      isCompleted: isCompleted ?? this.isCompleted,
-      priority: priority ?? this.priority,
       endDate: endDate ?? this.endDate,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 
-  // Add fromJson and toJson methods for Firestore conversion
-  factory Goal.fromJson(Map<String, dynamic> json) {
-    return Goal(
-      id: json['id'],
-      title: json['title'],
-      description: json['description'],
-      progress: json.containsKey('progress') ? json['progress'] : 0,
-      target: json['target'],
-      targetDate: (json['targetDate'] as Timestamp).toDate(),
-      category: json['category'],
-      isCompleted: json['isCompleted'],
-      priority: json['priority'],
-      endDate: json['endDate'] != null ? (json['endDate'] as Timestamp).toDate() : null,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       'id': id,
       'title': title,
       'description': description,
+      'category': category,
+      'priority': priority,
       'progress': progress,
       'target': target,
-      'targetDate': targetDate,
-      'category': category,
+      'targetDate': targetDate.millisecondsSinceEpoch,
+      'endDate': endDate?.millisecondsSinceEpoch,
       'isCompleted': isCompleted,
-      'priority': priority,
-      'endDate': endDate,
     };
   }
+
+  factory Goal.fromMap(Map<String, dynamic> map) {
+    return Goal(
+      id: map['id'],
+      title: map['title'],
+      description: map['description'],
+      category: map['category'],
+      priority: map['priority'],
+      progress: map['progress'],
+      target: map['target'],
+      targetDate: DateTime.fromMillisecondsSinceEpoch(map['targetDate']),
+      endDate: map['endDate'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['endDate'])
+          : null,
+      isCompleted: map['isCompleted'],
+    );
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory Goal.fromJson(String source) => Goal.fromMap(json.decode(source));
 }

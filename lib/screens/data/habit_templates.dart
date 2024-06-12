@@ -65,7 +65,7 @@ final Map<String, List<Map<String, dynamic>>> habitTemplates = {
       'frequency': 1,
     },
   ],
-  'Lifestyle & Hobbies': [
+  'Hobbies': [
     {
       'title': 'Cooking',
       'description': 'Cook a healthy meal.',
@@ -87,7 +87,7 @@ final Map<String, List<Map<String, dynamic>>> habitTemplates = {
       'frequency': 1,
     },
   ],
-  'Social & Relationships': [
+  'Relationships': [
     {
       'title': 'Call a Friend',
       'description': 'Call or video chat with a friend.',
@@ -109,7 +109,7 @@ final Map<String, List<Map<String, dynamic>>> habitTemplates = {
       'frequency': 1,
     },
   ],
-  'Finance & Budgeting': [
+  'Finance': [
     {
       'title': 'Track Expenses',
       'description': 'Log daily expenses.',

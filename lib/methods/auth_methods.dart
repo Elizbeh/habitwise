@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import '../models/user.dart';
 import '../services/user_db_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final logger = Logger();
 
@@ -96,6 +97,12 @@ class AuthMethod {
 
   Future<void> logout() async {
     await _auth.signOut();
+    await clearLocalData();
+  }
+
+  Future<void> clearLocalData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
   }
 
   User? getCurrentUser() {
