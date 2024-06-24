@@ -30,25 +30,26 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  // Function to fetch goals
+    // Function to fetch goals
   Future<void> fetchGoals() async {
     try {
-      List<Goal> goals = await _dbService.getGoals().first;
-      print("Fetched goals: ${goals.length}");
-      _goals = goals;
-      notifyListeners();
+      _dbService.getGoals().listen((List<Goal> data) {
+        _goals = data;
+        notifyListeners();
+      });
     } catch (error) {
       print("Error fetching goals: $error");
       throw error;
     }
   }
 
-  // Function to fetch group goals
+
   Future<void> fetchGroupGoals(String groupId) async {
     try {
-      List<Goal> goals = await _dbService.getGroupGoals(groupId);
-      _goals = goals;
-      notifyListeners();
+      _dbService.getGroupGoalsStream(groupId).listen((List<Goal> data) {
+        _goals = data;
+        notifyListeners();
+      });
     } catch (error) {
       print("Error fetching group goals: $error");
       throw error;

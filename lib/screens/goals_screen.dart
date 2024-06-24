@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
@@ -166,32 +167,40 @@ class _GoalScreenState extends State<GoalScreen> {
                 });
               },
             ),
-            Consumer<GoalProvider>(
-              builder: (context, provider, child) {
-                final filteredGoals = _sortAndFilterGoals(provider.goals);
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredGoals.length,
-                  itemBuilder: (context, index) {
-                    final goal = filteredGoals[index];
-                    return GestureDetector(
-                      onLongPress: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => EditGoalDialog(
-                            goal: goal,
-                            addGoalToGroup: (Goal newGoal) {
-                              // Handle the updated goal here
-                            },
-                          ),
-                        );
-                      },
-                      child: GoalTile(goal: goal),
-                    );
-                  },
-                );
-              },
+            Expanded(
+              child: Consumer<GoalProvider>(
+                builder: (context, provider, child) {
+                  final filteredGoals = _sortAndFilterGoals(provider.goals);
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredGoals.length,
+                    itemBuilder: (context, index) {
+                      final goal = filteredGoals[index];
+                      return GestureDetector(
+                        onLongPress: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => EditGoalDialog(
+                              goal: goal,
+                              onUpdateGoal: (updatedGoal) {
+                                Provider.of<GoalProvider>(context, listen: false).updateGoal(updatedGoal);
+                              },
+                              onDeleteGoal: (goalId) {
+                                Provider.of<GoalProvider>(context, listen: false).removeGoal(goalId);
+                              },
+                              addGoalToGroup: (Goal newGoal) {
+                                // Handle the updated goal here
+                              }, groupId: widget.groupId!,
+                            ),
+                          );
+                        },
+                        child: GoalTile(goal: goal, groupId: widget.groupId ?? ''),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -205,7 +214,7 @@ class _GoalScreenState extends State<GoalScreen> {
               addGoalToGroup: (goal) async {
                 try {
                   if (widget.groupId != null && widget.groupId!.isNotEmpty) {
-                    await Provider.of<GoalProvider>(context, listen: false).addGoalToGroup(goal, widget.groupId!);
+                    await Provider.of<GoalProvider>(context, listen: false).addGoalToGroup(goal, widget.groupId ?? '');
                   } else {
                     await Provider.of<GoalProvider>(context, listen: false).addGoal(goal);
                   }

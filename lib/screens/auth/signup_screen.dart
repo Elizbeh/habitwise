@@ -3,12 +3,11 @@ import 'package:habitwise/methods/auth_methods.dart';
 
 class SignUpScreen extends StatefulWidget {
   final AuthMethod authMethod = AuthMethod();
-
+  final Future<Null> Function(String username) onSignupSuccess;
   final TextEditingController emailController;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   final TextEditingController passwordConfirmController;
-  final Future<Null> Function(String username) onSignupSuccess;
 
   SignUpScreen({
     Key? key,
@@ -26,6 +25,8 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
+  String _errorMessage = '';
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +147,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Container(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () async {
+                      onPressed: _isLoading ? null : () async {
                         String email = widget.emailController.text.trim();
                         String username = widget.usernameController.text.trim();
                         String password = widget.passwordController.text.trim();
@@ -192,39 +193,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           return;
                         }
 
+                        setState(() {
+                          _isLoading = true;
+                          _errorMessage = '';
+                        });
+
                         // Call sign up method
                         String result = '';
                         try {
                           AuthResult authResult = await widget.authMethod.signUpUser(
-                          email: email,
-                          username: username,
-                          password: password,
-                          confirmPassword: confirmPassword,
-                        ); if (authResult == AuthResult.success) {
-                          result = 'success';
-                        } else {
+                            email: email,
+                            username: username,
+                            password: password,
+                            confirmPassword: confirmPassword,
+                          );
+                          if (authResult == AuthResult.success) {
+                            result = 'success';
+                          } else {
+                            result = 'An error occurred during sign up';
+                          }
+                        } catch (e) {
                           result = 'An error occurred during sign up';
                         }
-                      } catch (e) {
-                        result = 'An error occured during signup';
-                      }
 
-                        if (result == 'success') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Sign up successful'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          widget.onSignupSuccess(username);
-                          // Navigate to success screen or login screen
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(result),
-                            ),
-                          );
-                        }
+                        setState(() {
+                          _isLoading = false;
+                          if (result == 'success') {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Sign up successful'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            widget.onSignupSuccess(username);
+                            // Navigate to success screen or login screen
+                          } else {
+                            _errorMessage = result;
+                          }
+                        });
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(126, 35, 191, 0.498)),
@@ -242,7 +248,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold
-                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -271,6 +277,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ],
                   ),
+                  if (_errorMessage.isNotEmpty) ...[
+                    SizedBox(height: 16),
+                    Text(
+                      _errorMessage,
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ],
                 ],
               ),
             ),

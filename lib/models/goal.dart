@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Goal {
   final String id;
@@ -60,30 +60,25 @@ class Goal {
       'priority': priority,
       'progress': progress,
       'target': target,
-      'targetDate': targetDate.millisecondsSinceEpoch,
-      'endDate': endDate?.millisecondsSinceEpoch,
+      'targetDate': Timestamp.fromDate(targetDate),
+      'endDate': endDate != null ? Timestamp.fromDate(endDate!): null,
       'isCompleted': isCompleted,
     };
   }
 
   factory Goal.fromMap(Map<String, dynamic> map) {
-    return Goal(
-      id: map['id'],
-      title: map['title'],
-      description: map['description'],
-      category: map['category'],
-      priority: map['priority'],
-      progress: map['progress'],
-      target: map['target'],
-      targetDate: DateTime.fromMillisecondsSinceEpoch(map['targetDate']),
-      endDate: map['endDate'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['endDate'])
-          : null,
-      isCompleted: map['isCompleted'],
-    );
-  }
+  return Goal(
+    id: map['id'],
+    title: map['title'],
+    description: map['description'],
+    category: map['category'],
+    priority: map['priority'],
+    progress: map['progress'],
+    target: map['target'],
+    targetDate: (map['targetDate'] as Timestamp).toDate(),
+    endDate: map['endDate'] != null ? (map['endDate'] as Timestamp).toDate() : null,
+    isCompleted: map['isCompleted'],
+  );
+}
 
-  String toJson() => json.encode(toMap());
-
-  factory Goal.fromJson(String source) => Goal.fromMap(json.decode(source));
 }

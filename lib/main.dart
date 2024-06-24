@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
@@ -16,12 +17,13 @@ import 'package:habitwise/screens/profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'models/user.dart';
 
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+    
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      
+    
   );
 
   runApp(
@@ -38,11 +40,16 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  static FirebaseAnalyticsObserver observer =
+      FirebaseAnalyticsObserver(analytics: analytics);
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scaffoldMessengerKey: scaffoldMessengerKey,
       debugShowCheckedModeBanner: false,
       title: 'HabitWise',
+      navigatorObservers: <NavigatorObserver>[observer],
       theme: ThemeData(
          primarySwatch: Colors.deepPurple,
         primaryColor: Color.fromRGBO(126, 35, 191, 0.498),
@@ -146,33 +153,34 @@ class MyApp extends StatelessWidget {
           },
         ),
         '/goals': (context) => Consumer<UserProvider>(
-          builder: (context, userProvider, _) {
-            if (userProvider.user == null) {
-              return FutureBuilder<HabitWiseUser?>(
-                future: userProvider.getUserDetails(),
-                builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Scaffold(
-                      body: Center(child: CircularProgressIndicator()),
-                    );
-                  } else if (snapshot.hasData && snapshot.data != null) {
-                    return GoalScreen(user: snapshot.data!);
-                  } else if (snapshot.hasError) {
-                    return Scaffold(
-                      body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
-                    );
-                  } else {
-                    return Scaffold(
-                      body: Center(child: Text('User data not found')),
-                    );
-                  }
-                },
-              );
-            } else {
-              return GoalScreen(user: userProvider.user!);
-            }
-          },
-        ),
+            builder: (context, userProvider, _) {
+              if (userProvider.user == null) {
+                return FutureBuilder<HabitWiseUser?>(
+                  future: userProvider.getUserDetails(),
+                  builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    } else if (snapshot.hasData && snapshot.data != null) {
+                      return GoalScreen(user: snapshot.data!);
+                    } else if (snapshot.hasError) {
+                      return Scaffold(
+                        body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
+                      );
+                    } else {
+                      return Scaffold(
+                        body: Center(child: Text('User data not found')),
+                      );
+                    }
+                  },
+                );
+              } else {
+                return GoalScreen(user: userProvider.user!);
+              }
+            },
+          ),
+
         '/profile': (context) => Consumer<UserProvider>(
           builder: (context, userProvider, _) {
             if (userProvider.user == null) {

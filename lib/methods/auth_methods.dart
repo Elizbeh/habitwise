@@ -19,6 +19,7 @@ class AuthMethod {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final UserDBService _userDBService = UserDBService();
 
+  // Login method
   Future<String> login({required String email, required String password}) async {
     try {
       UserCredential authResult = await _auth.signInWithEmailAndPassword(
@@ -35,12 +36,14 @@ class AuthMethod {
     }
   }
 
+  // Sign-up method
   Future<AuthResult> signUpUser({
     required String email,
     required String password,
     required String username,
     required String confirmPassword,
   }) async {
+    // Validate input
     if (email.isEmpty || password.isEmpty || username.isEmpty) {
       return AuthResult.invalidInput;
     }
@@ -50,6 +53,7 @@ class AuthMethod {
     }
 
     try {
+      // Create user in Firebase Auth
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -57,6 +61,7 @@ class AuthMethod {
 
       User? user = userCredential.user;
       if (user != null) {
+        // Create user in Firestore with default permissions
         HabitWiseUser habitWiseUser = HabitWiseUser(
           uid: user.uid,
           email: email,
@@ -64,8 +69,9 @@ class AuthMethod {
           goals: [],
           habits: [],
           soloStats: {},
-          familyId: '',
           groupIds: [],
+          canCreateGroup: false, // Default permission
+          canJoinGroups: true,   // Default permission
         );
 
         await _userDBService.createUser(habitWiseUser);
@@ -82,6 +88,7 @@ class AuthMethod {
     }
   }
 
+  // Method to get user details
   Future<HabitWiseUser?> getUserDetails() async {
     try {
       User? user = _auth.currentUser;
@@ -95,20 +102,24 @@ class AuthMethod {
     }
   }
 
+  // Logout method
   Future<void> logout() async {
     await _auth.signOut();
     await clearLocalData();
   }
 
+  // Clear local data
   Future<void> clearLocalData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }
 
+  // Get current user
   User? getCurrentUser() {
     return _auth.currentUser;
   }
 
+  // Handle Firebase Auth errors
   AuthResult _handleFirebaseAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'email-already-in-use':

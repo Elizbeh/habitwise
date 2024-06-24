@@ -21,6 +21,13 @@ class UserProvider extends ChangeNotifier {
     Future.microtask(() => getUserDetails());
   }
 
+   // Function to set the user data
+  void setUser(HabitWiseUser? user) {
+    _user = user;
+    notifyListeners();
+  }
+
+
   Future<HabitWiseUser?> getUserDetails() async {
     _isLoading = true;
     _errorMessage = '';

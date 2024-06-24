@@ -14,6 +14,7 @@ class Habit {
   final String? reminder; // e.g., "9:00 AM"
   final String? category;
   final int priority; // e.g., 1 for high, 2 for medium, 3 for low
+  final String? groupId;
 
   Habit({
     required this.id,
@@ -28,7 +29,8 @@ class Habit {
     this.isCompleted = false,
     this.reminder,
     this.category,
-    this.priority = 2, String? groupId,
+    this.priority = 2,
+    this.groupId,
   });
 
   // Method to copy a habit with optional parameters
@@ -46,6 +48,7 @@ class Habit {
     String? reminder,
     String? category,
     int? priority,
+    String? groupId,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -61,6 +64,7 @@ class Habit {
       reminder: reminder ?? this.reminder,
       category: category ?? this.category,
       priority: priority ?? this.priority,
+      groupId: groupId ?? this.groupId,
     );
   }
 
@@ -80,6 +84,7 @@ class Habit {
       'reminder': reminder,
       'category': category,
       'priority': priority,
+      'groupId': groupId,
     };
   }
 
@@ -99,6 +104,7 @@ class Habit {
       reminder: map['reminder'],
       category: map['category'],
       priority: map['priority'] ?? 2,
+      groupId: map['groupId'],
     );
   }
 
@@ -142,7 +148,7 @@ class Habit {
   // Returns a string representation of the habit object
   @override
   String toString() {
-    return 'Habit(id: $id, title: $title, description: $description, createdAt: $createdAt, startDate: $startDate, endDate: $endDate, completionDate: $completionDate, progress: $progress, frequency: $frequency, isCompleted: $isCompleted, reminder: $reminder, category: $category, priority: $priority)';
+    return 'Habit(id: $id, title: $title, description: $description, createdAt: $createdAt, startDate: $startDate, endDate: $endDate, completionDate: $completionDate, progress: $progress, frequency: $frequency, isCompleted: $isCompleted, reminder: $reminder, category: $category, priority: $priority, groupId: $groupId)';
   }
 
   // Checks if two habit objects are equal
@@ -163,7 +169,8 @@ class Habit {
         other.isCompleted == isCompleted &&
         other.reminder == reminder &&
         other.category == category &&
-        other.priority == priority;
+        other.priority == priority &&
+        other.groupId == groupId;
   }
 
   // Generates a hash code for the habit object
@@ -181,6 +188,7 @@ class Habit {
         isCompleted.hashCode ^
         reminder.hashCode ^
         category.hashCode ^
-        priority.hashCode;
+        priority.hashCode ^
+        groupId.hashCode;
   }
 }

@@ -7,9 +7,10 @@ class HabitWiseUser {
   final List<String> goals;
   final List<String> habits;
   final Map<String, dynamic> soloStats;
-  final String familyId;
   final List<String> groupIds;
   final String? profilePictureUrl;
+  final bool canCreateGroup;
+  final bool canJoinGroups;
 
   HabitWiseUser({
     required this.uid,
@@ -18,9 +19,10 @@ class HabitWiseUser {
     required this.goals,
     required this.habits,
     required this.soloStats,
-    required this.familyId,
     required this.groupIds,
     this.profilePictureUrl,
+    required this.canCreateGroup,
+    required this.canJoinGroups,
   });
 
   factory HabitWiseUser.fromMap(Map<String, dynamic> data) {
@@ -31,9 +33,10 @@ class HabitWiseUser {
       goals: List<String>.from(data['goals']),
       habits: List<String>.from(data['habits']),
       soloStats: Map<String, dynamic>.from(data['soloStats']),
-      familyId: data['familyId'],
       groupIds: List<String>.from(data['groupIds']),
       profilePictureUrl: data['profilePictureUrl'],
+      canCreateGroup: data['canCreateGroup'] ?? false,
+      canJoinGroups: data['canJoinGroup'] ?? false,
     );
   }
 
@@ -45,9 +48,10 @@ class HabitWiseUser {
       'goals': goals,
       'habits': habits,
       'soloStats': soloStats,
-      'familyId': familyId,
       'groupIds': groupIds,
-      'profilePictureUrl': 'profilePictureUrl',
+      'profilePictureUrl': profilePictureUrl,
+      'canCreateGroup': canCreateGroup,
+      'canJoinGroup': canJoinGroups,
     };
   }
 }

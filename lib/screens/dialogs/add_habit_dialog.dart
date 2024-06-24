@@ -1,9 +1,4 @@
-
-
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
@@ -12,16 +7,17 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 
-
 class AddHabitDialog extends StatefulWidget {
   final String? groupId;
-  final bool isGroupHabit;// Add groupId for group habits, null for personal habits
+  final bool isGroupHabit; // Add groupId for group habits, null for personal habits
+  final Function? onHabitAdded;
 
   const AddHabitDialog({
-    Key? key, 
-    this.groupId,
+    Key? key,
     required this.isGroupHabit,
-    }) : super(key:key);
+    this.groupId,
+    this.onHabitAdded,
+  }) : super(key: key);
 
   @override
   _AddHabitDialogState createState() => _AddHabitDialogState();
@@ -38,7 +34,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
-      context: context, 
+      context: context,
       initialDate: isStart ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now()),
       firstDate: DateTime(2023),
       lastDate: DateTime(2090),
@@ -52,7 +48,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
           _endDate = picked;
         }
       });
-    } 
+    }
   }
 
   void applyTemplate(Map<String, dynamic> template) {
@@ -123,24 +119,23 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               children: [
                 Expanded(
                   child: TextButton(
-                    onPressed: () => _selectDate(context, true), 
+                    onPressed: () => _selectDate(context, true),
                     child: Text(_startDate == null
-                      ? 'Select Start Date'
-                      : 'Start Date: ${DateFormat.yMd().format(_startDate!)}'),
+                        ? 'Select Start Date'
+                        : 'Start Date: ${DateFormat.yMd().format(_startDate!)}'),
                   ),
                 ),
-                //const SizedBox(width: 10),
-
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextButton(
                     onPressed: () => _selectDate(context, false),
                     child: Text(_endDate == null
-                      ? 'Select End Date'
-                      : 'End Date: ${DateFormat.yMd().format(_endDate!)}'),
+                        ? 'Select End Date'
+                        : 'End Date: ${DateFormat.yMd().format(_endDate!)}'),
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -163,7 +158,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               frequency: int.tryParse(frequencyController.text) ?? 1,
               isCompleted: false,
               category: selectedCategory,
-              groupId: widget.isGroupHabit ? widget.groupId: null, // Assign groupId if it's a group habit
+              groupId: widget.isGroupHabit ? widget.groupId : null, // Assign groupId if it's a group habit
             );
             // Determine where to add the habit based on whether it's a group habit
             if (widget.isGroupHabit) {

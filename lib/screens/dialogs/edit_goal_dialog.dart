@@ -9,7 +9,7 @@ class EditGoalDialog extends StatefulWidget {
   final Goal? goal; // Goal object for editing, null for adding
   final void Function(Goal) addGoalToGroup; // Function to add goal to group
 
-  EditGoalDialog({this.goal, required this.addGoalToGroup});
+  EditGoalDialog({this.goal, required this.addGoalToGroup, required String groupId, required Null Function(dynamic updatedGoal) onUpdateGoal, required Null Function(dynamic goalId) onDeleteGoal});
 
   @override
   _EditGoalDialogState createState() => _EditGoalDialogState();

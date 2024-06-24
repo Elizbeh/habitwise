@@ -21,20 +21,16 @@ class GroupDetailsScreen extends StatefulWidget {
 }
 
 class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
-  late final GroupDBService _groupDBService;
-  late final UserDBService _userDBService;
-  late final GoalDBService _goalDBService;
-  late final HabitDBService _habitDBService;
+  final GroupDBService _groupDBService = GroupDBService();
+  final UserDBService _userDBService = UserDBService();
+  final GoalDBService _goalDBService = GoalDBService();
+  final HabitDBService _habitDBService = HabitDBService();
 
   int _selectedIndex = 0;
 
   @override
   void initState() {
-    super.initState();
-    _groupDBService = GroupDBService();
-    _userDBService = UserDBService();
-    _goalDBService = GoalDBService();
-    _habitDBService = HabitDBService();
+    super.initState(); 
   }
 
   @override
@@ -49,7 +45,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
         appBar: AppBar(
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
-          toolbarHeight: 170,
+          toolbarHeight: 80,
           title: const Text(
             'Group Details',
             style: TextStyle(
@@ -116,6 +112,8 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                         bool isMember = group.members.contains(userId);
                         bool isCreator = group.groupCreator == userId;
 
+                        print("isMember: $isMember, isCreator: $isCreator"); // Debugging line
+
                         return Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: SingleChildScrollView(
@@ -133,48 +131,67 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                 const SizedBox(height: 8.0),
                                 Text('Created on: ${group.creationDate.toLocal().toString().split(' ')[0]}'),
                                 const SizedBox(height: 8.0),
-                                Text('Members: ${group.members.join(', ')}'),
-                                const SizedBox(height: 16.0),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AddHabitDialog(isGroupHabit: true, groupId: groupId);
-                                      },
-                                    );
+                                // Fetch and display member usernames instead of IDs
+                                FutureBuilder<List<String>>(
+                                  future: _fetchMemberUsernames(group.members),
+                                  builder: (context, membersSnapshot) {
+                                    if (membersSnapshot.connectionState == ConnectionState.waiting) {
+                                      return const Center(child: CircularProgressIndicator());
+                                    } else if (membersSnapshot.hasError) {
+                                      return Center(child: Text('Error: ${membersSnapshot.error}'));
+                                    } else {
+                                      List<String> memberUsernames = membersSnapshot.data ?? [];
+                                      return Text('Members: ${memberUsernames.join(', ')}');
+                                    }
                                   },
-                                  child: const Text('Add Habit'),
                                 ),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AddGoalDialog(
-                                          addGoalToGroup: (Goal goal) async {
-                                            try {
-                                              await _goalDBService.addGoalToGroup(groupId, goal.id);
-                                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                content: Text('Goal added to group successfully!'),
-                                                duration: Duration(seconds: 2),
-                                              ));
-                                              setState(() {}); // Trigger UI update
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                content: Text('Error adding goal to group: $e'),
-                                                duration: const Duration(seconds: 2),
-                                              ));
-                                            }
+                                const SizedBox(height: 16.0),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AddGoalDialog(
+                                              addGoalToGroup: (Goal goal) async {
+                                                try {
+                                                  await _goalDBService.addGoalToGroup(groupId, goal.id);
+                                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                    content: Text('Goal added to group successfully!'),
+                                                    duration: Duration(seconds: 2),
+                                                  ));
+                                                  setState(() {}); // Trigger UI update
+                                                } catch (e) {
+                                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                    content: Text('Error adding goal to group: $e'),
+                                                    duration: const Duration(seconds: 2),
+                                                  ));
+                                                }
+                                              },
+                                              groupId: groupId,
+                                            );
                                           },
-                                          groupId: groupId,
                                         );
                                       },
-                                    );
-                                  },
-                                  child: const Text('Add Goal'),
+                                      child: const Text('Add Goal'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AddHabitDialog(isGroupHabit: true, groupId: groupId);
+                                          },
+                                        );
+                                      },
+                                      child: const Text('Add Habit'),
+                                    ),
+                                  ],
                                 ),
                                 if (isMember && !isCreator) ...[
+                                  // Leave Group Button
                                   ElevatedButton(
                                     onPressed: () async {
                                       try {
@@ -194,7 +211,8 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                     child: const Text('Leave Group'),
                                   ),
                                 ],
-                                if (!isMember) ...[
+                                if (!isMember && !isCreator) ...[
+                                  // Join Group Button
                                   ElevatedButton(
                                     onPressed: () async {
                                       try {
@@ -220,7 +238,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                     border: Border.all(color: const Color.fromRGBO(126, 35, 191, 0.498)),
                                   ),
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                                        mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Expanded(
                                         child: ElevatedButton(
@@ -283,7 +301,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                       } else {
                                         List<Goal> goals = snapshot.data ?? [];
                                         return Column(
-                                          children: goals.map((goal) => GoalTile(goal: goal)).toList(),
+                                          children: goals.map((goal) => GoalTile(goal: goal, groupId: groupId)).toList(),
                                         );
                                       }
                                     },
@@ -330,5 +348,14 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
       ),
     );
   }
-}
 
+  /// Fetches usernames for a list of user IDs.
+  Future<List<String>> _fetchMemberUsernames(List<String> memberIds) async {
+    List<String> usernames = [];
+    for (String id in memberIds) {
+      String username = await _userDBService.getUserNameById(id);
+      usernames.add(username);
+    }
+    return usernames;
+  }
+}

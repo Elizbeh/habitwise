@@ -70,11 +70,11 @@ class GroupDBService {
     }
   }
 
-  Future<void> addGoalToGroup(String groupId, String goal) async {
+   Future<void> addGoalToGroup(String groupId, String goalId) async {
     try {
       await groupsCollection.doc(groupId).update({
-      'goals': FieldValue.arrayUnion([goal]),
-    });
+        'goals': FieldValue.arrayUnion([goalId]),
+      });
     } catch (e) {
       print('Error adding goal to group: $e');
       throw e;

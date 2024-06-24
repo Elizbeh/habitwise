@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/user.dart';
+import 'package:habitwise/providers/user_provider.dart';
 import 'package:provider/provider.dart';
-import '../../providers/user_provider.dart';
 import '../dashboard_screen.dart';
 import '../../methods/auth_methods.dart';
 
-class LoginScreen extends StatelessWidget {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+class LoginScreen extends StatefulWidget {
+  final Future<Null> Function(dynamic username) onLoginSuccess;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
 
-  LoginScreen(
-      {Key? key,
-      required TextEditingController passwordController,
-      required TextEditingController emailController,
-      required Future<Null> Function(dynamic username) onLoginSuccess})
-      : super(key: key);
+  const LoginScreen({
+    Key? key,
+    required this.emailController,
+    required this.passwordController,
+    required this.onLoginSuccess,
+  }) : super(key: key);
+
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final AuthMethod _authMethod = AuthMethod(); // Private instance of AuthMethod
+  bool obscureText = true; // Initial state for password field
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +63,7 @@ class LoginScreen extends StatelessWidget {
                 children: [
                   const SizedBox(height: 28),
                   TextField(
-                    controller: emailController,
+                    controller: widget.emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       hintText: 'Email',
@@ -68,8 +77,8 @@ class LoginScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   TextField(
-                    controller: passwordController,
-                    obscureText: true,
+                    controller: widget.passwordController,
+                    obscureText: obscureText,
                     decoration: InputDecoration(
                       hintText: 'Password',
                       filled: true,
@@ -77,6 +86,17 @@ class LoginScreen extends StatelessWidget {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10.0),
                         borderSide: BorderSide.none,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscureText ? Icons.visibility : Icons.visibility_off,
+                          color: Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            obscureText = !obscureText;
+                          });
+                        },
                       ),
                     ),
                   ),
@@ -86,8 +106,8 @@ class LoginScreen extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     child: ElevatedButton(
                       onPressed: () async {
-                        String email = emailController.text.trim();
-                        String password = passwordController.text.trim();
+                        String email = widget.emailController.text.trim();
+                        String password = widget.passwordController.text.trim();
 
                         if (email.isEmpty || password.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -100,18 +120,19 @@ class LoginScreen extends StatelessWidget {
                         }
 
                         // Authenticate user using email and password
-                        String loginResult = await AuthMethod().login(
+                        String loginResult = await _authMethod.login(
                           email: email,
                           password: password,
                         );
 
                         if (loginResult == 'success') {
                           // If login is successful, retrieve user details
-                          HabitWiseUser? user =
-                              await AuthMethod().getUserDetails();
+                          HabitWiseUser? user = await _authMethod.getUserDetails();
 
                           if (user != null) {
                             // If user details are available, navigate to dashboard
+                            Provider.of<UserProvider>(context, listen: false).setUser(user);
+                            widget.onLoginSuccess(user.username);
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
                                 builder: (context) => DashboardScreen(user: user),

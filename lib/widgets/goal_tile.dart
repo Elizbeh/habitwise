@@ -1,21 +1,26 @@
-// Import necessary packages
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/screens/dialogs/edit_goal_dialog.dart';
 import 'package:provider/provider.dart';
 
-// Widget for displaying a single goal in a tile format
 class GoalTile extends StatelessWidget {
   final Goal goal;
+  final String groupId; // Add groupId parameter
+  final Function(Goal)? onUpdateGoal; // Define named parameter
+  final Function(String)? onDeleteGoal; // Define named parameter
 
-  const GoalTile({required this.goal});
+  const GoalTile({
+    required this.goal, 
+    required this.groupId,
+    this.onUpdateGoal,
+    this.onDeleteGoal,}); // Initialize groupId
 
   @override
   Widget build(BuildContext context) {
-    // Calculate progress and target values
-    final num progress = goal.progress ?? 0;
-    final num target = goal.target ?? 1;
+    final int progress = goal.progress?.toInt() ?? 0;
+    final int target = goal.target?.toInt() ?? 1;
+    final double progressRatio = progress / target;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
@@ -38,36 +43,49 @@ class GoalTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(goal.description),
-            const SizedBox(height: 4),
-            // Display progress indicators based on progress and target
+            const SizedBox(height: 8),
             Row(
-              children: List.generate(target.toInt(), (index) {
-                return IconButton(
-                  icon: Icon(
-                    progress > index ? Icons.check_circle : Icons.radio_button_unchecked,
-                    color: progress > index ? Colors.green : Colors.grey,
-                  ),
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline),
                   onPressed: () {
-                    final updatedProgress = index + 1;
-                    Provider.of<GoalProvider>(context, listen: false).updateGoal(
-                      goal.copyWith(progress: updatedProgress),
-                    );
-                    if (updatedProgress == target) {
-                      Provider.of<GoalProvider>(context, listen: false).markGoalAsCompleted(goal.id);
-                    }
+                    final int updatedProgress = (progress - 1).clamp(0, target);
+                    _updateProgress(context, goal, updatedProgress);
                   },
-                );
-              }),
+                ),
+                Expanded(
+                  child: Container(
+                    height: 8, // Set the desired height for the progress bar
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8), // Set the desired radius
+                      child: LinearProgressIndicator(
+                        value: progressRatio,
+                        backgroundColor: Colors.grey[300],
+                        color: Colors.green,
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () {
+                    final int updatedProgress = (progress + 1).clamp(0, target);
+                    _updateProgress(context, goal, updatedProgress);
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 4),
             Text('Progress: $progress/$target', style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 4),
-            // Display due date
+            const SizedBox(height: 8),
             Row(
               children: [
                 const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text('Due: ${goal.targetDate.toLocal().toString().split(' ')[0]}', style: const TextStyle(color: Colors.grey)),
+                Text(
+                  'Due: ${goal.targetDate.toLocal().toString().split(' ')[0]}',
+                  style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ],
@@ -75,7 +93,6 @@ class GoalTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Edit button
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
@@ -83,14 +100,24 @@ class GoalTile extends StatelessWidget {
                   context: context,
                   builder: (context) => EditGoalDialog(
                     goal: goal,
-                    addGoalToGroup: (Goal newGoal) {
-                      Provider.of<GoalProvider>(context, listen: false).updateGoal(newGoal);
+                    groupId: groupId,
+                    addGoalToGroup: (newGoal) {
+                      Provider.of<GoalProvider>(context, listen: false).addGoal(goal); // Add goal to main goals list
+                      if (goal != null) {
+                        Provider.of<GoalProvider>(context, listen: false).addGoal(goal); // Add goal to group-specific goals list
+                      }
+                    },
+
+                    onUpdateGoal: (updatedGoal) {
+                       Provider.of<GoalProvider>(context, listen: false).updateGoal(updatedGoal);
+                    },
+                    onDeleteGoal: (goalId) {
+                      Provider.of<GoalProvider>(context, listen: false).removeGoal(goalId);
                     },
                   ),
                 );
               },
             ),
-            // Delete button
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
@@ -101,5 +128,12 @@ class GoalTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _updateProgress(BuildContext context, Goal goal, int updatedProgress) {
+    Provider.of<GoalProvider>(context, listen: false).updateGoal(goal.copyWith(progress: updatedProgress));
+    if (updatedProgress == goal.target) {
+      Provider.of<GoalProvider>(context, listen: false).markGoalAsCompleted(goal.id);
+    }
   }
 }
