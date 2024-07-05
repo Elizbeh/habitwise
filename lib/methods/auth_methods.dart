@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/user_db_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final logger = Logger();
 
@@ -32,6 +32,7 @@ class AuthMethod {
         return 'Login failed';
       }
     } catch (e) {
+      logger.e('Error signing in: $e');
       return e.toString();
     }
   }
@@ -71,7 +72,7 @@ class AuthMethod {
           soloStats: {},
           groupIds: [],
           canCreateGroup: false, // Default permission
-          canJoinGroups: true,   // Default permission
+          canJoinGroups: true, id: '',    // Default permission
         );
 
         await _userDBService.createUser(habitWiseUser);

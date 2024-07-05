@@ -1,7 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/habit_provider.dart';
+import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
@@ -48,16 +50,15 @@ class _HabitScreenState extends State<HabitScreen> {
       return habits;
     } else {
       return habits.where((habit) =>
-        habit.startDate.isBefore(selectedDate.add(Duration(days: 1))) &&
-        (habit.endDate?.isAfter(selectedDate.subtract(Duration(days: 1))) ?? true)
-      ).toList();
+          habit.startDate.isBefore(selectedDate.add(Duration(days: 1))) &&
+          (habit.endDate?.isAfter(selectedDate.subtract(Duration(days: 1))) ?? true)).toList();
     }
   }
 
   List<Habit> _sortAndFilterHabits(List<Habit> habits) {
     List<Habit> filteredHabits = filterHabitsByCategory(habits, selectedCategory);
     filteredHabits = filterHabitsByDate(filteredHabits, _selectedDay);
-    
+
     if (sortingCriteria == 'Priority') {
       filteredHabits.sort((a, b) => a.priority.compareTo(b.priority));
     } else if (sortingCriteria == 'Completion Status') {
@@ -74,28 +75,45 @@ class _HabitScreenState extends State<HabitScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
         toolbarHeight: 80,
-        title: const Text(
+        title: Text(
           'Habits',
           style: TextStyle(
-            color: Colors.white
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
             gradient: LinearGradient(
               colors: [
                 Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(255, 222, 144, 236),
                 Color.fromRGBO(126, 35, 191, 0.498),
                 Color.fromARGB(57, 181, 77, 199),
-                Color.fromARGB(255, 201, 5, 236)
+                Color.fromARGB(233, 93, 59, 99),
               ],
               begin: Alignment.bottomCenter,
               end: Alignment.topLeft,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                color: Colors.transparent,
+              ),
             ),
           ),
         ),
@@ -146,12 +164,20 @@ class _HabitScreenState extends State<HabitScreen> {
               );
             }).toList(),
           ),
+          IconButton(
+            color: Colors.white,
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Provider.of<UserProvider>(context, listen: false).logoutUser();
+              Navigator.pushNamedAndRemoveUntil(
+                  context, '/login', (route) => false);
+            },
+          ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: SafeArea(
         child: Column(
           children: [
-            SizedBox(height: 100),
             TableCalendar(
               firstDay: DateTime.utc(2024, 1, 1),
               lastDay: DateTime.utc(2035, 1, 1),
@@ -171,20 +197,20 @@ class _HabitScreenState extends State<HabitScreen> {
                 });
               },
             ),
-            Consumer<HabitProvider>(
-              builder: (context, HabitProvider, child) {
-                final filteredHabits = _sortAndFilterHabits(HabitProvider.habits);
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filteredHabits.length,
-                  itemBuilder: (context, index) {
-                    final habit = filteredHabits[index];
-                    final leadingIcon = categoryIcons[habit.category ?? ''] ?? Icons.sunny;
-                    return HabitTile(habit: habit, groupId: '', leadingIcon: leadingIcon);
-                  },
-                );
-              },
+            Expanded(
+              child: Consumer<HabitProvider>(
+                builder: (context, habitProvider, child) {
+                  final filteredHabits = _sortAndFilterHabits(habitProvider.habits);
+                  return ListView.builder(
+                    itemCount: filteredHabits.length,
+                    itemBuilder: (context, index) {
+                      final habit = filteredHabits[index];
+                      final leadingIcon = categoryIcons[habit.category ?? ''] ?? Icons.sunny;
+                      return HabitTile(habit: habit, groupId: '', leadingIcon: leadingIcon);
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

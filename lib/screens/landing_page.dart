@@ -24,10 +24,10 @@ class LandingPage extends StatelessWidget {
         children: [
           // Gradient Background
           Positioned.fill(
-            top: MediaQuery.of(context).size.height * 0.26,
+            top: MediaQuery.of(context).size.height * 0.28,
             child: Container(
               decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(30), bottomRight: Radius.circular(30)),
+            borderRadius: BorderRadius.zero,
             gradient: LinearGradient(
               colors: [
                 Color.fromRGBO(126, 35, 191, 0.498),
@@ -69,14 +69,14 @@ class LandingPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 200.0),
+                const SizedBox(height: 150.0),
                 // Logo App Name
                 const Text(
                   'HabitWise',
                   style: TextStyle(
                     fontFamily: 'Billabong',
                     color: Colors.white,
-                    fontSize: 50,
+                    fontSize: 40,
                   ),
                 ),
                 Container(
@@ -90,8 +90,8 @@ class LandingPage extends StatelessWidget {
               child: ClipOval(
                 child: Image.asset(
                   'assets/images/logo.png',
-                  width: 100,
-                  height: 80,
+                  width: 80,
+                  height: 70,
                 ),
               ),
             ),
@@ -101,7 +101,7 @@ class LandingPage extends StatelessWidget {
                   'Welcome to HabitWise',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 30,
+                    fontSize: 20,
                     
                   ),
                   textAlign: TextAlign.center,
@@ -109,7 +109,7 @@ class LandingPage extends StatelessWidget {
                 const SizedBox(height: 15.0),
                 // Subtitle
                 AnimatedSubtitle(),
-                const SizedBox(height: 40.0),
+                const SizedBox(height: 24.0),
                 // Action Button
                 Container(
                   decoration: BoxDecoration(
@@ -129,7 +129,7 @@ class LandingPage extends StatelessWidget {
                       'Get Started',
                       style: TextStyle(
                         color: Color.fromARGB(152, 151, 11, 251),
-                        fontSize: 22.0,
+                        fontSize: 18.0,
                         fontWeight: FontWeight.bold,
                         
                       ),
@@ -182,7 +182,7 @@ class _AnimatedSubtitleState extends State<AnimatedSubtitle> with SingleTickerPr
         'Develop habits. Achieve goals. Transform your life.',
         style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 18,
                   ),
         textAlign: TextAlign.center,
       ),

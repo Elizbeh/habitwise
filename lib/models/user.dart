@@ -8,10 +8,11 @@ class HabitWiseUser {
   final List<String> habits;
   final Map<String, dynamic> soloStats;
   final List<String> groupIds;
-  final String? profilePictureUrl;
+  String? profilePictureUrl;
   final bool canCreateGroup;
   final bool canJoinGroups;
 
+  // Constructor to initialize the HabitWiseUser instance
   HabitWiseUser({
     required this.uid,
     required this.email,
@@ -22,9 +23,10 @@ class HabitWiseUser {
     required this.groupIds,
     this.profilePictureUrl,
     required this.canCreateGroup,
-    required this.canJoinGroups,
+    required this.canJoinGroups, required String id,
   });
 
+  // Factory constructor to create a HabitWiseUser instance from a map
   factory HabitWiseUser.fromMap(Map<String, dynamic> data) {
     return HabitWiseUser(
       uid: data['uid'],
@@ -36,10 +38,11 @@ class HabitWiseUser {
       groupIds: List<String>.from(data['groupIds']),
       profilePictureUrl: data['profilePictureUrl'],
       canCreateGroup: data['canCreateGroup'] ?? false,
-      canJoinGroups: data['canJoinGroup'] ?? false,
+      canJoinGroups: data['canJoinGroup'] ?? false, id: '',
     );
   }
 
+  // Method to convert a HabitWiseUser instance to a map
   Map<String, dynamic> toMap() {
     return {
       'uid': uid,

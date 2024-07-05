@@ -1,9 +1,22 @@
+import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:habitwise/models/group.dart';
-import 'package:habitwise/providers/group_provider.dart';
+import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/user_provider.dart';
+import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:habitwise/providers/group_provider.dart';
+import 'package:habitwise/models/group.dart';
+import 'package:habitwise/services/storage_service.dart';
 import 'package:provider/provider.dart';
+
+// Define the gradient colors as constants
+const List<Color> appBarGradientColors = [
+  Color.fromRGBO(126, 35, 191, 0.498),
+  Color.fromRGBO(126, 35, 191, 0.498),
+  Color.fromARGB(57, 181, 77, 199),
+  Color.fromARGB(233, 93, 59, 99),
+];
 
 class CreateGroupScreen extends StatefulWidget {
   @override
@@ -14,29 +27,94 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   final TextEditingController _groupNameController = TextEditingController();
   final TextEditingController _groupTypeController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  
-  late String _userId;
-  late String _currentUserId;
+  File? _groupPhoto;
+  final _storageService = StorageService();
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserIds();
+  Future<void> _selectGroupPhoto() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _groupPhoto = File(pickedFile.path);
+      });
+    }
   }
 
-  Future<void> _fetchUserIds() async {
-    try {
-      // Get the current user ID using your authentication method
-      FirebaseAuth auth = FirebaseAuth.instance;
-      User? user = auth.currentUser;
-      if (user != null) {
-        setState(() {
-          _userId = user.uid;
-          _currentUserId = user.uid;
-        });
+  Future<String?> _uploadGroupPhoto() async {
+    if (_groupPhoto != null) {
+      try {
+        return await _storageService.uploadGroupPhoto(_groupPhoto!);
+      } catch (e) {
+        print('Error uploading group photo: $e');
       }
-    } catch (e) {
-      print('Error fetching user ID: $e');
+    }
+    return null;
+  }
+
+  Future<void> _createGroup() async {
+    String groupName = _groupNameController.text.trim();
+    String groupType = _groupTypeController.text.trim();
+    String description = _descriptionController.text.trim();
+
+    HabitWiseUser? user = Provider.of<UserProvider>(context, listen: false).user;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('User not found. Please log in again.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    String userId = user.uid;
+
+    if (groupName.isNotEmpty && groupType.isNotEmpty && description.isNotEmpty) {
+      try {
+        String? groupPhotoUrl = await _uploadGroupPhoto();
+
+        HabitWiseGroup newGroup = HabitWiseGroup(
+          groupId: '',
+          groupName: groupName,
+          description: description,
+          members: [userId],
+          goals: [],
+          habits: [],
+          groupType: groupType,
+          groupPictureUrl: groupPhotoUrl,
+          groupCreator: userId,
+          creationDate: DateTime.now(),
+        );
+
+        await Provider.of<GroupProvider>(context, listen: false).createGroup(newGroup);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Group created successfully!'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardScreen(user: user)),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating group: $e'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please fill in all fields.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -52,121 +130,98 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          iconTheme: const IconThemeData(color: Colors.white),
-          elevation: 0,
-          toolbarHeight: 200,
-          title: const Text(
-            'Create Group',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+      appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
+        elevation: 0,
+        toolbarHeight: 80,
+        title: Text(
+          'Create Group',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
           ),
-          centerTitle: true,
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromRGBO(126, 35, 191, 0.498),
-                  Color.fromARGB(255, 222, 144, 236),
-                  Color.fromRGBO(126, 35, 191, 0.498),
-                  Color.fromARGB(57, 181, 77, 199),
-                  Color.fromARGB(255, 201, 5, 236)
-                ],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topLeft,
-              ),
-            ),
-          ),
-          actions: [
-            IconButton(
-              color: Colors.white,
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                Provider.of<UserProvider>(context, listen: false).logoutUser();
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-              },
-            ),
-          ],
         ),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+            gradient: LinearGradient(
+              colors: appBarGradientColors,
+              begin: Alignment.bottomCenter,
+              end: Alignment.topLeft,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            color: Colors.white,
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Provider.of<UserProvider>(context, listen: false).logoutUser();
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            },
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              TextField(
-                controller: _groupNameController,
-                decoration: InputDecoration(labelText: 'Group Name'),
-              ),
-              SizedBox(height: 16.0),
-              TextField(
-                controller: _groupTypeController,
-                decoration: InputDecoration(labelText: 'Group Type'),
-              ),
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
-              ),
-              SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () async {
-                  String groupName = _groupNameController.text.trim();
-                  String groupType = _groupTypeController.text.trim();
-                  String description = _descriptionController.text.trim();
-                  if (groupName.isNotEmpty && groupType.isNotEmpty && description.isNotEmpty) {
-                    try {
-                      HabitWiseGroup newGroup = HabitWiseGroup(
-                        groupId: '',
-                        groupName: groupName,
-                        description: description,
-                        members: [_userId],
-                        goals: [],
-                        habits: [],
-                        groupType: groupType,
-                        groupPictureUrl: null,
-                        groupCreator: _currentUserId,
-                        creationDate: DateTime.now(),
-                      );
-                      await Provider.of<GroupProvider>(context, listen: false).createGroup(newGroup);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Group created successfully!'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      // Navigate back to the dashboard and refresh groups
-                      Navigator.pop(context);
-                      Provider.of<GroupProvider>(context, listen: false).fetchGroups();
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error creating group: $e'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Please fill in all fields.'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                },
-                child: Text('Create Group'),
-              ),
-            ],
+                TextField(
+                  controller: _groupNameController,
+                  decoration: InputDecoration(labelText: 'Group Name'),
+                ),
+                SizedBox(height: 16.0),
+                TextField(
+                  controller: _groupTypeController,
+                  decoration: InputDecoration(labelText: 'Group Type'),
+                ),
+                TextField(
+                  controller: _descriptionController,
+                  decoration: InputDecoration(labelText: 'Description'),
+                ),
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: _selectGroupPhoto,
+                  child: Text('Select Group Photo'),
+                ),
+                SizedBox(height: 16.0),
+                if (_groupPhoto != null)
+                  Image.file(
+                    _groupPhoto!,
+                    height: 150,
+                    width: 150,
+                    fit: BoxFit.cover,
+                  ),
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: _createGroup,
+                  child: Text('Create Group'),
+                ),
+              ],
+            ),
           ),
         ),
-      )
-    ); 
+      ),
+    );
   }
 }

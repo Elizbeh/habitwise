@@ -15,14 +15,14 @@ class BottomNavigationBarWidget extends StatelessWidget {
     return Theme(
       data: Theme.of(context).copyWith(
         // sets the backgroundColor of the `BottomNavigationBar`
-        canvasColor: Color.fromRGBO(126, 35, 191, 0.498),
-        // sets the active color of the `BottomNavigationBar` if `Brightness` is light
-        primaryColor: Colors.white,
+        canvasColor: Colors.white,       // sets the active color of the `BottomNavigationBar` if `Brightness` is light
+        primaryColor: Color.fromRGBO(126, 35, 191, 0.498),
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: onTap,
-        selectedItemColor: Colors.white,
+        selectedItemColor: Color.fromRGBO(126, 35, 191, 0.498).withOpacity(1.0),
+        unselectedItemColor: Color.fromRGBO(126, 35, 191, 0.7),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),

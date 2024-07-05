@@ -121,151 +121,171 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Add Goal'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DropdownButtonFormField<String>(
-              value: _selectedCategory.isNotEmpty ? _selectedCategory : null,
-              items: GoalHelper.categoryIcons.keys
-                  .map<DropdownMenuItem<String>>((String category) {
-                return DropdownMenuItem<String>(
-                  value: category,
-                  child: Row(
-                    children: [
-                      Icon(GoalHelper.categoryIcons[category]),
-                      SizedBox(width: 8),
-                      Text(category),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                }
-              },
-              decoration: InputDecoration(
-                labelText: 'Category',
-                hintText: 'Select category',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select a category';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(labelText: 'Title'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a title';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a description';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _targetController,
-              decoration: InputDecoration(labelText: 'Target'),
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter a target';
-                }
-                if (int.tryParse(value) == null) {
-                  return 'Please enter a valid number';
-                }
-                return null;
-              },
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: _selectedDate == null
-                          ? 'Select date'
-                          : DateFormat.yMMMd().format(_selectedDate!),
-                    ),
-                    onTap: () => _selectDate(context),
-                  ),
+  return AlertDialog(
+    title: Container(
+      padding: EdgeInsets.all(8),
+      color: Color.fromRGBO(126, 35, 191, 0.498),
+      child: Text(
+        'Add Goal',
+        style: TextStyle(color: Colors.white), // Set the text color for the title
+      ),
+    ),
+    content: SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DropdownButtonFormField<String>(
+            value: _selectedCategory.isNotEmpty ? _selectedCategory : null,
+            items: GoalHelper.categoryIcons.keys
+                .map<DropdownMenuItem<String>>((String category) {
+              return DropdownMenuItem<String>(
+                value: category,
+                child: Row(
+                  children: [
+                    Icon(GoalHelper.categoryIcons[category], color: Colors.purple),
+                    
+                    SizedBox(width: 8),
+                    Text(category),
+                  ],
                 ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: TextFormField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: _selectedTime == null
-                          ? 'Select time'
-                          : _selectedTime!.format(context),
-                    ),
-                    onTap: () => _selectTime(context),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            DropdownButtonFormField<GoalTemplate>(
-              value: _selectedTemplate,
-              items: GoalHelper.goalTemplates.map((template) {
-                return DropdownMenuItem<GoalTemplate>(
-                  value: template,
-                  child: Text(template.title),
-                );
-              }).toList(),
-              onChanged: (template) {
+              );
+            }).toList(),
+            onChanged: (String? value) {
+              if (value != null) {
                 setState(() {
-                  _selectedTemplate = template!;
-                  _titleController.text = template.title;
-                  _descriptionController.text = template.description;
-                  _selectedCategory = template.category;
-                  _targetController.text = template.target.toString();
-                  _selectedDate = template.startDate;
-                  _selectedTime = TimeOfDay.fromDateTime(template.endDate);
+                  _selectedCategory = value;
                 });
-              },
-              decoration: InputDecoration(
-                labelText: 'Choose Template',
-                hintText: 'Select template',
-              ),
-              validator: (value) {
-                if (value == null) {
-                  return 'Please select a template';
-                }
-                return null;
-              },
+              }
+            },
+            decoration: InputDecoration(
+              labelText: 'Category',
+              hintText: 'Select category',
             ),
-          ],
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select a category';
+              }
+              return null;
+            },
+          ),
+          TextFormField(
+            controller: _titleController,
+            decoration: InputDecoration(labelText: 'Title'),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a title';
+              }
+              return null;
+            },
+          ),
+          TextFormField(
+            controller: _descriptionController,
+            decoration: InputDecoration(labelText: 'Description'),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a description';
+              }
+              return null;
+            },
+          ),
+          TextFormField(
+            controller: _targetController,
+            decoration: InputDecoration(labelText: 'Target'),
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please enter a target';
+              }
+              if (int.tryParse(value) == null) {
+                return 'Please enter a valid number';
+              }
+              return null;
+            },
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: _selectedDate == null
+                        ? 'Select date'
+                        : DateFormat.yMMMd().format(_selectedDate!),
+                  ),
+                  onTap: () => _selectDate(context),
+                ),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: TextFormField(
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: _selectedTime == null
+                        ? 'Select time'
+                        : _selectedTime!.format(context),
+                  ),
+                  onTap: () => _selectTime(context),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          DropdownButtonFormField<GoalTemplate>(
+            value: _selectedTemplate,
+            items: GoalHelper.goalTemplates.map((template) {
+              return DropdownMenuItem<GoalTemplate>(
+                value: template,
+                child: Text(template.title),
+              );
+            }).toList(),
+            onChanged: (template) {
+              setState(() {
+                _selectedTemplate = template!;
+                _titleController.text = template.title;
+                _descriptionController.text = template.description;
+                _selectedCategory = template.category;
+                _targetController.text = template.target.toString();
+                _selectedDate = template.startDate;
+                _selectedTime = TimeOfDay.fromDateTime(template.endDate);
+              });
+            },
+            decoration: InputDecoration(
+              labelText: 'Choose Template',
+              hintText: 'Select template',
+            ),
+            validator: (value) {
+              if (value == null) {
+                return 'Please select a template';
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: Colors.grey
+        ),
+        onPressed: () => Navigator.pop(context),
+        child: Text(
+          'Cancel',
+          style: TextStyle(color: Colors.white),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
         ),
-        ElevatedButton(
-          onPressed: () => _addGoal(context),
-          child: Text('Add'),
+        onPressed: () => _addGoal(context),
+        child: Text(
+          'Add',
+          style: TextStyle(color: Colors.white),
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 }

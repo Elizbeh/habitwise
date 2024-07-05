@@ -83,15 +83,15 @@ class GoalPieChartWidget extends StatelessWidget {
       case 'Health & Fitness':
         return Color.fromRGBO(126, 35, 191, 0.498);
       case 'Work & Productivity':
-        return Color.fromARGB(255, 222, 144, 236);
+        return Colors.green;
       case 'Personal Development':
-        return Color.fromRGBO(148, 24, 237, 0.494);
+        return Colors.yellow;
       case 'Self-Care':
-        return Color.fromARGB(57, 181, 77, 199);
+        return Colors.blue;
       case 'Finance':
         return Color.fromARGB(255, 201, 5, 236);
       default:
-        return Color.fromARGB(57, 214, 93, 157);
+        return Colors.pink;
     }
   }
 }

@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Goal {
   final String id;
-  final String title;
-  final String description;
-  final String category;
+  late final String title;
+  late final String description;
+  late final String category;
   final int priority;
   final int progress;
-  final int target;
+  late final int target;
   final DateTime targetDate;
-  final DateTime? endDate;
+  late final DateTime? endDate;
   final bool isCompleted;
 
   Goal({

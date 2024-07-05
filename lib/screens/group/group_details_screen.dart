@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/group.dart';
@@ -5,15 +8,16 @@ import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
+import 'package:habitwise/services/goals_db_service.dart';
 import 'package:habitwise/services/group_db_service.dart';
 import 'package:habitwise/services/user_db_service.dart';
 import 'package:habitwise/widgets/goal_tile.dart';
+import 'package:habitwise/widgets/habit_tile.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
-import 'package:habitwise/services/goals_db_service.dart';
 import 'package:habitwise/services/habit_db_service.dart';
-import 'package:habitwise/widgets/habit_tile.dart';
 
 class GroupDetailsScreen extends StatefulWidget {
   @override
@@ -26,28 +30,55 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   final GoalDBService _goalDBService = GoalDBService();
   final HabitDBService _habitDBService = HabitDBService();
 
+  HabitWiseGroup? group;
+  String creatorName = '';
+  bool isMember = false;
+  bool isCreator = false;
+  bool isExpanded = false;
+
   int _selectedIndex = 0;
 
   @override
   void initState() {
-    super.initState(); 
+    super.initState();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      _fetchGroupDetails();
+    });
+  }
+
+  Future<void> _fetchGroupDetails() async {
+    final String groupId = ModalRoute.of(context)!.settings.arguments as String;
+    try {
+      final fetchedGroup = await _groupDBService.getGroupById(groupId);
+      final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
+      final fetchedCreatorName = await _userDBService.getUserNameById(fetchedGroup.groupCreator);
+      final fetchedIsMember = fetchedGroup.members.contains(userId);
+      final fetchedIsCreator = fetchedGroup.groupCreator == userId;
+
+      setState(() {
+        group = fetchedGroup;
+        creatorName = fetchedCreatorName;
+        isMember = fetchedIsMember;
+        isCreator = fetchedIsCreator;
+      });
+    } catch (e) {
+      print('Error fetching group details: $e');
+      // Handle error gracefully, e.g., show an error message
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final String groupId = ModalRoute.of(context)!.settings.arguments as String;
-    final userProvider = Provider.of<UserProvider>(context);
-
     return ChangeNotifierProvider(
-      create: (_) => GoalProvider(groupId: groupId),
+      create: (_) => GoalProvider(groupId: group?.groupId ?? ''),
       child: Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
-          iconTheme: const IconThemeData(color: Colors.white),
+          iconTheme: IconThemeData(color: Colors.white),
           elevation: 0,
-          toolbarHeight: 80,
-          title: const Text(
-            'Group Details',
+          toolbarHeight: 60,
+          title: Text(
+            '${group?.groupType}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 28,
@@ -56,21 +87,32 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           ),
           centerTitle: true,
           flexibleSpace: Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+                bottomLeft: Radius.circular(0),
+                bottomRight: Radius.circular(0),
               ),
               gradient: LinearGradient(
                 colors: [
                   Color.fromRGBO(126, 35, 191, 0.498),
-                  Color.fromARGB(255, 222, 144, 236),
                   Color.fromRGBO(126, 35, 191, 0.498),
                   Color.fromARGB(57, 181, 77, 199),
-                  Color.fromARGB(255, 201, 5, 236)
+                  Color.fromARGB(233, 93, 59, 99),
                 ],
                 begin: Alignment.bottomCenter,
                 end: Alignment.topLeft,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(0),
+                bottomRight: Radius.circular(0),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                child: Container(
+                  color: Colors.transparent,
+                ),
               ),
             ),
           ),
@@ -80,270 +122,386 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
               icon: const Icon(Icons.logout),
               onPressed: () {
                 Provider.of<UserProvider>(context, listen: false).logoutUser();
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (route) => false,
+                );
               },
             ),
           ],
         ),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-            child: FutureBuilder<HabitWiseGroup>(
-              future: _groupDBService.getGroupById(groupId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data == null) {
-                  return const Center(child: Text('Group not found'));
-                } else {
-                  HabitWiseGroup group = snapshot.data!;
-                  return FutureBuilder<String>(
-                    future: _userDBService.getUserNameById(group.groupCreator),
-                    builder: (context, userSnapshot) {
-                      if (userSnapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (userSnapshot.hasError) {
-                        return Center(child: Text('Error: ${userSnapshot.error}'));
-                      } else {
-                        String creatorName = userSnapshot.data ?? 'Unknown';
-                        String userId = userProvider.user?.uid ?? '';
-                        bool isMember = group.members.contains(userId);
-                        bool isCreator = group.groupCreator == userId;
-
-                        print("isMember: $isMember, isCreator: $isCreator"); // Debugging line
-
-                        return Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SingleChildScrollView(
+          child: group != null
+              ? Column(
+                  children: [
+                    // Banner below AppBar
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromRGBO(203, 157, 236, 0.494),
+                            Color.fromRGBO(208, 164, 239, 0.475),
+                          ],
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.bottomRight,
+                        ),
+                      ),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: CircleAvatar(
+                              radius: 60,
+                              backgroundImage: group!.groupPictureUrl != null
+                                  ? NetworkImage(group!.groupPictureUrl!) as ImageProvider<Object>?
+                                  : null,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 130.0),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 16.0),
-                                Text('Group Name: ${group.groupName}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 8.0),
-                                Text('Group Type: ${group.groupType}'),
-                                const SizedBox(height: 8.0),
-                                Text('Description: ${group.description}'),
-                                const SizedBox(height: 8.0),
-                                Text('Created by: $creatorName'),
-                                const SizedBox(height: 8.0),
-                                Text('Created on: ${group.creationDate.toLocal().toString().split(' ')[0]}'),
-                                const SizedBox(height: 8.0),
-                                // Fetch and display member usernames instead of IDs
-                                FutureBuilder<List<String>>(
-                                  future: _fetchMemberUsernames(group.members),
-                                  builder: (context, membersSnapshot) {
-                                    if (membersSnapshot.connectionState == ConnectionState.waiting) {
-                                      return const Center(child: CircularProgressIndicator());
-                                    } else if (membersSnapshot.hasError) {
-                                      return Center(child: Text('Error: ${membersSnapshot.error}'));
-                                    } else {
-                                      List<String> memberUsernames = membersSnapshot.data ?? [];
-                                      return Text('Members: ${memberUsernames.join(', ')}');
-                                    }
-                                  },
-                                ),
-                                const SizedBox(height: 16.0),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AddGoalDialog(
-                                              addGoalToGroup: (Goal goal) async {
-                                                try {
-                                                  await _goalDBService.addGoalToGroup(groupId, goal.id);
-                                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                                    content: Text('Goal added to group successfully!'),
-                                                    duration: Duration(seconds: 2),
-                                                  ));
-                                                  setState(() {}); // Trigger UI update
-                                                } catch (e) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                                    content: Text('Error adding goal to group: $e'),
-                                                    duration: const Duration(seconds: 2),
-                                                  ));
-                                                }
-                                              },
-                                              groupId: groupId,
-                                            );
-                                          },
-                                        );
-                                      },
-                                      child: const Text('Add Goal'),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () async {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AddHabitDialog(isGroupHabit: true, groupId: groupId);
-                                          },
-                                        );
-                                      },
-                                      child: const Text('Add Habit'),
-                                    ),
-                                  ],
-                                ),
-                                if (isMember && !isCreator) ...[
-                                  // Leave Group Button
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      try {
-                                        await _groupDBService.leaveGroup(group.groupId, userId);
-                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                          content: Text('Left group successfully!'),
-                                          duration: Duration(seconds: 2),
-                                        ));
-                                        setState(() {}); // Trigger UI update
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                          content: Text('Error leaving group: $e'),
-                                          duration: const Duration(seconds: 2),
-                                        ));
-                                      }
-                                    },
-                                    child: const Text('Leave Group'),
-                                  ),
-                                ],
-                                if (!isMember && !isCreator) ...[
-                                  // Join Group Button
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      try {
-                                        await _groupDBService.joinGroup(group.groupId, userId);
-                                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                                          content: Text('Joined group successfully!'),
-                                          duration: Duration(seconds: 2),
-                                        ));
-                                        setState(() {}); // Trigger UI update
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                          content: Text('Error joining group: $e'),
-                                          duration: const Duration(seconds: 2),
-                                        ));
-                                      }
-                                    },
-                                    child: const Text('Join Group'),
-                                  ),
-                                ],
-                                Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    border: Border.all(color: const Color.fromRGBO(126, 35, 191, 0.498)),
-                                  ),
-                                  child: Row(
-                                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                SizedBox(height: 8.0),
+                                Text.rich(
+                                  TextSpan(
                                     children: [
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _selectedIndex = 0;
-                                            });
-                                          },
-                                          child: const Text('Goals'),
-                                          style: ElevatedButton.styleFrom(
-                                            foregroundColor: _selectedIndex == 0 ? Colors.white : Colors.black,
-                                            backgroundColor: _selectedIndex == 0 ? const Color.fromRGBO(126, 35, 191, 0.498) : Colors.white,
-                                            shape: const RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.only(
-                                                topLeft: Radius.circular(8.0),
-                                                bottomLeft: Radius.circular(8.0),
-                                              ),
+                                      TextSpan(
+                                        text: '${group!.groupName}',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.purple,
+                                        ),
+                                      ),
+                                      WidgetSpan(
+                                        alignment: PlaceholderAlignment.bottom,
+                                        baseline: TextBaseline.alphabetic,
+                                        child: SizedBox(
+                                          width: 3, // Adjust as needed
+                                          height: 3, // Adjust as needed
+                                          child: Text(
+                                            '₁',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black,
+                                              textBaseline: TextBaseline.alphabetic,
                                             ),
                                           ),
                                         ),
                                       ),
-                                      Container(
-                                        width: 1,
-                                        height: 48,
-                                        color: const Color.fromRGBO(126, 35, 191, 0.498),
-                                      ),
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            setState(() {
-                                              _selectedIndex = 1;
-                                            });
-                                          },
-                                          child: const Text('Habits'),
-                                          style: ElevatedButton.styleFrom(
-                                            foregroundColor: _selectedIndex == 1 ? Colors.white : Colors.black,
-                                            backgroundColor: _selectedIndex == 1 ? const Color.fromRGBO(126, 35, 191, 0.498) : Colors.white,
-                                            shape: const RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.only(
-                                                topRight: Radius.circular(8.0),
-                                                bottomRight: Radius.circular(8.0),
-                                              ),
-                                            ),
-                                          ),
+                                      TextSpan(
+                                        text: ' by $creatorName',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                if (_selectedIndex == 0) ...[
-                                  const SizedBox(height: 16.0),
-                                  const Text('Group Goals:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  StreamBuilder<List<Goal>>(
-                                    stream: _goalDBService.getGroupGoalsStream(groupId),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return const Center(child: CircularProgressIndicator());
-                                      } else if (snapshot.hasError) {
-                                        return Center(child: Text('Error: ${snapshot.error}'));
-                                      } else {
-                                        List<Goal> goals = snapshot.data ?? [];
-                                        return Column(
-                                          children: goals.map((goal) => GoalTile(goal: goal, groupId: groupId)).toList(),
-                                        );
-                                      }
-                                    },
+                                Text(
+                                  'Created on ${DateFormat('yyyy-MM-dd').format(group!.creationDate)} @ ${DateFormat('HH:mm:ss').format(group!.creationDate)}',
+                                  style: TextStyle(fontSize: 10, color: Colors.pink),
+                                ),
+                                SizedBox(height: 4.0),
+                                AnimatedCrossFade(
+                                  firstChild: Container(
+                                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
+                                    child: Text(
+                                      '${group!.description} ',
+                                      style: TextStyle(fontSize: 12),
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ],
-                                if (_selectedIndex == 1) ...[
-                                  const SizedBox(height: 16.0),
-                                  const Text('Group Habits:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  StreamBuilder<List<Habit>>(
-                                    stream: _habitDBService.getGroupHabitsStream(groupId),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                        return const Center(child: CircularProgressIndicator());
-                                      } else if (snapshot.hasError) {
-                                        return Center(child: Text('Error: ${snapshot.error}'));
-                                      } else {
-                                        List<Habit> habits = snapshot.data ?? [];
-                                        return ListView.builder(
-                                          shrinkWrap: true,
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          itemCount: habits.length,
-                                          itemBuilder: (context, index) {
-                                            final habit = habits[index];
-                                            final leadingIcon = categoryIcons[habit.category ?? ''] ?? Icons.star;
-                                            return HabitTile(habit: habit, groupId: groupId, leadingIcon: leadingIcon);
-                                          },
-                                        );
-                                      }
-                                    },
+                                  secondChild: Container(
+                                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
+                                    child: Text(
+                                      '${group!.description} ',
+                                      style: TextStyle(fontSize: 12, color: Colors.purple),
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
-                                ],
+                                  crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                                  duration: Duration(milliseconds: 300),
+                                ),
+                                SizedBox(height: 4.0),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      isExpanded = !isExpanded;
+                                    });
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          isExpanded ? 'See less ' : 'See more ',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(
+                                        isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                        color: Colors.blue,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 8.0),
+                                FutureBuilder<List<String>>(
+                                  future: _fetchMemberUsernames(group!.members),
+                                  builder: (context, membersSnapshot) {
+                                    if (membersSnapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(child: CircularProgressIndicator());
+                                    } else if (membersSnapshot.hasError) {
+                                      return Center(child: Text('Error: ${membersSnapshot.error}'));
+                                    } else {
+                                      List<String> memberUsernames = membersSnapshot.data ?? [];
+                                      return DropdownButton<String>(
+                                        value: null,
+                                        hint: Text(
+                                          'Members: ${memberUsernames.join(', ')}',
+                                          style: TextStyle(color: Colors.purple, fontSize: 12),
+                                        ),
+                                        items: memberUsernames.map((String username) {
+                                          return DropdownMenuItem<String>(
+                                            value: username,
+                                            child: Text(username),
+                                          );
+                                        }).toList(),
+                                        onChanged: (_) {},
+                                      );
+                                    }
+                                  },
+                                ),
                               ],
                             ),
                           ),
-                        );
-                      }
-                    },
-                  );
-                }
-              },
-            ),
-          ),
+                        ],
+                      ),
+                    ),
+
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(height: 16.0),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AddGoalDialog(
+                                            addGoalToGroup: (Goal goal) async {
+                                              try {
+                                                await _goalDBService.addGoalToGroup(group!.groupId, goal.id);
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                                  content: Text('Goal added to group successfully!'),
+                                                  duration: Duration(seconds: 3),
+                                                  ),
+                                                );
+                                                setState(() {});
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                  content: Text('Error adding goal: $e'),
+                                                  duration: const Duration(seconds: 2),
+                                                ));
+                                              }
+                                            },
+                                            groupId: group!.groupId,
+                                          );
+                                        },
+                                      );
+                                    },
+                                    child: const Text('Add Goal'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AddHabitDialog(isGroupHabit: true, groupId: group!.groupId);
+                                        },
+                                      );
+                                    },
+                                    child: const Text('Add Habit'),
+                                  ),
+                                ],
+                              ),
+                              if (isMember && !isCreator) ...[
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    try {
+                                      await _groupDBService.leaveGroup(
+                                          group!.groupId, Provider.of<UserProvider>(context, listen: false).user!.uid);
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                        content: Text('Left group successfully!'),
+                                        duration: Duration(seconds: 2),
+                                      ));
+                                      setState(() {});
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                        content: Text('Error leaving group: $e'),
+                                        duration: const Duration(seconds: 2),
+                                      ));
+                                    }
+                                  },
+                                  child: const Text('Leave Group'),
+                                ),
+                              ],
+                              if (!isMember && !isCreator) ...[
+                                ElevatedButton(
+                                  onPressed: () async {
+                                    try {
+                                      await _groupDBService.joinGroup(
+                                          group!.groupId, Provider.of<UserProvider>(context, listen: false).user!.uid);
+                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                                        content: Text('Joined group successfully!'),
+                                        duration: Duration(seconds: 2),
+                                      ));
+                                      setState(() {});
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                        content: Text('Error joining group: $e'),
+                                        duration: const Duration(seconds: 2),
+                                      ));
+                                    }
+                                  },
+                                  child: const Text('Join Group'),
+                                ),
+                              ],
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(color: const Color.fromRGBO(126, 35, 191, 0.498)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _selectedIndex = 0;
+                                          });
+                                        },
+                                        child: const Text('Goals'),
+                                        style: ElevatedButton.styleFrom(
+                                          foregroundColor: _selectedIndex == 0 ? Colors.white : Colors.black,
+                                          backgroundColor:
+                                              _selectedIndex == 0 ? const Color.fromRGBO(126, 35, 191, 0.498) : Colors.white,
+                                          shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.only(
+                                              topLeft: Radius.circular(8.0),
+                                              bottomLeft: Radius.circular(8.0),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 48,
+                                      color: const Color.fromRGBO(126, 35, 191, 0.498),
+                                    ),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _selectedIndex = 1;
+                                          });
+                                        },
+                                        child: const Text('Habits'),
+                                        style: ElevatedButton.styleFrom(
+                                          foregroundColor: _selectedIndex == 1 ? Colors.white : Colors.black,
+                                          backgroundColor:
+                                              _selectedIndex == 1 ? const Color.fromRGBO(126, 35, 191, 0.498) : Colors.white,
+                                          shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.only(
+                                              topRight: Radius.circular(8.0),
+                                              bottomRight: Radius.circular(8.0),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (_selectedIndex == 0) ...[
+                                SizedBox(height: 16.0),
+                                Text('Group Goals:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                StreamBuilder<List<Goal>>(
+                                  stream: _goalDBService.getGroupGoalsStream(group!.groupId),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(child: CircularProgressIndicator());
+                                    } else if (snapshot.hasError) {
+                                      return Center(child: Text('Error: ${snapshot.error}'));
+                                    } else {
+                                      List<Goal> goals = snapshot.data ?? [];
+                                      return Column(
+                                        children: goals.map((goal) => GoalTile(goal: goal, groupId: group!.groupId)).toList(),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                              if (_selectedIndex == 1) ...[
+                                SizedBox(height: 16.0),
+                                Text('Group Habits:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                StreamBuilder<List<Habit>>(
+                                  stream: _habitDBService.getGroupHabitsStream(group!.groupId),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return Center(child: CircularProgressIndicator());
+                                    } else if (snapshot.hasError) {
+                                      return Center(child: Text('Error: ${snapshot.error}'));
+                                    } else {
+                                      List<Habit> habits = snapshot.data ?? [];
+                                      return ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: NeverScrollableScrollPhysics(),
+                                        itemCount: habits.length,
+                                        itemBuilder: (context, index) {
+                                          final habit = habits[index];
+                                          final leadingIcon = categoryIcons[habit.category ?? ''] ?? Icons.star;
+                                          return HabitTile(habit: habit, groupId: group!.groupId, leadingIcon: leadingIcon);
+                                        },
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              : Center(
+                  child: CircularProgressIndicator(),
+                ),
         ),
       ),
     );

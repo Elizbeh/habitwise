@@ -4,11 +4,12 @@ import 'package:habitwise/providers/habit_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/services/habit_db_service.dart';
 
+
 void _showEditHabitDialog(BuildContext context, Habit habit, bool isGroupHabit, String? groupId) {
   final TextEditingController titleController = TextEditingController(text: habit.title);
   final TextEditingController descriptionController = TextEditingController(text: habit.description);
   final TextEditingController frequencyController = TextEditingController(text: habit.frequency.toString());
-  String? editedCategory = habit.category;
+  String? editedCategory = habit.category ?? 'All';
 
   showDialog(
     context: context,
@@ -43,6 +44,7 @@ void _showEditHabitDialog(BuildContext context, Habit habit, bool isGroupHabit, 
                       });
                     },
                     items: <String>[
+                      'All',
                       'Health & Fitness',
                       'Work & Productivity',
                       'Personal Development',

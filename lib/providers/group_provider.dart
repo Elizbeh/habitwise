@@ -8,7 +8,7 @@ class GroupProvider extends ChangeNotifier {
 
   List<HabitWiseGroup> get groups => _groups;
 
-  Future<void> fetchGroups() async {
+  /*Future<void> fetchGroups() async {
     try {
       List<HabitWiseGroup> fetchedGroups = await _groupDBService.getAllGroups();
       _groups = fetchedGroups;
@@ -17,12 +17,23 @@ class GroupProvider extends ChangeNotifier {
       // Handle error
       print('Error fetching groups: $e');
     }
+  }*/
+  Future<void> fetchGroups(String userId) async {
+  try {
+    List<HabitWiseGroup> fetchedGroups = await _groupDBService.getAllGroups(userId);
+    _groups = fetchedGroups;
+    notifyListeners();
+  } catch (e) {
+    // Handle error
+    print('Error fetching groups: $e');
   }
+}
 
-  Future<void> addGoalToGroup(String groupId, String goal) async {
+
+  Future<void> addGoalToGroup(String groupId, String goal, String userId) async {
     try {
       await _groupDBService.addGoalToGroup(groupId, goal);
-      await fetchGroups(); // Refreshes groups
+      await fetchGroups(userId); // Refreshes groups
     } catch (e) {
       print('Error adding goal: $e');
     }
@@ -77,5 +88,10 @@ class GroupProvider extends ChangeNotifier {
     } catch (e) {
       print('Error deleting group: $e');
     }
+  }
+
+  void removeGroup(String groupId) {
+    _groups.removeWhere((group) => group.groupId == groupId);
+    notifyListeners();
   }
 }

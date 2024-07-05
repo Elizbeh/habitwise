@@ -14,21 +14,39 @@ class GroupDBService {
   }
 
   // Fetch all groups
-  Future<List<HabitWiseGroup>> getAllGroups() async {
-    try {
-      QuerySnapshot querySnapshot = await groupsCollection.get();
-      return querySnapshot.docs.map((doc) {
-        try {
-          return HabitWiseGroup.fromMap(doc.data() as Map<String, dynamic>);
-        } catch (e) {
-          print('Error parsing group data: ${doc.id} - $e');
-          throw e;
-        }
-      }).toList();
-    } catch (e) {
-      throw Exception('Error fetching groups: $e');
+  /*Future<List<HabitWiseGroup>> getAllGroups() async {
+  try {
+    QuerySnapshot querySnapshot = await groupsCollection.get();
+    List<HabitWiseGroup> groups = [];
+    for (var doc in querySnapshot.docs) {
+      try {
+        groups.add(HabitWiseGroup.fromMap(doc.data() as Map<String, dynamic>));
+      } catch (e) {
+        print('Error parsing group data: ${doc.id} - $e');
+      }
     }
+    return groups;
+  } catch (e) {
+    throw Exception('Error fetching groups: $e');
   }
+}*/
+Future<List<HabitWiseGroup>> getAllGroups(String userId) async {
+  try {
+    QuerySnapshot querySnapshot = await groupsCollection.where('members', arrayContains: userId).get();
+    List<HabitWiseGroup> groups = [];
+    for (var doc in querySnapshot.docs) {
+      try {
+        groups.add(HabitWiseGroup.fromMap(doc.data() as Map<String, dynamic>));
+      } catch (e) {
+        print('Error parsing group data: ${doc.id} - $e');
+      }
+    }
+    return groups;
+  } catch (e) {
+    throw Exception('Error fetching groups: $e');
+  }
+}
+
 
   // Get group details by ID
   Future<HabitWiseGroup> getGroupById(String groupId) async {
@@ -88,6 +106,18 @@ class GroupDBService {
       });
     } catch (e) {
       print('Error adding habit to group: $e');
+      throw e;
+    }
+  }
+
+  // Update group picture URL
+  Future<void> updateGroupPicture(String groupId, String imageUrl) async {
+    try {
+      await groupsCollection.doc(groupId).update({
+        'groupPictureUrl': imageUrl,
+      });
+    } catch (e) {
+      print('Error updating group picture URL: $e');
       throw e;
     }
   }

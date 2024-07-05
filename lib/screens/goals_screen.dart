@@ -1,5 +1,5 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
@@ -26,8 +26,8 @@ class GoalScreen extends StatefulWidget {
 class _GoalScreenState extends State<GoalScreen> {
   String sortingCriteria = 'Priority';
   String selectedCategory = 'All';
-  CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay = DateTime.now(); // Remove final keyword
+  CalendarFormat _calendarFormat = CalendarFormat.week;
+  DateTime _focusedDay = DateTime.now();
   late DateTime _selectedDay;
   int _currentIndex = 1;
 
@@ -70,28 +70,45 @@ class _GoalScreenState extends State<GoalScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
         elevation: 0,
         toolbarHeight: 80,
-        title: const Text(
+        title: Text(
           'Goals',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30)),
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
             gradient: LinearGradient(
               colors: [
                 Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(255, 222, 144, 236),
                 Color.fromRGBO(126, 35, 191, 0.498),
                 Color.fromARGB(57, 181, 77, 199),
-                Color.fromARGB(255, 201, 5, 236)
+                Color.fromARGB(233, 93, 59, 99),
               ],
               begin: Alignment.bottomCenter,
               end: Alignment.topLeft,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(30),
+              bottomRight: Radius.circular(30),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                color: Colors.transparent,
+              ),
             ),
           ),
         ),
@@ -163,7 +180,7 @@ class _GoalScreenState extends State<GoalScreen> {
               onDaySelected: (selectedDay, focusedDay) {
                 setState(() {
                   _selectedDay = selectedDay;
-                  _focusedDay = focusedDay; // Update the focused day
+                  _focusedDay = focusedDay;
                 });
               },
             ),
@@ -173,7 +190,6 @@ class _GoalScreenState extends State<GoalScreen> {
                   final filteredGoals = _sortAndFilterGoals(provider.goals);
                   return ListView.builder(
                     shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: filteredGoals.length,
                     itemBuilder: (context, index) {
                       final goal = filteredGoals[index];
@@ -190,8 +206,9 @@ class _GoalScreenState extends State<GoalScreen> {
                                 Provider.of<GoalProvider>(context, listen: false).removeGoal(goalId);
                               },
                               addGoalToGroup: (Goal newGoal) {
-                                // Handle the updated goal here
-                              }, groupId: widget.groupId!,
+                                // Handle the updated goal ...
+                              },
+                              groupId: widget.groupId!,
                             ),
                           );
                         },

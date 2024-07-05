@@ -15,6 +15,7 @@ class Habit {
   final String? category;
   final int priority; // e.g., 1 for high, 2 for medium, 3 for low
   final String? groupId;
+  List<String> achievements;
 
   Habit({
     required this.id,
@@ -31,7 +32,10 @@ class Habit {
     this.category,
     this.priority = 2,
     this.groupId,
+    this.achievements = const [],
   });
+
+  
 
   // Method to copy a habit with optional parameters
   Habit copyWith({
@@ -49,6 +53,7 @@ class Habit {
     String? category,
     int? priority,
     String? groupId,
+    List<String>? achievement,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -65,6 +70,7 @@ class Habit {
       category: category ?? this.category,
       priority: priority ?? this.priority,
       groupId: groupId ?? this.groupId,
+      achievements: achievements,
     );
   }
 
@@ -85,6 +91,7 @@ class Habit {
       'category': category,
       'priority': priority,
       'groupId': groupId,
+      'qchievements': achievements,
     };
   }
 
@@ -105,6 +112,7 @@ class Habit {
       category: map['category'],
       priority: map['priority'] ?? 2,
       groupId: map['groupId'],
+      achievements: (map['achievements'] as List<dynamic>?)?.map((achievement) => achievement.toString()).toList() ?? [],
     );
   }
 

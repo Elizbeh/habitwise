@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user.dart';
 import '../services/user_db_service.dart';
 import '../methods/auth_methods.dart';
@@ -133,4 +132,23 @@ class UserProvider extends ChangeNotifier {
     _isDisposed = true;
     super.dispose();
   }
+
+  // Update user profile
+  Future<void> updateUserProfile(HabitWiseUser user) async {
+    _isLoading = true;
+    _errorMessage = '';
+    _safeNotifyListeners();
+
+    try {
+      await _userDBService.updateUserProfile(user);
+      _user = user; // Update local user object
+    } catch (e) {
+      _errorMessage = 'Error updating user profile: $e';
+    } finally {
+      _isLoading = false;
+      _safeNotifyListeners();
+    }
+  }
+
+  
 }

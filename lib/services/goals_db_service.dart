@@ -35,18 +35,13 @@ class GoalDBService {
 
    // Function to get a stream of goals for a specific group
   Stream<List<Goal>> getGroupGoalsStream(String groupId) {
-    return groupCollection.doc(groupId).snapshots().asyncMap((groupDoc) async {
-      List<String> goalIds = List<String>.from(groupDoc['goals'] ?? []);
-      List<Goal> goals = [];
-      for (String goalId in goalIds) {
-        DocumentSnapshot goalDoc = await goalCollection.doc(goalId).get();
-        if (goalDoc.exists) {
-          goals.add(Goal.fromMap(goalDoc.data() as Map<String, dynamic>));
-        }
-      }
-      return goals;
-    });
-  }
+  return groupCollection.doc(groupId).snapshots().asyncMap((groupDoc) async {
+    List<String> goalIds = List<String>.from(groupDoc['goals'] ?? []);
+    if (goalIds.isEmpty) return [];
+    QuerySnapshot goalSnapshots = await goalCollection.where(FieldPath.documentId, whereIn: goalIds).get();
+    return goalSnapshots.docs.map((doc) => Goal.fromMap(doc.data() as Map<String, dynamic>)).toList();
+  });
+}
 
 
   // Function to get goals

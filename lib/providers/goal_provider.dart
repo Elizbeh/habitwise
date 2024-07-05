@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/services/goals_db_service.dart';
@@ -7,22 +9,30 @@ class GoalProvider with ChangeNotifier {
   final String? groupId;
 
   List<Goal> _goals = [];
+  StreamSubscription<List<Goal>>? _goalSubscription;
 
   GoalProvider({this.groupId}) {
-    if (groupId != null && groupId!.isNotEmpty) {
+    Future.microtask(() {
+      if (groupId != null && groupId!.isNotEmpty) {
       fetchGroupGoals(groupId!);
     } else {
       fetchGoals();
     }
+    });
   }
 
   List<Goal> get goals => _goals;
+
+   @override
+  void dispose() {
+    _goalSubscription?.cancel();
+    super.dispose();
+  }
 
   // Function to add a goal
   Future<void> addGoal(Goal goal) async {
     try {
       await _dbService.addGoal(goal);
-      _goals.add(goal);
       notifyListeners();
     } catch (error) {
       print("Error adding goal: $error");
@@ -33,6 +43,7 @@ class GoalProvider with ChangeNotifier {
     // Function to fetch goals
   Future<void> fetchGoals() async {
     try {
+      _goalSubscription?.cancel();
       _dbService.getGoals().listen((List<Goal> data) {
         _goals = data;
         notifyListeners();
@@ -46,6 +57,7 @@ class GoalProvider with ChangeNotifier {
 
   Future<void> fetchGroupGoals(String groupId) async {
     try {
+      _goalSubscription?.cancel();
       _dbService.getGroupGoalsStream(groupId).listen((List<Goal> data) {
         _goals = data;
         notifyListeners();
@@ -107,6 +119,20 @@ class GoalProvider with ChangeNotifier {
     } catch (error) {
       print("Error marking goal as completed: $error");
       throw error;
+    }
+  }
+  // Function to get achievement level
+  String getAchievementLevel() {
+    final completedGoals = _goals.where((goal) => goal.isCompleted).length;
+
+    if (completedGoals >= 10) {
+      return 'Expert';
+    } else if (completedGoals >= 5) {
+      return 'Intermediate';
+    } else if (completedGoals >= 1) {
+      return 'Beginner';
+    } else {
+      return 'No Achievements';
     }
   }
 }
