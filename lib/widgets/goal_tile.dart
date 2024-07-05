@@ -6,9 +6,9 @@ import 'package:provider/provider.dart';
 
 class GoalTile extends StatelessWidget {
   final Goal goal;
-  final String groupId; // Add groupId parameter
-  final Function(Goal)? onUpdateGoal; // Define named parameter
-  final Function(String)? onDeleteGoal; // Define named parameter
+  final String groupId; 
+  final Function(Goal)? onUpdateGoal;
+  final Function(String)? onDeleteGoal;
 
   const GoalTile({
     required this.goal, 

@@ -8,7 +8,6 @@ class GoalDBService {
   final CollectionReference groupCollection =
       FirebaseFirestore.instance.collection('groups');
 
-  // Function to add a goal
   Future<void> addGoal(Goal goal, {String? groupId}) async {
     try {
       await goalCollection.doc(goal.id).set(goal.toMap());
@@ -21,7 +20,6 @@ class GoalDBService {
     }
   }
 
-  // Function to add a goal to a group
   Future<void> addGoalToGroup(String groupId, String goalId) async {
     try {
       await groupCollection.doc(groupId).update({
@@ -33,18 +31,15 @@ class GoalDBService {
     }
   }
 
-   // Function to get a stream of goals for a specific group
   Stream<List<Goal>> getGroupGoalsStream(String groupId) {
-  return groupCollection.doc(groupId).snapshots().asyncMap((groupDoc) async {
-    List<String> goalIds = List<String>.from(groupDoc['goals'] ?? []);
-    if (goalIds.isEmpty) return [];
-    QuerySnapshot goalSnapshots = await goalCollection.where(FieldPath.documentId, whereIn: goalIds).get();
-    return goalSnapshots.docs.map((doc) => Goal.fromMap(doc.data() as Map<String, dynamic>)).toList();
-  });
-}
+    return groupCollection.doc(groupId).snapshots().asyncMap((groupDoc) async {
+      List<String> goalIds = List<String>.from(groupDoc['goals'] ?? []);
+      if (goalIds.isEmpty) return [];
+      QuerySnapshot goalSnapshots = await goalCollection.where(FieldPath.documentId, whereIn: goalIds).get();
+      return goalSnapshots.docs.map((doc) => Goal.fromMap(doc.data() as Map<String, dynamic>)).toList();
+    });
+  }
 
-
-  // Function to get goals
   Stream<List<Goal>> getGoals() {
     return goalCollection.snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -53,26 +48,6 @@ class GoalDBService {
     });
   }
 
-  // Function to get goals for a specific group
-  Future<List<Goal>> getGroupGoals(String groupId) async {
-    try {
-      DocumentSnapshot groupDoc = await groupCollection.doc(groupId).get();
-      List<String> goalIds = List<String>.from(groupDoc['goals'] ?? []);
-      List<Goal> goals = [];
-      for (String goalId in goalIds) {
-        DocumentSnapshot goalDoc = await goalCollection.doc(goalId).get();
-        if (goalDoc.exists) {
-          goals.add(Goal.fromMap(goalDoc.data() as Map<String, dynamic>));
-        }
-      }
-      return goals;
-    } catch (error) {
-      print("Error fetching group goals: $error");
-      throw error;
-    }
-  }
-
-  // Function to remove a goal
   Future<void> removeGoal(String goalId) async {
     try {
       await goalCollection.doc(goalId).delete();
@@ -82,7 +57,6 @@ class GoalDBService {
     }
   }
 
-  // Function to update a goal
   Future<void> updateGoal(Goal updatedGoal) async {
     try {
       await goalCollection.doc(updatedGoal.id).update(updatedGoal.toMap());
@@ -92,7 +66,6 @@ class GoalDBService {
     }
   }
 
-  // Function to mark a goal as completed
   Future<void> markGoalAsCompleted(String goalId) async {
     try {
       await goalCollection.doc(goalId).update({'isCompleted': true});

@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/services/goals_db_service.dart';
@@ -14,22 +13,21 @@ class GoalProvider with ChangeNotifier {
   GoalProvider({this.groupId}) {
     Future.microtask(() {
       if (groupId != null && groupId!.isNotEmpty) {
-      fetchGroupGoals(groupId!);
-    } else {
-      fetchGoals();
-    }
+        fetchGroupGoals(groupId!);
+      } else {
+        fetchGoals();
+      }
     });
   }
 
   List<Goal> get goals => _goals;
 
-   @override
+  @override
   void dispose() {
     _goalSubscription?.cancel();
     super.dispose();
   }
 
-  // Function to add a goal
   Future<void> addGoal(Goal goal) async {
     try {
       await _dbService.addGoal(goal);
@@ -40,11 +38,10 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-    // Function to fetch goals
   Future<void> fetchGoals() async {
     try {
       _goalSubscription?.cancel();
-      _dbService.getGoals().listen((List<Goal> data) {
+      _goalSubscription = _dbService.getGoals().listen((List<Goal> data) {
         _goals = data;
         notifyListeners();
       });
@@ -54,11 +51,10 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-
   Future<void> fetchGroupGoals(String groupId) async {
     try {
       _goalSubscription?.cancel();
-      _dbService.getGroupGoalsStream(groupId).listen((List<Goal> data) {
+      _goalSubscription = _dbService.getGroupGoalsStream(groupId).listen((List<Goal> data) {
         _goals = data;
         notifyListeners();
       });
@@ -68,7 +64,6 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  // Function to add a goal to a group
   Future<void> addGoalToGroup(Goal goal, String groupId) async {
     try {
       await _dbService.addGoal(goal, groupId: groupId);
@@ -80,7 +75,6 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  // Function to remove a goal
   Future<void> removeGoal(String goalId) async {
     try {
       await _dbService.removeGoal(goalId);
@@ -92,7 +86,6 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  // Function to update a goal
   Future<void> updateGoal(Goal updatedGoal) async {
     try {
       await _dbService.updateGoal(updatedGoal);
@@ -107,7 +100,6 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  // Function to mark a goal as completed
   Future<void> markGoalAsCompleted(String goalId) async {
     try {
       await _dbService.markGoalAsCompleted(goalId);
@@ -121,7 +113,25 @@ class GoalProvider with ChangeNotifier {
       throw error;
     }
   }
-  // Function to get achievement level
+
+  void checkAndMarkGoalAsComplete(String goalId) async {
+    try {
+      final goalIndex = _goals.indexWhere((goal) => goal.id == goalId);
+      if (goalIndex != -1) {
+        final goal = _goals[goalIndex];
+        if (goal.progress == goal.target && !goal.isCompleted) {
+          final updatedGoal = goal.copyWith(isCompleted: true);
+          _goals[goalIndex] = updatedGoal;
+          await _dbService.updateGoal(updatedGoal);
+          notifyListeners();
+        }
+      }
+    } catch (error) {
+      print("Error marking goal as complete: $error");
+      // Handle error appropriately
+    }
+  }
+
   String getAchievementLevel() {
     final completedGoals = _goals.where((goal) => goal.isCompleted).length;
 

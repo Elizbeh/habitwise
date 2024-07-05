@@ -14,7 +14,7 @@ class PieChartWidget extends StatelessWidget {
         child: Column(
           children: [
             SizedBox(
-              height: 300, // Constrain the heig
+              height: 300, // Constrain the height
               child: Stack(
                 children: [
                   PieChart(
@@ -23,14 +23,16 @@ class PieChartWidget extends StatelessWidget {
                         final double percentage = habit.progress / habit.frequency * 100;
                         return PieChartSectionData(
                           value: percentage,
-                          title: '${habit.title}\n${percentage.toStringAsFixed(1)}%',
                           color: _getColorForCategory(habit.category),
                           radius: 80,
+                          titlePositionPercentageOffset: 0.7, // Adjust title position
                           titleStyle: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
+                          // Display percentage as a label for accessibility
+                          title: '${percentage.toStringAsFixed(1)}%',
                         );
                       }).toList(),
                       sectionsSpace: 2,
@@ -71,6 +73,7 @@ class PieChartWidget extends StatelessWidget {
               color: _getColorForCategory(habit.category),
             ),
             SizedBox(width: 8),
+            // Text with habit title for visual users
             Text(habit.title),
           ],
         );

@@ -23,14 +23,16 @@ class GoalPieChartWidget extends StatelessWidget {
                         final double percentage = goal.progress / goal.target * 100;
                         return PieChartSectionData(
                           value: percentage,
-                          title: '${goal.title}\n${percentage.toStringAsFixed(1)}%',
                           color: _getColorForCategory(goal.category),
                           radius: 80,
+                          titlePositionPercentageOffset: 0.7, // Adjust title position
                           titleStyle: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
+                          // Display percentage as a label for accessibility
+                          title: '${percentage.toStringAsFixed(1)}%',
                         );
                       }).toList(),
                       sectionsSpace: 2,
@@ -71,6 +73,7 @@ class GoalPieChartWidget extends StatelessWidget {
               color: _getColorForCategory(goal.category),
             ),
             SizedBox(width: 8),
+            // Text with goal title for visual users
             Text(goal.title),
           ],
         );
