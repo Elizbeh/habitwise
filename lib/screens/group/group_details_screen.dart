@@ -93,15 +93,14 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                 bottomRight: Radius.circular(0),
               ),
               gradient: LinearGradient(
-                colors: [
-                  Color.fromRGBO(126, 35, 191, 0.498),
-                  Color.fromRGBO(126, 35, 191, 0.498),
-                  Color.fromARGB(57, 181, 77, 199),
-                  Color.fromARGB(233, 93, 59, 99),
-                ],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topLeft,
-              ),
+              colors: [
+                Color.fromRGBO(126, 35, 191, 0.498),
+                Color.fromARGB(255, 93, 156, 164),
+                Color.fromARGB(233, 93, 59, 99),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.only(

@@ -12,10 +12,11 @@ import 'package:provider/provider.dart';
 
 // Define the gradient colors as constants
 const List<Color> appBarGradientColors = [
+
   Color.fromRGBO(126, 35, 191, 0.498),
-  Color.fromRGBO(126, 35, 191, 0.498),
-  Color.fromARGB(57, 181, 77, 199),
+  Color.fromARGB(255, 93, 156, 164),
   Color.fromARGB(233, 93, 59, 99),
+              
 ];
 
 class CreateGroupScreen extends StatefulWidget {
@@ -98,7 +99,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => DashboardScreen(user: user)),
+          MaterialPageRoute(builder: (context) => DashboardScreen(user: user, groupId: '',)),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -151,8 +152,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             ),
             gradient: LinearGradient(
               colors: appBarGradientColors,
-              begin: Alignment.bottomCenter,
-              end: Alignment.topLeft,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
           ),
           child: ClipRRect(

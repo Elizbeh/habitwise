@@ -4,82 +4,78 @@ import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/services/habit_db_service.dart';
 
 class HabitProvider extends ChangeNotifier {
-  List<Habit> _habits = []; // List to store habits
-  final HabitDBService _habitDBService = HabitDBService(); // Instance of HabitDBService for database operations
-  StreamSubscription? _habitsSubscription; // Subscription for listening to changes in habits stream
+  List<Habit> _habits = [];
+  final HabitDBService _habitDBService = HabitDBService();
+  StreamSubscription? _habitsSubscription;
 
-  List<Map<String, dynamic>> achievements = []; // List to store achievements
+  List<Map<String, dynamic>> achievements = [];
 
-  List<Habit> get habits => _habits; // Getter for habits list
+  List<Habit> get habits => _habits;
 
-  // Constructor to initialize habits and subscribe to habit changes
-  HabitProvider() {
-    _initializeHabits();
-  }
-
-  // Method to initialize habits by subscribing to habit changes from the database
-  void _initializeHabits() {
-    String groupId = 'your_group_id_here'; // Placeholder group ID
+  void initializeHabits(String groupId) {
     _habitsSubscription?.cancel();
     _habitsSubscription = _habitDBService.getHabits(groupId).listen((fetchHabits) {
-      _habits = fetchHabits; // Update habits list with fetched habits
-      _checkAchievements(); // Check achievements whenever habits change
-      notifyListeners(); // Notify listeners to update UI
+      _habits = fetchHabits;
+      _checkAchievements();
+      notifyListeners();
     });
   }
-  
+
   @override
   void dispose() {
-    _habitsSubscription?.cancel(); // Cancel subscription to avoid memory leaks
+    _habitsSubscription?.cancel();
     super.dispose();
   }
 
-  // Method to add a habit to the database and update the local list
   void addHabit(String groupId, Habit habit) {
-    _habits.add(habit); // Add habit to local list
-    _habitDBService.addHabit(groupId, habit); // Add habit to database
-    _checkAchievements(); // Check achievements after adding a habit
-    notifyListeners(); // Notify listeners to update UI
+    _habits.add(habit);
+    _habitDBService.addHabit(groupId, habit);
+    _checkAchievements();
+    notifyListeners();
   }
 
-  // Method to clear the existing habits list (useful for refreshing)
   Future<void> fetchHabits() async {
-    _habits.clear(); // Clear the existing habits
-    notifyListeners(); // Notify listeners to update UI
+    _habits.clear();
+    notifyListeners();
   }
 
-  // Method to remove a habit from the database and local list
   void removeHabit(String groupId, String habitId) {
-    _habits.removeWhere((habit) => habit.id == habitId); // Remove habit from local list
-    _checkAchievements(); // Check achievements after removing a habit
-    notifyListeners(); // Notify listeners to update UI
-    _habitDBService.removeHabit(groupId, habitId); // Remove habit from database
+    _habits.removeWhere((habit) => habit.id == habitId);
+    _habitDBService.removeHabit(groupId, habitId);
+    _checkAchievements();
+    notifyListeners();
   }
 
-  // Method to update a habit in the database and local list
-  void updateHabit(String habitId, Habit updatedHabit) {
-    final index = _habits.indexWhere((habit) => habit.id == habitId); // Find index of habit in local list
+  void updateHabit(String groupId, String habitId, Habit updatedHabit) {
+    final index = _habits.indexWhere((habit) => habit.id == habitId);
     if (index != -1) {
-      _habits[index] = updatedHabit; // Update habit in local list
-      _checkAchievements(); // Check achievements after updating a habit
-      notifyListeners(); // Notify listeners to update UI
-      _habitDBService.updateHabit(habitId, updatedHabit); // Update habit in database
+      _habits[index] = updatedHabit;
+      _habitDBService.updateHabit(groupId, updatedHabit);
+      _checkAchievements();
+      notifyListeners();
     }
   }
 
-  // Method to get a habit by its ID
+  void markHabitAsComplete(String groupId, String habitId) {
+    final habit = getHabitById(habitId);
+    final updatedHabit = habit.complete();
+    updateHabit(groupId, habitId, updatedHabit);
+  }
+
   Habit getHabitById(String id) {
     return _habits.firstWhere((habit) => habit.id == id, orElse: () => throw Exception('Habit not found'));
   }
 
-  // Method to check achievements based on completed habits
+  void incrementHabitProgress(String groupId, String habitId) {
+    final habit = getHabitById(habitId);
+    final updatedHabit = habit.incrementProgress();
+    updateHabit(groupId, habitId, updatedHabit);
+  }
+
   void _checkAchievements() {
     final completedHabitsCount = _habits.where((habit) => habit.isCompleted).length;
-
-    // Clear previous achievements
     achievements.clear();
 
-    // Example achievements based on habits
     if (completedHabitsCount >= 1) {
       achievements.add({
         'title': 'First Habit Completed',
@@ -104,7 +100,6 @@ class HabitProvider extends ChangeNotifier {
       });
     }
 
-    // Notify listeners to update achievements in UI
     notifyListeners();
   }
 }

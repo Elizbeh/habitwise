@@ -27,10 +27,10 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController frequencyController = TextEditingController();
-  String selectedCategory = 'All';
-  String? selectedTemplate;
+  String? selectedCategory;
   DateTime? _startDate;
   DateTime? _endDate;
+  Map<String, dynamic>? selectedTemplate;
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
@@ -40,7 +40,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
       lastDate: DateTime(2090),
     );
 
-    if (picked != null && picked != (isStart ? _startDate : _endDate)) {
+    if (picked != null) {
       setState(() {
         if (isStart) {
           _startDate = picked;
@@ -51,129 +51,196 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
     }
   }
 
-  void applyTemplate(Map<String, dynamic> template) {
-    setState(() {
+  void _applyTemplate(Map<String, dynamic> template) {
+    if (template.containsKey('title')) {
       titleController.text = template['title'];
+    }
+    if (template.containsKey('description')) {
       descriptionController.text = template['description'];
+    }
+    if (template.containsKey('frequency')) {
       frequencyController.text = template['frequency'].toString();
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Add New Habit'),
+      title: Container(
+        padding: EdgeInsets.all(8),
+        color: Color.fromRGBO(126, 35, 191, 0.498),
+        child: Text(
+          'Add New Habit',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButton<String>(
+            DropdownButtonFormField<String>(
               value: selectedCategory,
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedCategory = newValue!;
-                  IconData icon = categoryIcons[selectedCategory] ?? Icons.star;
-                  selectedTemplate = null;
-                });
-              },
-              items: <String>['All', ...habitTemplates.keys]
-                  .map<DropdownMenuItem<String>>((String category) {
+              items: categoryIcons.keys.map<DropdownMenuItem<String>>((String category) {
                 return DropdownMenuItem<String>(
                   value: category,
-                  child: Text(category),
+                  child: Row(
+                    children: [
+                      Icon(categoryIcons[category], color: Colors.purple),
+                      SizedBox(width: 8),
+                      Text(category),
+                    ],
+                  ),
                 );
               }).toList(),
-            ),
-            if (selectedCategory != 'All')
-              DropdownButton<String>(
-                value: selectedTemplate,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedTemplate = newValue!;
-                    applyTemplate(habitTemplates[selectedCategory]!
-                        .firstWhere((template) => template['title'] == newValue));
-                  });
-                },
-                items: habitTemplates[selectedCategory]!
-                    .map<DropdownMenuItem<String>>((template) {
-                  return DropdownMenuItem<String>(
-                    value: template['title'],
-                    child: Text(template['title']),
-                  );
-                }).toList(),
+              onChanged: (String? value) {
+                setState(() {
+                  selectedCategory = value;
+                  selectedTemplate = null; // Reset selected template when category changes
+                  if (value != null && habitTemplates.containsKey(value)) {
+                    selectedTemplate = habitTemplates[value]![0]; // Default to first template
+                    _applyTemplate(selectedTemplate!);
+                  }
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Category',
+                hintText: 'Select category',
               ),
-            TextField(
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please select a category';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
               controller: titleController,
-              decoration: const InputDecoration(labelText: 'Habit Title'),
+              decoration: InputDecoration(labelText: 'Habit Title'),
             ),
-            TextField(
+            TextFormField(
               controller: descriptionController,
-              decoration: const InputDecoration(labelText: 'Habit Description'),
+              decoration: InputDecoration(labelText: 'Habit Description'),
             ),
-            TextField(
+            TextFormField(
               controller: frequencyController,
-              decoration: const InputDecoration(labelText: 'Frequency per Day'),
+              decoration: InputDecoration(labelText: 'Frequency per Day'),
               keyboardType: TextInputType.number,
             ),
             Row(
               children: [
                 Expanded(
-                  child: TextButton(
-                    onPressed: () => _selectDate(context, true),
-                    child: Text(_startDate == null
-                        ? 'Select Start Date'
-                        : 'Start Date: ${DateFormat.yMd().format(_startDate!)}'),
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: _startDate == null
+                          ? 'Select Start Date'
+                          : DateFormat.yMMMd().format(_startDate!),
+                    ),
+                    onTap: () => _selectDate(context, true),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => _selectDate(context, false),
-                    child: Text(_endDate == null
-                        ? 'Select End Date'
-                        : 'End Date: ${DateFormat.yMd().format(_endDate!)}'),
+                SizedBox(width: 8),
+                                Expanded(
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: _endDate == null
+                          ? 'Select End Date'
+                          : DateFormat.yMMMd().format(_endDate!),
+                    ),
+                    onTap: () => _selectDate(context, false),
                   ),
                 ),
               ],
             ),
+            if (selectedCategory != null &&
+                selectedCategory!.isNotEmpty &&
+                habitTemplates.containsKey(selectedCategory))
+              DropdownButtonFormField<Map<String, dynamic>>(
+                value: selectedTemplate,
+                items: habitTemplates[selectedCategory!]!.map((template) {
+                  return DropdownMenuItem<Map<String, dynamic>>(
+                    value: template,
+                    child: Text(template['title']),
+                  );
+                }).toList(),
+                onChanged: (template) {
+                  if (template != null) {
+                    setState(() {
+                      selectedTemplate = template;
+                      _applyTemplate(template);
+                    });
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'Choose Template',
+                  hintText: 'Select template',
+                ),
+              ),
           ],
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Cancel'),
+          style: TextButton.styleFrom(
+            backgroundColor: Colors.grey,
+          ),
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
         ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
+          ),
           onPressed: () {
-            final newHabit = Habit(
-              id: DateTime.now().toString(),
-              title: titleController.text,
-              description: descriptionController.text,
-              createdAt: DateTime.now(),
-              startDate: _startDate ?? DateTime.now(),
-              endDate: _endDate,
-              frequency: int.tryParse(frequencyController.text) ?? 1,
-              isCompleted: false,
-              category: selectedCategory,
-              groupId: widget.isGroupHabit ? widget.groupId : null, // Assign groupId if it's a group habit
-            );
-            // Determine where to add the habit based on whether it's a group habit
-            if (widget.isGroupHabit) {
-              // Add the habit to the group details screen
-              Provider.of<HabitProvider>(context, listen: false).addHabit(widget.groupId!, newHabit);
-            } else {
-              // Add the habit to the individual habit screen using the user's UID
-              final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
-              if (userId != null) {
-                Provider.of<HabitProvider>(context, listen: false).addHabit(userId, newHabit);
+            if (selectedCategory != null &&
+                titleController.text.isNotEmpty &&
+                frequencyController.text.isNotEmpty) {
+              final newHabit = Habit(
+                id: DateTime.now().toString(),
+                title: titleController.text,
+                description: descriptionController.text,
+                createdAt: DateTime.now(),
+                startDate: _startDate ?? DateTime.now(),
+                endDate: _endDate,
+                frequency: int.tryParse(frequencyController.text) ?? 1,
+                isCompleted: false,
+                category: selectedCategory!, // Non-null assertion here
+                groupId: widget.isGroupHabit ? widget.groupId : null,
+              );
+
+              // Determine where to add the habit based on whether it's a group habit
+              if (widget.isGroupHabit) {
+                // Add the habit to the group details screen
+                Provider.of<HabitProvider>(context, listen: false)
+                    .addHabit(widget.groupId!, newHabit);
+              } else {
+                // Add the habit to the individual habit screen using the user's UID
+                final userId =
+                    Provider.of<UserProvider>(context, listen: false)
+                        .user
+                        ?.uid;
+                if (userId != null) {
+                  Provider.of<HabitProvider>(context, listen: false)
+                      .addHabit(userId, newHabit);
+                }
               }
+              Navigator.pop(context);
+            } else {
+              // Show an error if required fields are missing
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('Please fill out all required fields'),
+              ));
             }
-            Navigator.pop(context);
           },
-          child: const Text('Add Habit'),
+          child: Text(
+            'Add Habit',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ],
     );

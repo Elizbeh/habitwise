@@ -21,15 +21,15 @@ import '../widgets/bottom_navigation_bar.dart';
 // Define the gradient colors as constants
 const List<Color> appBarGradientColors = [
   Color.fromRGBO(126, 35, 191, 0.498),
-  Color.fromRGBO(126, 35, 191, 0.498),
-  Color.fromARGB(57, 181, 77, 199),
+  Color.fromARGB(255, 93, 156, 164),
   Color.fromARGB(233, 93, 59, 99),
 ];
 
 class DashboardScreen extends StatefulWidget {
   final HabitWiseUser user;
+  final String groupId;
 
-  DashboardScreen({required this.user});
+  DashboardScreen({required this.user, required this.groupId});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -76,8 +76,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             gradient: LinearGradient(
               colors: appBarGradientColors,
-              begin: Alignment.bottomCenter,
-              end: Alignment.topLeft,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
           ),
           child: ClipRRect(
@@ -135,12 +135,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 confettiController: _confettiController,
                                 blastDirection: 3.14, // Confetti will go to the left
                                 emissionFrequency: 0.05, // How often it should emit confetti
-                                numberOfParticles: 15, // Number of confetti
+                                numberOfParticles: 10, // Number of confetti
                                 gravity: 0.1, // Speed of falling confetti
                                 colors: [
-                                 Colors.grey,
-                                  Colors.purple,
-                                  Colors.yellow,
+                                  const Color.fromRGBO(126, 35, 191, 0.498),
+                                  Color.fromARGB(255, 93, 156, 164),
                                   
                                 ], // Colors of confetti
                               ),
@@ -177,7 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               );
             } else if (index == 2) {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => HabitScreen(user: widget.user)),
+                MaterialPageRoute(builder: (context) => HabitScreen(user: widget.user, groupId: widget.groupId)),
               );
             } else if (index == 3) {
               Navigator.of(context).pushReplacement(
@@ -198,18 +197,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Container(
           padding: EdgeInsets.all(10.0),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: appBarGradientColors,
-              begin: Alignment.bottomCenter,
-              end: Alignment.topLeft,
+            border: Border.all(
+              color: Color.fromARGB(255, 93, 156, 164),
+              width: 6.0,
             ),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20.0),
+              topRight: Radius.circular(20.0),
+              //bottomLeft: Radius.circular(20.0),
+              bottomRight: Radius.circular(20.0),
+            )
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 'Groups',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 93, 156, 164),),
               ),
               SizedBox(height: 10),
               if (joinedGroups.isNotEmpty)
@@ -278,7 +282,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               else
                 Text(
                   'No joined groups',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Color.fromARGB(255, 93, 156, 164),),
                 ),
               SizedBox(height: 10),
               ElevatedButton(

@@ -31,15 +31,11 @@ class LandingPage extends StatelessWidget {
             gradient: LinearGradient(
               colors: [
                 Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(255, 222, 144, 236),
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(217, 155, 100, 179),
-                Color.fromARGB(57, 181, 77, 199),
-                Color.fromARGB(239, 128, 76, 154),
-                Color.fromARGB(239, 128, 76, 154),
+                Color.fromARGB(255, 93, 156, 164),
+                Color.fromARGB(233, 93, 59, 99),
               ],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topLeft,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
           ),
             ),
@@ -101,7 +97,7 @@ class LandingPage extends StatelessWidget {
                   'Welcome to HabitWise',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
+                    fontSize: 34,
                     
                   ),
                   textAlign: TextAlign.center,
@@ -121,7 +117,7 @@ class LandingPage extends StatelessWidget {
                       Navigator.pushNamed(context, '/login');
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: Colors.white,
                       elevation: 1,
                       padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 15.0),
                     ),

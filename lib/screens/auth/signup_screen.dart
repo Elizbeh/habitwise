@@ -22,12 +22,35 @@ class SignUpScreen extends StatefulWidget {
   _SignUpScreenState createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderStateMixin {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
   String _errorMessage = '';
+  
+  late AnimationController _animationController;
+  late Animation<Color?> _colorAnimation;
 
+  @override
+  void initState() {
+    super.initState();
+    
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _colorAnimation = ColorTween(
+      begin: const Color.fromARGB(255, 93, 156, 164),
+      end: const Color.fromRGBO(126, 35, 191, 0.498),
+    ).animate(_animationController);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,47 +60,68 @@ class _SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: 28),
-                Text(
+                const SizedBox(height: 40.0),
+                const Text(
                   'HabitWise',
                   style: TextStyle(
                     fontFamily: 'Billabong',
-                    fontSize: 40,
-                    color: const Color.fromRGBO(126, 35, 191, 0.498),
-                    fontWeight: FontWeight.bold
+                    color: Color.fromRGBO(126, 35, 191, 0.498),
+                    fontSize: 50,
                   ),
                 ),
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color.fromRGBO(126, 35, 191, 0.498),
-                      width: 4, // Outline width
-                    ),
+                Image.asset(
+                  'assets/images/logo.png',
+                  width: 80,
+                  height: 80,
                   ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      width: 80,
-                      height: 70,
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Sign up to track your habits and achieve your goals',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
-                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 93, 156, 164),
+                      ),
+                      children: [
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: AnimatedBuilder(
+                            animation: _colorAnimation,
+                            builder: (context, child) {
+                              return Text(
+                                'Sign up',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: _colorAnimation.value,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const TextSpan(
+                          text: ' to track your habits and achieve your goals',
+                        ),
+                      ],
+                    ),
+                  ),
+               ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      SizedBox(height: 20),
+                      SizedBox(height: 8),
                       TextField(
                         controller: widget.emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Email',
+                          hintStyle: TextStyle(
+                            fontSize: 22,
+                          ),
                           filled: true,
                           fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
@@ -86,12 +130,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 28),
+                      SizedBox(height: 18),
                       TextField(
                         controller: widget.usernameController,
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           hintText: 'Username',
+                          hintStyle: TextStyle(
+                            fontSize: 24,
+                          ),
                           filled: true,
                           fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
@@ -100,12 +147,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 28),
+                      SizedBox(height: 18),
                       TextField(
                         controller: widget.passwordController,
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Password',
+                          hintStyle: TextStyle(
+                            fontSize: 24,
+                          ),
                           filled: true,
                           fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
@@ -124,12 +174,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 28),
+                      SizedBox(height: 18),
                       TextField(
                         controller: widget.passwordConfirmController,
                         obscureText: !_isConfirmPasswordVisible,
                         decoration: InputDecoration(
-                          hintText: 'Confirm password',
+                          hintText: 'Confirm Password',
+                          hintStyle: TextStyle(
+                            fontSize: 24,
+                          ),
                           filled: true,
                           fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
@@ -148,7 +201,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 48),
+                      SizedBox(height: 28),
                       Container(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -238,7 +291,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             });
                           },
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(126, 35, 191, 0.498)),
+                            backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(126, 35, 191, 0.498), ),
                             padding: MaterialStateProperty.all(
                               EdgeInsets.symmetric(vertical: 16),
                             ),
@@ -248,16 +301,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               )
                             ),
                           ),
-                          child: Text(
+                          child: const Text(
                             'Sign Up',
                             style: TextStyle(
                               color: Colors.white,
-                              fontWeight: FontWeight.bold
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 24),
+                      SizedBox(height: 16),
                       const Divider(color: Colors.grey),
                       const SizedBox(height: 16),
                       Row(
@@ -265,7 +319,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         children: [
                           const Text(
                             'Already have an account? ',
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 18),
                           ),
                           GestureDetector(
                             onTap: () {
@@ -274,9 +328,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             child: const Text(
                               'Log in',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: const Color.fromRGBO(126, 35, 191, 0.498),
+                                color:  Color.fromARGB(255, 93, 156, 164),
                               ),
                             ),
                           ),

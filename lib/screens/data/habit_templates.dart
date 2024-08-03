@@ -131,4 +131,26 @@ final Map<String, List<Map<String, dynamic>>> habitTemplates = {
       'frequency': 1,
     },
   ],
+  'Self Care': [
+    {
+      'title': 'Take a Bath',
+      'description': 'Relax and unwind with a warm bath.',
+      'frequency': 1,
+    },
+    {
+      'title': 'Read a Book',
+      'description': 'Spend 30 minutes reading a book.',
+      'frequency': 1,
+    },
+    {
+      'title': 'Meditate',
+      'description': 'Meditate for 10 minutes to reduce stress.',
+      'frequency': 1,
+    },
+    {
+      'title': 'Go for a Walk',
+      'description': 'Take a 15-minute walk outdoors.',
+      'frequency': 1,
+    },
+  ],
 };

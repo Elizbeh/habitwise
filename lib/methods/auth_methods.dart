@@ -72,7 +72,7 @@ class AuthMethod {
           soloStats: {},
           groupIds: [],
           canCreateGroup: false, // Default permission
-          canJoinGroups: true, id: '',    // Default permission
+          canJoinGroups: true,
         );
 
         await _userDBService.createUser(habitWiseUser);

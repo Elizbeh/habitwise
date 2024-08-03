@@ -6,21 +6,22 @@ import 'package:provider/provider.dart';
 
 class GoalTile extends StatelessWidget {
   final Goal goal;
-  final String groupId; 
+  final String groupId;
   final Function(Goal)? onUpdateGoal;
   final Function(String)? onDeleteGoal;
 
   const GoalTile({
-    required this.goal, 
+    required this.goal,
     required this.groupId,
     this.onUpdateGoal,
-    this.onDeleteGoal,}); // Initialize groupId
+    this.onDeleteGoal,
+  });
 
   @override
   Widget build(BuildContext context) {
     final int progress = goal.progress?.toInt() ?? 0;
     final int target = goal.target?.toInt() ?? 1;
-    final double progressRatio = progress / target;
+    final double progressRatio = target > 0 ? progress / target : 0.0;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
@@ -38,11 +39,11 @@ class GoalTile extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
-        title: Text(goal.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(goal.title ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(goal.description),
+            Text(goal.description ?? ''),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -55,13 +56,13 @@ class GoalTile extends StatelessWidget {
                 ),
                 Expanded(
                   child: Container(
-                    height: 8, // Set the desired height for the progress bar
+                    height: 8,
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8), // Set the desired radius
+                      borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
                         value: progressRatio,
                         backgroundColor: Colors.grey[300],
-                        color: Colors.green,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
                       ),
                     ),
                   ),
@@ -83,7 +84,7 @@ class GoalTile extends StatelessWidget {
                 const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
                 Text(
-                  'Due: ${goal.targetDate.toLocal().toString().split(' ')[0]}',
+                  'Due: ${goal.targetDate?.toLocal().toString().split(' ')[0] ?? ''}',
                   style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -100,16 +101,12 @@ class GoalTile extends StatelessWidget {
                   context: context,
                   builder: (context) => EditGoalDialog(
                     goal: goal,
-                    groupId: groupId,
                     addGoalToGroup: (newGoal) {
-                      Provider.of<GoalProvider>(context, listen: false).addGoal(goal); // Add goal to main goals list
-                      if (goal != null) {
-                        Provider.of<GoalProvider>(context, listen: false).addGoal(goal); // Add goal to group-specific goals list
-                      }
+                      Provider.of<GoalProvider>(context, listen: false).addGoal(newGoal);
                     },
-
+                    groupId: groupId,
                     onUpdateGoal: (updatedGoal) {
-                       Provider.of<GoalProvider>(context, listen: false).updateGoal(updatedGoal);
+                      Provider.of<GoalProvider>(context, listen: false).updateGoal(updatedGoal);
                     },
                     onDeleteGoal: (goalId) {
                       Provider.of<GoalProvider>(context, listen: false).removeGoal(goalId);
@@ -121,7 +118,7 @@ class GoalTile extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
-                Provider.of<GoalProvider>(context, listen: false).removeGoal(goal.id);
+                Provider.of<GoalProvider>(context, listen: false).removeGoal(goal.id ?? '');
               },
             ),
           ],
@@ -131,9 +128,9 @@ class GoalTile extends StatelessWidget {
   }
 
   void _updateProgress(BuildContext context, Goal goal, int updatedProgress) {
-    Provider.of<GoalProvider>(context, listen: false).updateGoal(goal.copyWith(progress: updatedProgress));
-    if (updatedProgress == goal.target) {
-      Provider.of<GoalProvider>(context, listen: false).markGoalAsCompleted(goal.id);
+    context.read<GoalProvider>().updateGoal(goal.copyWith(progress: updatedProgress));
+    if (updatedProgress >= (goal.target ?? 0)) {
+      context.read<GoalProvider>().markGoalAsCompleted(goal.id ?? '');
     }
   }
 }

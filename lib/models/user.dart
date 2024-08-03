@@ -23,7 +23,7 @@ class HabitWiseUser {
     required this.groupIds,
     this.profilePictureUrl,
     required this.canCreateGroup,
-    required this.canJoinGroups, required String id,
+    required this.canJoinGroups,
   });
 
   // Factory constructor to create a HabitWiseUser instance from a map
@@ -38,7 +38,7 @@ class HabitWiseUser {
       groupIds: List<String>.from(data['groupIds']),
       profilePictureUrl: data['profilePictureUrl'],
       canCreateGroup: data['canCreateGroup'] ?? false,
-      canJoinGroups: data['canJoinGroup'] ?? false, id: '',
+      canJoinGroups: data['canJoinGroup'] ?? false,
     );
   }
 
@@ -56,5 +56,32 @@ class HabitWiseUser {
       'canCreateGroup': canCreateGroup,
       'canJoinGroup': canJoinGroups,
     };
+  }
+
+  // CopyWith function to create a copy of the object with updated fields
+  HabitWiseUser copyWith({
+    String? uid,
+    String? email,
+    String? username,
+    List<String>? goals,
+    List<String>? habits,
+    Map<String, dynamic>? soloStats,
+    List<String>? groupIds,
+    String? profilePictureUrl,
+    bool? canCreateGroup,
+    bool? canJoinGroups,
+  }) {
+    return HabitWiseUser(
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      goals: goals ?? this.goals,
+      habits: habits ?? this.habits,
+      soloStats: soloStats ?? this.soloStats,
+      groupIds: groupIds ?? this.groupIds,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
+      canCreateGroup: canCreateGroup ?? this.canCreateGroup,
+      canJoinGroups: canJoinGroups ?? this.canJoinGroups,
+    );
   }
 }

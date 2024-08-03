@@ -1,23 +1,25 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
-import 'package:habitwise/screens/data/icons/category_icons.dart';
-import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
 import 'package:habitwise/screens/goals_screen.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:habitwise/widgets/habit_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
+import 'package:habitwise/screens/data/icons/category_icons.dart';
 
 class HabitScreen extends StatefulWidget {
   final HabitWiseUser user;
+  final String groupId;
 
-  HabitScreen({required this.user});
+  HabitScreen({required this.user, required this.groupId});
 
   @override
   _HabitScreenState createState() => _HabitScreenState();
@@ -45,26 +47,26 @@ class _HabitScreenState extends State<HabitScreen> {
     }
   }
 
-  List<Habit> filterHabitsByDate(List<Habit> habits, DateTime? selectedDate) {
-    if (selectedDate == null) {
-      return habits;
-    } else {
-      return habits.where((habit) =>
-          habit.startDate.isBefore(selectedDate.add(Duration(days: 1))) &&
-          (habit.endDate?.isAfter(selectedDate.subtract(Duration(days: 1))) ?? true)).toList();
-    }
+  List<Habit> filterHabitsByDate(List<Habit> habits, DateTime selectedDate) {
+    return habits.where((habit) =>
+        habit.startDate.isBefore(selectedDate.add(Duration(days: 1))) &&
+        (habit.endDate?.isAfter(selectedDate.subtract(Duration(days: 1))) ?? true)).toList();
   }
 
   List<Habit> _sortAndFilterHabits(List<Habit> habits) {
     List<Habit> filteredHabits = filterHabitsByCategory(habits, selectedCategory);
     filteredHabits = filterHabitsByDate(filteredHabits, _selectedDay);
 
-    if (sortingCriteria == 'Priority') {
-      filteredHabits.sort((a, b) => a.priority.compareTo(b.priority));
-    } else if (sortingCriteria == 'Completion Status') {
-      filteredHabits.sort((a, b) => (a.isCompleted ? 1 : 0).compareTo(b.isCompleted ? 1 : 0));
-    } else if (sortingCriteria == 'Category') {
-      filteredHabits.sort((a, b) => (a.category ?? '').compareTo(b.category ?? ''));
+    switch (sortingCriteria) {
+      case 'Priority':
+        filteredHabits.sort((a, b) => a.priority.compareTo(b.priority));
+        break;
+      case 'Completion Status':
+        filteredHabits.sort((a, b) => (a.isCompleted ? 1 : 0).compareTo(b.isCompleted ? 1 : 0));
+        break;
+      case 'Category':
+        filteredHabits.sort((a, b) => (a.category ?? '').compareTo(b.category ?? ''));
+        break;
     }
 
     return filteredHabits;
@@ -75,10 +77,10 @@ class _HabitScreenState extends State<HabitScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         toolbarHeight: 80,
-        title: Text(
+        title: const Text(
           'Habits',
           style: TextStyle(
             color: Colors.white,
@@ -89,23 +91,22 @@ class _HabitScreenState extends State<HabitScreen> {
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
+            borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(30),
               bottomRight: Radius.circular(30),
             ),
             gradient: LinearGradient(
               colors: [
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(57, 181, 77, 199),
-                Color.fromARGB(233, 93, 59, 99),
+                const Color.fromRGBO(126, 35, 191, 0.498),
+                const Color.fromARGB(255, 93, 156, 164),
+                const Color.fromARGB(233, 93, 59, 99),
               ],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topLeft,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.only(
+            borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(30),
               bottomRight: Radius.circular(30),
             ),
@@ -169,8 +170,7 @@ class _HabitScreenState extends State<HabitScreen> {
             icon: const Icon(Icons.logout),
             onPressed: () {
               Provider.of<UserProvider>(context, listen: false).logoutUser();
-              Navigator.pushNamedAndRemoveUntil(
-                  context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             },
           ),
         ],
@@ -181,11 +181,9 @@ class _HabitScreenState extends State<HabitScreen> {
             TableCalendar(
               firstDay: DateTime.utc(2024, 1, 1),
               lastDay: DateTime.utc(2035, 1, 1),
-              focusedDay: _focusedDay,
+              focusedDay: _selectedDay,
               calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) {
-                return isSameDay(_selectedDay, day);
-              },
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
               onFormatChanged: (format) {
                 setState(() {
                   _calendarFormat = format;
@@ -201,12 +199,23 @@ class _HabitScreenState extends State<HabitScreen> {
               child: Consumer<HabitProvider>(
                 builder: (context, habitProvider, child) {
                   final filteredHabits = _sortAndFilterHabits(habitProvider.habits);
+                  if (filteredHabits.isEmpty) {
+                    return Center(child: Text('No habits found for the selected criteria.'));
+                  }
                   return ListView.builder(
                     itemCount: filteredHabits.length,
                     itemBuilder: (context, index) {
                       final habit = filteredHabits[index];
                       final leadingIcon = categoryIcons[habit.category ?? ''] ?? Icons.sunny;
-                      return HabitTile(habit: habit, groupId: '', leadingIcon: leadingIcon);
+                      return HabitTile(
+                        habit: habit,
+                        groupId: widget.groupId,
+                        leadingIcon: leadingIcon,
+                        onCompleted: () {
+                          // Function to mark habit as completed
+                          habitProvider.markHabitAsComplete(widget.groupId, habit.id);
+                        },
+                      );
                     },
                   );
                 },
@@ -229,23 +238,26 @@ class _HabitScreenState extends State<HabitScreen> {
         currentIndex: _currentIndex,
         onTap: (index) {
           if (index != _currentIndex) {
-            if (index == 0) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => DashboardScreen(user: widget.user)),
-              );
-            } else if (index == 1) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => GoalScreen(user: widget.user)),
-              );
-            } else if (index == 2) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => HabitScreen(user: widget.user)),
-              );
-            } else if (index == 3) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => ProfilePage(user: widget.user)),
-              );
+            Widget destinationScreen;
+            switch (index) {
+              case 0:
+                destinationScreen = DashboardScreen(user: widget.user, groupId: widget.groupId);
+                break;
+              case 1:
+                destinationScreen = GoalScreen(user: widget.user);
+                break;
+              case 2:
+                destinationScreen = HabitScreen(user: widget.user, groupId: widget.groupId);
+                break;
+              case 3:
+                destinationScreen = ProfilePage(user: widget.user);
+                  break;
+              default:
+                return;
             }
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => destinationScreen),
+            );
           }
         },
       ),

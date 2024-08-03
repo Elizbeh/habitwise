@@ -10,7 +10,7 @@ class Habit {
   final DateTime? completionDate;
   final int progress;
   final int frequency; // Number of times the habit should be done
-  final bool isCompleted;
+  bool isCompleted;
   final String? reminder; // e.g., "9:00 AM"
   final String? category;
   final int priority; // e.g., 1 for high, 2 for medium, 3 for low
@@ -35,8 +35,6 @@ class Habit {
     this.achievements = const [],
   });
 
-  
-
   // Method to copy a habit with optional parameters
   Habit copyWith({
     String? id,
@@ -53,7 +51,7 @@ class Habit {
     String? category,
     int? priority,
     String? groupId,
-    List<String>? achievement,
+    List<String>? achievements,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -70,7 +68,7 @@ class Habit {
       category: category ?? this.category,
       priority: priority ?? this.priority,
       groupId: groupId ?? this.groupId,
-      achievements: achievements,
+      achievements: achievements ?? this.achievements,
     );
   }
 
@@ -91,7 +89,7 @@ class Habit {
       'category': category,
       'priority': priority,
       'groupId': groupId,
-      'qchievements': achievements,
+      'achievements': achievements,
     };
   }
 
@@ -126,13 +124,14 @@ class Habit {
 
   // Method to increment progress
   Habit incrementProgress() {
+    int newProgress = (progress + 1).clamp(0, frequency);
+    bool newIsCompleted = newProgress >= frequency;
     return copyWith(
-      progress: (progress + 1).clamp(0, frequency),
-      isCompleted: progress + 1 >= frequency,
-      completionDate: progress + 1 >= frequency ? DateTime.now() : null,
+      progress: newProgress,
+      isCompleted: newIsCompleted,
+      completionDate: newIsCompleted ? DateTime.now() : null,
     );
   }
-
   // Method to reset progress
   Habit resetProgress() {
     return copyWith(
@@ -156,7 +155,7 @@ class Habit {
   // Returns a string representation of the habit object
   @override
   String toString() {
-    return 'Habit(id: $id, title: $title, description: $description, createdAt: $createdAt, startDate: $startDate, endDate: $endDate, completionDate: $completionDate, progress: $progress, frequency: $frequency, isCompleted: $isCompleted, reminder: $reminder, category: $category, priority: $priority, groupId: $groupId)';
+    return 'Habit(id: $id, title: $title, description: $description, createdAt: $createdAt, startDate: $startDate, endDate: $endDate, completionDate: $completionDate, progress: $progress, frequency: $frequency, isCompleted: $isCompleted, reminder: $reminder, category: $category, priority: $priority, groupId: $groupId, achievements: $achievements)';
   }
 
   // Checks if two habit objects are equal
@@ -173,12 +172,13 @@ class Habit {
         other.endDate == endDate &&
         other.completionDate == completionDate &&
         other.progress == progress &&
-        other.frequency == frequency &&
+                other.frequency == frequency &&
         other.isCompleted == isCompleted &&
         other.reminder == reminder &&
         other.category == category &&
         other.priority == priority &&
-        other.groupId == groupId;
+        other.groupId == groupId &&
+        other.achievements == achievements;
   }
 
   // Generates a hash code for the habit object
@@ -197,6 +197,7 @@ class Habit {
         reminder.hashCode ^
         category.hashCode ^
         priority.hashCode ^
-        groupId.hashCode;
+        groupId.hashCode ^
+        achievements.hashCode;
   }
 }

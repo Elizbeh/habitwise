@@ -35,6 +35,7 @@ class _GoalScreenState extends State<GoalScreen> {
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
+    // Fetch goals based on groupId or general goals
     if (widget.groupId != null) {
       Provider.of<GoalProvider>(context, listen: false).fetchGroupGoals(widget.groupId!);
     } else {
@@ -91,12 +92,11 @@ class _GoalScreenState extends State<GoalScreen> {
             gradient: LinearGradient(
               colors: [
                 Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(57, 181, 77, 199),
+                Color.fromARGB(255, 93, 156, 164),
                 Color.fromARGB(233, 93, 59, 99),
               ],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topLeft,
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
           ),
           child: ClipRRect(
@@ -208,11 +208,11 @@ class _GoalScreenState extends State<GoalScreen> {
                               addGoalToGroup: (Goal newGoal) {
                                 // Handle the updated goal ...
                               },
-                              groupId: widget.groupId!,
+                              groupId: widget.groupId ?? '', // Provide default value for groupId
                             ),
                           );
                         },
-                        child: GoalTile(goal: goal, groupId: widget.groupId ?? ''),
+                        child: GoalTile(goal: goal, groupId: widget.groupId ?? ''), // Provide default value for groupId
                       );
                     },
                   );
@@ -231,7 +231,7 @@ class _GoalScreenState extends State<GoalScreen> {
               addGoalToGroup: (goal) async {
                 try {
                   if (widget.groupId != null && widget.groupId!.isNotEmpty) {
-                    await Provider.of<GoalProvider>(context, listen: false).addGoalToGroup(goal, widget.groupId ?? '');
+                    await Provider.of<GoalProvider>(context, listen: false).addGoalToGroup(goal, widget.groupId!);
                   } else {
                     await Provider.of<GoalProvider>(context, listen: false).addGoal(goal);
                   }
@@ -247,7 +247,7 @@ class _GoalScreenState extends State<GoalScreen> {
                   ));
                 }
               },
-              groupId: widget.groupId ?? '',
+              groupId: widget.groupId ?? '', // Provide default value for groupId
             ),
           );
         },
@@ -260,19 +260,26 @@ class _GoalScreenState extends State<GoalScreen> {
             if (index == 0) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                    builder: (context) => DashboardScreen(user: widget.user)),
+                  builder: (context) => DashboardScreen(
+                    user: widget.user,
+                    groupId: widget.groupId ?? '', // Provide default value for groupId
+                  ),
+                ),
               );
-            } else if (index == 1) {
-              // Do nothing, already on GoalScreen
             } else if (index == 2) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                    builder: (context) => HabitScreen(user: widget.user)),
+                  builder: (context) => HabitScreen(
+                    user: widget.user,
+                    groupId: widget.groupId ?? '', // Provide default value for groupId
+                  ),
+                ),
               );
-            } else if (index == 3) {
+                          } else if (index == 3) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
-                    builder: (context) => ProfilePage(user: widget.user)),
+                  builder: (context) => ProfilePage(user: widget.user),
+                ),
               );
             }
           }
@@ -281,3 +288,6 @@ class _GoalScreenState extends State<GoalScreen> {
     );
   }
 }
+
+                
+             
