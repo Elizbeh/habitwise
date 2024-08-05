@@ -17,6 +17,7 @@ import 'package:confetti/confetti.dart';
 import '../widgets/goalPie_chart_widget.dart';
 import '../widgets/habitPie_chart_widget.dart';
 import '../widgets/bottom_navigation_bar.dart';
+import '../main.dart'; // Import the main.dart to access the global appNotifier
 
 // Define the gradient colors as constants
 const List<Color> appBarGradientColors = [
@@ -86,7 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               bottomRight: Radius.circular(30),
             ),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), // Adjust the blur intensity as needed
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
               child: Container(
                 color: Colors.transparent,
               ),
@@ -122,31 +123,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Stack(
                           children: [
                             Text(
-                            'Welcome, ${widget.user.username}!',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
+                              'Welcome, ${widget.user.username}!',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          Positioned(
+                            Positioned(
                               top: 0,
                               right: 0,
                               child: ConfettiWidget(
                                 confettiController: _confettiController,
                                 blastDirection: 3.14, // Confetti will go to the left
-                                emissionFrequency: 0.05, // How often it should emit confetti
-                                numberOfParticles: 10, // Number of confetti
-                                gravity: 0.1, // Speed of falling confetti
+                                emissionFrequency: 0.05,
+                                numberOfParticles: 10,
+                                gravity: 0.1,
                                 colors: [
                                   const Color.fromRGBO(126, 35, 191, 0.498),
                                   Color.fromARGB(255, 93, 156, 164),
-                                  
-                                ], // Colors of confetti
+                                ],
                               ),
                             ),
                           ],
                         ),
-                        
                         SizedBox(height: 20.0),
                         _buildGroupSection(context),
                         SizedBox(height: 20.0),
@@ -185,6 +184,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
           }
         },
+          themeNotifier: appThemeNotifier, // Use the global appNotifier
       ),
     );
   }
@@ -204,7 +204,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20.0),
               topRight: Radius.circular(20.0),
-              //bottomLeft: Radius.circular(20.0),
               bottomRight: Radius.circular(20.0),
             )
           ),
@@ -213,7 +212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 'Groups',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 93, 156, 164),),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 93, 156, 164)),
               ),
               SizedBox(height: 10),
               if (joinedGroups.isNotEmpty)
@@ -263,7 +262,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             child: IconButton(
                               icon: Icon(Icons.close, color: const Color.fromARGB(255, 236, 132, 124)),
                               onPressed: () {
-                                // Check if the current user is the goal creator
+                                // Check if the current user is the group creator
                                 if (group.groupCreator == widget.user.uid) {
                                   // If user is the creator, delete the group
                                   groupProvider.deleteGroup(group.groupId);
@@ -282,7 +281,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               else
                 Text(
                   'No joined groups',
-                  style: TextStyle(color: Color.fromARGB(255, 93, 156, 164),),
+                  style: TextStyle(color: Color.fromARGB(255, 93, 156, 164)),
                 ),
               SizedBox(height: 10),
               ElevatedButton(
@@ -300,7 +299,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-    Widget _buildGoalsOverview(List<Goal> goals) {
+  Widget _buildGoalsOverview(List<Goal> goals) {
     return Container(
       height: 400,
       padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -352,10 +351,10 @@ class PlaceholderWidget extends StatelessWidget {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         ClipRRect(
-          borderRadius: BorderRadius.circular(10.0), // Adjust the radius as needed
+          borderRadius: BorderRadius.circular(10.0),
           child: Container(
-            height: 300, // Set the height you want
-            width: 300, // Set the width you want
+            height: 300,
+            width: 300,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(40.0),
               image: DecorationImage(

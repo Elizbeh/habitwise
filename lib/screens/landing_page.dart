@@ -1,141 +1,207 @@
 import 'package:flutter/material.dart';
 
-class BottomCurveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    Path path = Path();
-    path.lineTo(0, size.height - 50); // 50 is the curve height
-    path.quadraticBezierTo(size.width / 2, size.height, size.width, size.height - 50);
-    path.lineTo(size.width, 0);
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) {
-    return true;
-  }
-}
-
 class LandingPage extends StatelessWidget {
+  final VoidCallback onThemeChanged;
+  final ValueNotifier<ThemeMode> themeNotifier;
+
+  LandingPage({required this.onThemeChanged, required this.themeNotifier});
+
   @override
   Widget build(BuildContext context) {
+    // MediaQuery to adapt layout based on screen size
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Stack(
         children: [
-          // Gradient Background
-          Positioned.fill(
-            top: MediaQuery.of(context).size.height * 0.28,
-            child: Container(
-              decoration: BoxDecoration(
-            borderRadius: BorderRadius.zero,
-            gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(255, 93, 156, 164),
-                Color.fromARGB(233, 93, 59, 99),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-          ),
-            ),
-          ),
-          // Background Image
-          Positioned.fill(
-            child: FractionallySizedBox(
-              alignment: Alignment.topCenter,
-              heightFactor: 0.38,
-              child: ClipPath(
-                clipper: BottomCurveClipper(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/backgroundImg.png'),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-            ),
+          // Plain Background
+          Container(
+            color: Colors.transparent, // Set to transparent
           ),
           // Content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 150.0),
+                SizedBox(height: screenHeight * 0.05), // Responsive height
                 // Logo App Name
-                const Text(
-                  'HabitWise',
-                  style: TextStyle(
-                    fontFamily: 'Billabong',
-                    color: Colors.white,
-                    fontSize: 40,
-                  ),
-                ),
-                Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color.fromRGBO(126, 35, 191, 0.498),
-                  width: 4, // Outline width
-                ),
-              ),
-              child: ClipOval(
-                child: Image.asset(
-                  'assets/images/logo.png',
-                  width: 80,
-                  height: 70,
-                ),
-              ),
-            ),
-                const SizedBox(height: 10.0),
-                // Title
-                const Text(
-                  'Welcome to HabitWise',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 34,
-                    
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 15.0),
-                // Subtitle
-                AnimatedSubtitle(),
-                const SizedBox(height: 24.0),
-                // Action Button
                 Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30.0),
-                    color: Color.fromRGBO(126, 35, 191, 0.498),
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/login');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      elevation: 1,
-                      padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 15.0),
+                    color: Colors.white, // White background for the logo
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.5),
+                      width: 4, // Outline width
                     ),
-                    child: Text(
-                      'Get Started',
-                      style: TextStyle(
-                        color: Color.fromARGB(152, 151, 11, 251),
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        
+                  ),
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0), // Padding inside the circle
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: screenWidth * 0.2, // Responsive width
+                        height: screenWidth * 0.2, // Responsive height
                       ),
                     ),
                   ),
                 ),
+                SizedBox(height: screenHeight * 0.02), // Responsive height
+                // Animated Title
+                AnimatedTitle(),
+                SizedBox(height: screenHeight * 0.03), // Responsive height
+                // Subtitle
+                AnimatedSubtitle(),
+                SizedBox(height: screenHeight * 0.05), // Responsive height
+                // Call-to-Action Button
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white, // Text color
+                    backgroundColor: Color.fromRGBO(126, 35, 191, 0.498), // Button background color
+                    elevation: 2,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.1, // Responsive width
+                      vertical: screenHeight * 0.02, // Responsive height
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                  ),
+                  child: Text(
+                    'Get Started',
+                    style: TextStyle(
+                      fontSize: screenWidth * 0.05, // Responsive font size
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.05), // Responsive height
+                // New Sections
+                _buildHeroSection(),
+                _buildFeaturesSection(),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHeroSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.zero,
+          child: Image.asset(
+            'assets/images/hero_image.png',
+            width: double.infinity,
+            height: 320.0,
+            fit: BoxFit.cover,
+          ),
+        ),
+        SizedBox(height: 16.0),
+        Text(
+          'Discover Amazing Features',
+          style: TextStyle(
+            fontSize: 24.0,
+            fontWeight: FontWeight.bold,
+            color: Color.fromRGBO(126, 35, 191, 0.498), // Hero section title color
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeaturesSection() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.0), // Padding for responsiveness
+      child: Column(
+        children: [
+          _buildFeatureItem('Track Your Habits', 'Easily track your daily habits and progress.'),
+          _buildFeatureItem('Set Achievable Goals', 'Set and achieve your personal goals.'),
+          _buildFeatureItem('Analyze Your Progress', 'Get insights into your habit patterns.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem(String title, String description) {
+    return ListTile(
+      leading: Icon(Icons.star, color: Color.fromRGBO(126, 35, 191, 0.498)), // Icon color
+      title: Text(
+        title,
+        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+      ),
+      subtitle: Text(
+        description,
+        style: TextStyle(color: Colors.black),
+      ),
+    );
+  }
+}
+
+class AnimatedTitle extends StatefulWidget {
+  @override
+  _AnimatedTitleState createState() => _AnimatedTitleState();
+}
+
+class _AnimatedTitleState extends State<AnimatedTitle> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Offset> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+    _animation = Tween<Offset>(
+      begin: Offset(1.0, 0.0), // Start from the right
+      end: Offset.zero,
+    ).animate(_controller);
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SlideTransition(
+      position: _animation,
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: 'Welcome to ',
+              style: TextStyle(
+                color: Color.fromRGBO(126, 35, 191, 0.498), // Title color
+                fontSize: MediaQuery.of(context).size.width * 0.08, // Responsive font size
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextSpan(
+              text: 'HabitWise',
+              style: TextStyle(
+                color: Color.fromRGBO(126, 35, 191, 0.498), // Title color
+                fontSize: MediaQuery.of(context).size.width * 0.1, // Responsive font size
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Billabong', // Custom font for "HabitWise"
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -177,9 +243,10 @@ class _AnimatedSubtitleState extends State<AnimatedSubtitle> with SingleTickerPr
       child: Text(
         'Develop habits. Achieve goals. Transform your life.',
         style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                  ),
+          color: Color.fromARGB(255, 93, 156, 164), // Subtitle color
+          fontWeight: FontWeight.bold,
+          fontSize: MediaQuery.of(context).size.width * 0.05, // Responsive font size
+        ),
         textAlign: TextAlign.center,
       ),
     );

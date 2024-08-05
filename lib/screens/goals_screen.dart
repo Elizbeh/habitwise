@@ -12,6 +12,7 @@ import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
 import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/screens/profile_screen.dart';
+import '../main.dart';
 
 class GoalScreen extends StatefulWidget {
   final HabitWiseUser user;
@@ -24,12 +25,15 @@ class GoalScreen extends StatefulWidget {
 }
 
 class _GoalScreenState extends State<GoalScreen> {
+  
   String sortingCriteria = 'Priority';
   String selectedCategory = 'All';
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   late DateTime _selectedDay;
   int _currentIndex = 1;
+
+
 
   @override
   void initState() {
@@ -283,7 +287,7 @@ class _GoalScreenState extends State<GoalScreen> {
               );
             }
           }
-        },
+        }, themeNotifier: appThemeNotifier,
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:habitwise/methods/auth_methods.dart';
 
 class SignUpScreen extends StatefulWidget {
+  // Instances of controllers and callbacks required for sign-up
   final AuthMethod authMethod = AuthMethod();
   final Future<Null> Function(String username) onSignupSuccess;
   final TextEditingController emailController;
@@ -23,23 +24,27 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderStateMixin {
+  // State variables for password visibility, loading state, and error messages
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
   String _errorMessage = '';
-  
+
+  // Animation controller and color animation for the sign-up header
   late AnimationController _animationController;
   late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
-    
+
+    // Initialize the animation controller with a 3-second duration, repeating indefinitely
     _animationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
 
+    // Define a color animation that transitions between two colors
     _colorAnimation = ColorTween(
       begin: const Color.fromARGB(255, 93, 156, 164),
       end: const Color.fromRGBO(126, 35, 191, 0.498),
@@ -48,14 +53,17 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
 
   @override
   void dispose() {
+    // Dispose of the animation controller to free resources
     _animationController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
+          // Main content of the screen wrapped in a SingleChildScrollView
           SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -73,7 +81,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                   'assets/images/logo.png',
                   width: 80,
                   height: 80,
-                  ),
+                ),
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -108,18 +116,18 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                       ],
                     ),
                   ),
-               ),
+                ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
-                      SizedBox(height: 8),
+                      // Email input field
                       TextField(
                         controller: widget.emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Email',
-                          hintStyle: TextStyle(
+                          hintStyle: const TextStyle(
                             fontSize: 22,
                           ),
                           filled: true,
@@ -130,13 +138,14 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      SizedBox(height: 18),
+                      const SizedBox(height: 18),
+                      // Username input field
                       TextField(
                         controller: widget.usernameController,
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           hintText: 'Username',
-                          hintStyle: TextStyle(
+                          hintStyle: const TextStyle(
                             fontSize: 24,
                           ),
                           filled: true,
@@ -147,13 +156,14 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      SizedBox(height: 18),
+                      const SizedBox(height: 18),
+                      // Password input field with visibility toggle
                       TextField(
                         controller: widget.passwordController,
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Password',
-                          hintStyle: TextStyle(
+                          hintStyle: const TextStyle(
                             fontSize: 24,
                           ),
                           filled: true,
@@ -174,13 +184,14 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      SizedBox(height: 18),
+                      const SizedBox(height: 18),
+                      // Confirm Password input field with visibility toggle
                       TextField(
                         controller: widget.passwordConfirmController,
                         obscureText: !_isConfirmPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Confirm Password',
-                          hintStyle: TextStyle(
+                          hintStyle: const TextStyle(
                             fontSize: 24,
                           ),
                           filled: true,
@@ -201,17 +212,19 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      SizedBox(height: 28),
+                      const SizedBox(height: 28),
+                      // Sign-Up button
                       Container(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : () async {
+                            // Retrieve user input
                             String email = widget.emailController.text.trim();
                             String username = widget.usernameController.text.trim();
                             String password = widget.passwordController.text.trim();
                             String confirmPassword = widget.passwordConfirmController.text.trim();
 
-                            // Validate email
+                            // Input validation
                             if (email.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -221,7 +234,6 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               return;
                             }
 
-                            // Validate username
                             if (username.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -231,7 +243,6 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               return;
                             }
 
-                            // Validate password
                             if (password.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -241,7 +252,6 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               return;
                             }
 
-                            // Validate password confirmation
                             if (confirmPassword != password) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -251,12 +261,13 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               return;
                             }
 
+                            // Set loading state
                             setState(() {
                               _isLoading = true;
                               _errorMessage = '';
                             });
 
-                            // Call sign up method
+                            // Attempt to sign up the user
                             String result = '';
                             try {
                               AuthResult authResult = await widget.authMethod.signUpUser(
@@ -291,14 +302,14 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             });
                           },
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(126, 35, 191, 0.498), ),
+                            backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(126, 35, 191, 0.498)),
                             padding: MaterialStateProperty.all(
-                              EdgeInsets.symmetric(vertical: 16),
+                              const EdgeInsets.symmetric(vertical: 16),
                             ),
                             shape: MaterialStateProperty.all(
                               RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
-                              )
+                              ),
                             ),
                           ),
                           child: const Text(
@@ -306,14 +317,15 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 22
+                              fontSize: 22,
                             ),
                           ),
                         ),
                       ),
-                      SizedBox(height: 16),
+                                            const SizedBox(height: 16),
                       const Divider(color: Colors.grey),
                       const SizedBox(height: 16),
+                      // Link to the login page for users who already have an account
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -330,17 +342,18 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color:  Color.fromARGB(255, 93, 156, 164),
+                                color: Color.fromARGB(255, 93, 156, 164),
                               ),
                             ),
                           ),
                         ],
                       ),
+                      // Display error message if there's any
                       if (_errorMessage.isNotEmpty) ...[
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Text(
                           _errorMessage,
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ],
                     ],
@@ -349,6 +362,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
               ],
             ),
           ),
+          // Display loading indicator while processing
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),

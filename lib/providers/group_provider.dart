@@ -39,16 +39,18 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> createGroup(HabitWiseGroup group) async {
-    try {
-      String groupId = await _groupDBService.createGroup(group);
-      group = group.copyWith(groupId: groupId);
-      _groups.add(group);
-      notifyListeners();
-    } catch (e) {
-      print('Error creating group: $e');
-    }
+  Future<String> createGroup(HabitWiseGroup group) async {
+  try {
+    String groupId = await _groupDBService.createGroup(group);
+    group = group.copyWith(groupId: groupId);
+    _groups.add(group);
+    notifyListeners();
+    return groupId;
+  } catch (e) {
+    print('Error creating group: $e');
+    rethrow; // Optional: propagate the exception if needed
   }
+}
 
   Future<void> joinGroup(String groupId, String userId) async {
     try {

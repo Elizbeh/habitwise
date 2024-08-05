@@ -55,47 +55,53 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 28),
-                      TextField(
-                        controller: widget.emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          hintText: 'Email',
-                          hintStyle: const TextStyle(
-                            fontSize: 24,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[200],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
+                      Tooltip(
+                        message: 'Enter your email address',
+                        child: TextField(
+                          controller: widget.emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            hintText: 'Email',
+                            hintStyle: const TextStyle(
+                              fontSize: 24,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      TextField(
-                        controller: widget.passwordController,
-                        obscureText: obscureText,
-                        decoration: InputDecoration(
-                          hintText: 'Password',
-                          hintStyle: const TextStyle(
-                            fontSize: 24,
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey[200],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              obscureText ? Icons.visibility : Icons.visibility_off,
-                              color: Colors.grey[600],
+                      Tooltip(
+                        message: 'Enter your password',
+                        child: TextField(
+                          controller: widget.passwordController,
+                          obscureText: obscureText,
+                          decoration: InputDecoration(
+                            hintText: 'Password',
+                            hintStyle: const TextStyle(
+                              fontSize: 24,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                obscureText = !obscureText;
-                              });
-                            },
+                            filled: true,
+                            fillColor: Colors.grey[200],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscureText ? Icons.visibility : Icons.visibility_off,
+                                color: Colors.grey[600],
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  obscureText = !obscureText;
+                                });
+                              },
+                            ),
                           ),
                         ),
                       ),
@@ -178,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               decoration: BoxDecoration(
                                 color: _isHovering
                                     ? Colors.cyan
-                                    : const Color.fromRGBO(126, 35, 191, 0.498),
+                                    : Color.fromARGB(122, 126, 35, 191),
                                 borderRadius: BorderRadius.circular(30),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -258,12 +264,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 20),
                       ElevatedButton.icon(
                         onPressed: () {
-                          // Implement Google sign-in logic here: TO do
+                          // Implement Google sign-in logic here: TO DO
                         },
                         icon: Image.asset(
                           'assets/images/google_icon.png',
                           width: 24,
-                          height: 24
+                          height: 24,
+                          semanticLabel: 'Google logo',
                         ),
                         label: const Text(
                           'Sign in with Google',

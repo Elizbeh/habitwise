@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
+import 'package:habitwise/main.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:habitwise/models/user.dart';
@@ -11,6 +12,7 @@ import 'package:habitwise/services/user_db_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+
 
 class ProfilePage extends StatefulWidget {
   final HabitWiseUser user;
@@ -26,6 +28,8 @@ class _ProfilePageState extends State<ProfilePage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
   final StorageService _storageService = StorageService();
+
+  final ValueNotifier<ThemeMode> _themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
   @override
   void initState() {
@@ -247,7 +251,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Navigator.of(context).pushReplacementNamed('/habit');
             }
           }
-        },
+        }, themeNotifier: appThemeNotifier,
       ),
     );
   }

@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:ui';
-
+import 'package:habitwise/main.dart';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/group.dart';
 import 'package:habitwise/models/habit.dart';
+import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
@@ -18,8 +19,14 @@ import 'package:provider/provider.dart';
 import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
 import 'package:habitwise/services/habit_db_service.dart';
+import 'package:habitwise/screens/setting_screen.dart';  // Import settings page
 
 class GroupDetailsScreen extends StatefulWidget {
+  final HabitWiseGroup group;
+  final HabitWiseUser user;
+
+  GroupDetailsScreen({required this.group, required this.user});
+
   @override
   _GroupDetailsScreenState createState() => _GroupDetailsScreenState();
 }
@@ -47,9 +54,8 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   }
 
   Future<void> _fetchGroupDetails() async {
-    final String groupId = ModalRoute.of(context)!.settings.arguments as String;
     try {
-      final fetchedGroup = await _groupDBService.getGroupById(groupId);
+      final fetchedGroup = widget.group;
       final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
       final fetchedCreatorName = await _userDBService.getUserNameById(fetchedGroup.groupCreator);
       final fetchedIsMember = fetchedGroup.members.contains(userId);
@@ -63,7 +69,12 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
       });
     } catch (e) {
       print('Error fetching group details: $e');
-      // Handle error gracefully, e.g., show an error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load group details. Please try again.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
     }
   }
 
@@ -78,7 +89,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           elevation: 0,
           toolbarHeight: 60,
           title: Text(
-            '${group?.groupType}',
+            '${group?.groupType ?? ''}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 28,
@@ -88,19 +99,15 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           centerTitle: true,
           flexibleSpace: Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(0),
-                bottomRight: Radius.circular(0),
-              ),
               gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(255, 93, 156, 164),
-                Color.fromARGB(233, 93, 59, 99),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
+                colors: [
+                  Color.fromRGBO(126, 35, 191, 0.498),
+                  Color.fromARGB(255, 93, 156, 164),
+                  Color.fromARGB(233, 93, 59, 99),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.only(
@@ -181,8 +188,8 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                         alignment: PlaceholderAlignment.bottom,
                                         baseline: TextBaseline.alphabetic,
                                         child: SizedBox(
-                                          width: 3, // Adjust as needed
-                                          height: 3, // Adjust as needed
+                                          width: 3,
+                                          height: 3,
                                           child: Text(
                                             '₁',
                                             style: TextStyle(
@@ -265,7 +272,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                   builder: (context, membersSnapshot) {
                                     if (membersSnapshot.connectionState == ConnectionState.waiting) {
                                       return Center(child: CircularProgressIndicator());
-                                    } else if (membersSnapshot.hasError) {
+                                                                        } else if (membersSnapshot.hasError) {
                                       return Center(child: Text('Error: ${membersSnapshot.error}'));
                                     } else {
                                       List<String> memberUsernames = membersSnapshot.data ?? [];
@@ -273,7 +280,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                         value: null,
                                         hint: Text(
                                           'Members: ${memberUsernames.join(', ')}',
-                                          style: TextStyle(color: Colors.purple, fontSize: 12),
+                                          style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12),
                                         ),
                                         items: memberUsernames.map((String username) {
                                           return DropdownMenuItem<String>(
@@ -292,7 +299,6 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                         ],
                       ),
                     ),
-
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
@@ -316,8 +322,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                                                   content: Text('Goal added to group successfully!'),
                                                   duration: Duration(seconds: 3),
-                                                  ),
-                                                );
+                                                ));
                                                 setState(() {});
                                               } catch (e) {
                                                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -391,7 +396,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                               Container(
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8.0),
-                                  border: Border.all(color: const Color.fromRGBO(126, 35, 191, 0.498)),
+                                  border: Border.all(color: Theme.of(context).colorScheme.primary),
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -407,7 +412,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                         style: ElevatedButton.styleFrom(
                                           foregroundColor: _selectedIndex == 0 ? Colors.white : Colors.black,
                                           backgroundColor:
-                                              _selectedIndex == 0 ? const Color.fromRGBO(126, 35, 191, 0.498) : Colors.white,
+                                              _selectedIndex == 0 ? Theme.of(context).colorScheme.primary : Colors.white,
                                           shape: const RoundedRectangleBorder(
                                             borderRadius: BorderRadius.only(
                                               topLeft: Radius.circular(8.0),
@@ -420,7 +425,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                     Container(
                                       width: 1,
                                       height: 48,
-                                      color: const Color.fromRGBO(126, 35, 191, 0.498),
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                     Expanded(
                                       child: ElevatedButton(
@@ -433,7 +438,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                         style: ElevatedButton.styleFrom(
                                           foregroundColor: _selectedIndex == 1 ? Colors.white : Colors.black,
                                           backgroundColor:
-                                              _selectedIndex == 1 ? const Color.fromRGBO(126, 35, 191, 0.498) : Colors.white,
+                                              _selectedIndex == 1 ? Theme.of(context).colorScheme.primary : Colors.white,
                                           shape: const RoundedRectangleBorder(
                                             borderRadius: BorderRadius.only(
                                               topRight: Radius.circular(8.0),
@@ -502,6 +507,26 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                   child: CircularProgressIndicator(),
                 ),
         ),
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.star),
+              label: 'Goals',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.track_changes),
+              label: 'Habits',
+            ),
+          ],
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Theme.of(context).colorScheme.onSurface,
+        ),
       ),
     );
   }
@@ -510,8 +535,12 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   Future<List<String>> _fetchMemberUsernames(List<String> memberIds) async {
     List<String> usernames = [];
     for (String id in memberIds) {
-      String username = await _userDBService.getUserNameById(id);
-      usernames.add(username);
+      try {
+        String username = await _userDBService.getUserNameById(id);
+        usernames.add(username);
+      } catch (e) {
+        print('Error fetching username for $id: $e');
+      }
     }
     return usernames;
   }

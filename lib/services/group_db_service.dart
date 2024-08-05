@@ -89,15 +89,18 @@ Future<List<HabitWiseGroup>> getAllGroups(String userId) async {
   }
 
    Future<void> addGoalToGroup(String groupId, String goalId) async {
-    try {
-      await groupsCollection.doc(groupId).update({
-        'goals': FieldValue.arrayUnion([goalId]),
-      });
-    } catch (e) {
-      print('Error adding goal to group: $e');
-      throw e;
-    }
+  try {
+    await groupsCollection.doc(groupId).update({
+      'goals': FieldValue.arrayUnion([goalId]),
+    });
+  } on FirebaseException catch (e) {
+    print('FirebaseException while adding goal to group: ${e.message}');
+    throw e;
+  } catch (e) {
+    print('Error adding goal to group: $e');
+    throw e;
   }
+}
 
   Future<void> addHabitToGroup(String groupId, String habit) async {
     try {

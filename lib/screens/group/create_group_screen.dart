@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/group/group_details_screen.dart';
+import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/models/group.dart';
@@ -12,11 +14,9 @@ import 'package:provider/provider.dart';
 
 // Define the gradient colors as constants
 const List<Color> appBarGradientColors = [
-
   Color.fromRGBO(126, 35, 191, 0.498),
   Color.fromARGB(255, 93, 156, 164),
   Color.fromARGB(233, 93, 59, 99),
-              
 ];
 
 class CreateGroupScreen extends StatefulWidget {
@@ -30,6 +30,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   File? _groupPhoto;
   final _storageService = StorageService();
+  int _currentIndex = 0;
 
   Future<void> _selectGroupPhoto() async {
     final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -47,6 +48,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         return await _storageService.uploadGroupPhoto(_groupPhoto!);
       } catch (e) {
         print('Error uploading group photo: $e');
+        // Optionally, you could show a message to the user about the failure
       }
     }
     return null;
@@ -76,7 +78,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         String? groupPhotoUrl = await _uploadGroupPhoto();
 
         HabitWiseGroup newGroup = HabitWiseGroup(
-          groupId: '',
+          groupId: '',  // Initially empty
           groupName: groupName,
           description: description,
           members: [userId],
@@ -88,7 +90,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           creationDate: DateTime.now(),
         );
 
-        await Provider.of<GroupProvider>(context, listen: false).createGroup(newGroup);
+        // Create the group and get the groupId
+        String groupId = await Provider.of<GroupProvider>(context, listen: false).createGroup(newGroup);
+
+        // Update the newGroup with the actual groupId
+        newGroup = newGroup.copyWith(groupId: groupId);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -97,9 +103,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           ),
         );
 
-        Navigator.pushReplacement(
+        // Navigate to GroupDetailsScreen with the newGroup and user
+        Navigator.pushReplacementNamed(
           context,
-          MaterialPageRoute(builder: (context) => DashboardScreen(user: user, groupId: '',)),
+          '/groupDetails',
+          arguments: newGroup, // Pass the entire updated group object
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -116,6 +124,31 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           duration: Duration(seconds: 2),
         ),
       );
+    }
+  }
+
+  void _onBottomNavBarTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // Define your navigation logic based on the index
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/dashboard');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/goals'); // Adjust the route as needed
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/habit'); // Adjust the route as needed
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile'); // Adjust the route as needed
+        break;
+      case 4:
+        Navigator.pushNamed(context, '/settings'); // Adjust the route as needed
+        break;
     }
   }
 
@@ -222,6 +255,11 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBarWidget(
+        currentIndex: _currentIndex,
+        onTap: _onBottomNavBarTapped,
+        themeNotifier: ValueNotifier(ThemeMode.light), // Adjust based on your theme logic
       ),
     );
   }
