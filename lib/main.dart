@@ -35,7 +35,9 @@ void main() async {
   
   // Initialize Firebase
   await Firebase.initializeApp(
-    
+    options: const FirebaseOptions(
+      
+    ),
   );
 
   runApp(
