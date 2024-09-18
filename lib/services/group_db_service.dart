@@ -111,5 +111,22 @@ class GroupDBService {
       throw e;
     }
   }
+
+Future<List<String>> getGroupGoals(String groupId) async {
+  try {
+    DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
+    if (doc.exists) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      print('Group goals data: ${data['goals']}');  // Add this line to debug
+      return List<String>.from(data['goals'] ?? []);
+    } else {
+      throw Exception('Group not found');
+    }
+  } catch (e) {
+    print('Error fetching group goals: $e');
+    throw e;
+  }
+}
+
   
 }

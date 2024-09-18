@@ -4,9 +4,8 @@ import 'package:habitwise/models/member.dart';
 class HabitWiseGroup {
   final String groupId;
   final String groupName;
-  List<Member> members;
-  final List<String> goals;
-  final List<String> habits;
+  final List<Member> members;
+  final List<String> habits;  // Keep this if you're still using it for habits
   final String groupType;
   final String? groupPictureUrl;
   final String groupCreator;
@@ -17,7 +16,6 @@ class HabitWiseGroup {
     required this.groupId,
     required this.groupName,
     required this.members,
-    required this.goals,
     required this.habits,
     required this.groupType,
     this.groupPictureUrl,
@@ -27,36 +25,32 @@ class HabitWiseGroup {
   });
 
   factory HabitWiseGroup.fromMap(Map<String, dynamic> map) {
-  return HabitWiseGroup(
-    groupId: map['groupId'] as String,
-    groupName: map['groupName'] as String,
-    members: List<Member>.from(map['members']?.map((m) => Member.fromMap(m)) ?? []),
-    goals: List<String>.from(map['goals'] ?? []),
-    habits: List<String>.from(map['habits'] ?? []),
-    groupType: map['groupType'] as String,
-    groupPictureUrl: map['groupPictureUrl'] as String?,
-    groupCreator: map['groupCreator'] as String,
-    creationDate: (map['creationDate'] as Timestamp).toDate(),
-    description: map['description'] as String,
-  );
-}
-
+    return HabitWiseGroup(
+      groupId: map['groupId'] as String,
+      groupName: map['groupName'] as String,
+      members: List<Member>.from(map['members']?.map((m) => Member.fromMap(m)) ?? []),
+      habits: List<String>.from(map['habits'] ?? []),
+      groupType: map['groupType'] as String,
+      groupPictureUrl: map['groupPictureUrl'] as String?,
+      groupCreator: map['groupCreator'] as String,
+      creationDate: (map['creationDate'] as Timestamp).toDate(),
+      description: map['description'] as String,
+    );
+  }
 
   Map<String, dynamic> toMap() {
-  return {
-    'groupId': groupId,
-    'groupName': groupName,
-    'members': members.map((member) => member.toMap()).toList(), // Convert each Member to a map
-    'goals': goals,
-    'habits': habits,
-    'groupType': groupType,
-    'groupPictureUrl': groupPictureUrl,
-    'groupCreator': groupCreator,
-    'creationDate': creationDate,
-    'description': description,
-  };
-}
-
+    return {
+      'groupId': groupId,
+      'groupName': groupName,
+      'members': members.map((member) => member.toMap()).toList(), // Convert each Member to a map
+      'habits': habits,
+      'groupType': groupType,
+      'groupPictureUrl': groupPictureUrl,
+      'groupCreator': groupCreator,
+      'creationDate': Timestamp.fromDate(creationDate),
+      'description': description,
+    };
+  }
 
   HabitWiseGroup copyWith({
     String? groupId,
@@ -65,7 +59,6 @@ class HabitWiseGroup {
     DateTime? creationDate,
     String? description,
     List<Member>? members,
-    List<String>? goals,
     List<String>? habits,
     String? groupType,
     String? groupPictureUrl,
@@ -74,7 +67,6 @@ class HabitWiseGroup {
       groupId: groupId ?? this.groupId,
       groupName: groupName ?? this.groupName,
       members: members ?? this.members,
-      goals: goals ?? this.goals,
       habits: habits ?? this.habits,
       groupType: groupType ?? this.groupType,
       groupPictureUrl: groupPictureUrl ?? this.groupPictureUrl,

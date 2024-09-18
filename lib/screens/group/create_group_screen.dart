@@ -89,7 +89,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           groupName: groupName,
           description: description,
           members: [currentUser],
-          goals: [],
           habits: [],
           groupType: groupType,
           groupPictureUrl: groupPhotoUrl,

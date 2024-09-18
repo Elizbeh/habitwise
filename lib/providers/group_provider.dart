@@ -94,4 +94,16 @@ class GroupProvider extends ChangeNotifier {
     _groups.removeWhere((group) => group.groupId == groupId);
     notifyListeners();
   }
+
+   Future<List<String>> fetchGroupGoals(String groupId) async {
+    try {
+      List<String> goals = await _groupDBService.getGroupGoals(groupId);
+      return goals;
+    } catch (e) {
+      print('Error fetching group goals: $e');
+      throw e;
+    }
+  }
+
+  
 }

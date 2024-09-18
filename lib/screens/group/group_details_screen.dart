@@ -5,17 +5,16 @@ import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/group.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
+import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/group/group_info.dart';
-import 'package:habitwise/screens/group/group_widget.dart';
-import 'package:habitwise/services/goals_db_service.dart';
-import 'package:habitwise/services/group_db_service.dart';
-import 'package:habitwise/services/habit_db_service.dart';
+import 'package:habitwise/screens/group/group_widgets.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
+
 
 
 class GroupDetailsScreen extends StatefulWidget {
@@ -29,10 +28,6 @@ class GroupDetailsScreen extends StatefulWidget {
 }
 
 class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
-  final GroupDBService _groupDBService = GroupDBService();
-  final HabitDBService _habitDBService = HabitDBService();
-  final GoalDBService _goalDBService = GoalDBService();
-
   HabitWiseGroup? group;
   String creatorName = '';
   bool isMember = false;
@@ -47,6 +42,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
     super.initState();
     WidgetsBinding.instance!.addPostFrameCallback((_) {
       _fetchGroupDetails();
+      _fetchGroupGoals();
     });
   }
 
@@ -74,6 +70,12 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   }
 }
 
+void _fetchGroupGoals() {
+    // Use GoalProvider to fetch group goals
+    final goalProvider = Provider.of<GoalProvider>(context, listen: false);
+    goalProvider.fetchGroupGoals(widget.group.groupId);
+  }
+
   void _onNavItemTapped(int index) {
     // Navigate to the appropriate screen based on the index
     switch (index) {
@@ -96,11 +98,10 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => GoalProvider(groupId: group?.groupId ?? '')),
+        ChangeNotifierProvider(create: (_) => GoalProvider(groupId: group?.groupId)),
         ChangeNotifierProvider(create: (_) => HabitProvider()),
-        Provider(create: (_) => _goalDBService),
-        Provider(create: (_) => _habitDBService),
-      ],
+        ChangeNotifierProvider(create: (_) => GroupProvider()),
+        ],
       child: Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
@@ -199,26 +200,32 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  ElevatedButton(
+                                   ElevatedButton(
                                     onPressed: () async {
+                                      // Check if group is null before proceeding
+                                      if (group == null) {
+                                        showSnackBar(context, 'Group is not available', isError: true);
+                                        return;
+                                      }
+
                                       showDialog(
                                         context: context,
                                         builder: (BuildContext context) {
                                           return AddGoalDialog(
                                             addGoalToGroup: (Goal goal) async {
+                                              final goalProvider = Provider.of<GoalProvider>(context, listen: false);
                                               try {
-                                                await _goalDBService.addGoalToGroup(group!.groupId, goal.id);
-                                                showSnackBar(context, 'Error joining group');
-                                                setState(() {});
+                                                // Use the non-null groupId
+                                                await goalProvider.addGoalToGroup(goal, group!.groupId);
+                                                showSnackBar(context, 'Goal added to group successfully!');
                                               } catch (e) {
                                                 showSnackBar(context, 'Error adding goal: $e', isError: true);
                                               }
                                             },
-                                            groupId: group!.groupId,
+                                            groupId: group!.groupId,  // Access groupId with null check
                                           );
                                         },
                                       );
-                                    
                                     },
                                     child: const Text('Add Goal'),
                                   ),
@@ -236,15 +243,21 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                                 ],
                               ),
                               if (isMember && !isCreator) ...[
-                                ElevatedButton(
+                                 ElevatedButton(
                                   onPressed: () async {
+                                    if (group == null) {
+                                      showSnackBar(context, 'Group is not available', isError: true);
+                                      return;
+                                    }
+
+                                    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
                                     try {
-                                      await _groupDBService.leaveGroup(
-                                          group!.groupId, Provider.of<UserProvider>(context, listen: false).user!.uid);
-                                      showSnackBar(context, 'Error Leaving group' );
-                                      setState(() {});
+                                      await groupProvider.leaveGroup(group!.groupId, Provider.of<UserProvider>(context, listen: false).user!.uid);
+                                      showSnackBar(context, 'Left the group successfully');
+                                      // Optionally, you can navigate back or refresh the UI
+                                      Navigator.of(context).pop(); // Close the screen or navigate as needed
                                     } catch (e) {
-                                      showSnackBar(context, 'Error Leaving group: $e', isError: true);
+                                      showSnackBar(context, 'Error leaving group: $e', isError: true);
                                     }
                                   },
                                   child: const Text('Leave Group'),
@@ -253,18 +266,27 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                               if (!isMember && !isCreator) ...[
                                 ElevatedButton(
                                   onPressed: () async {
+                                    if (group == null) {
+                                      showSnackBar(context, 'Group is not available', isError: true);
+                                      return;
+                                    }
+
+                                    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+                                    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
                                     try {
-                                      await _groupDBService.joinGroup(
-                                          group!.groupId, Provider.of<UserProvider>(context, listen: false).user!.uid);
-                                        showSnackBar(context, 'Joined group successfully!');
+                                      await groupProvider.joinGroup(group!.groupId, userProvider.user!.uid);
+                                      showSnackBar(context, 'Joined group successfully!');
                                       
-                                      setState(() {});
+                                      // Optionally, you can refresh the UI or navigate back
+                                      setState(() {}); // Ensure this is necessary based on your widget's state management
                                     } catch (e) {
                                       showSnackBar(context, 'Error joining group: $e', isError: true);
                                     }
                                   },
                                   child: const Text('Join Group'),
-                                ),
+                                )
+
                               ],
                               Container(
                                 decoration: BoxDecoration(

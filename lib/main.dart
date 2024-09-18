@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:flutter/rendering.dart';
 import 'package:habitwise/models/group.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
@@ -12,14 +11,15 @@ import 'package:habitwise/screens/auth/login_screen.dart';
 import 'package:habitwise/screens/auth/signup_screen.dart';
 import 'package:habitwise/screens/auth/verify_email_screen.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
-import 'package:habitwise/screens/goals_screen.dart';
 import 'package:habitwise/screens/group/create_group_screen.dart';
 import 'package:habitwise/screens/group/group_details_screen.dart';
-import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/screens/landing_page.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:habitwise/screens/setting_screen.dart';
 import 'package:habitwise/screens/launch_background.dart';
+import 'package:habitwise/services/goals_db_service.dart';
+import 'package:habitwise/services/group_db_service.dart';
+import 'package:habitwise/services/habit_db_service.dart';
 import 'package:provider/provider.dart';
 import 'models/user.dart';
 import 'themes/theme.dart';
@@ -35,9 +35,7 @@ void main() async {
   
   // Initialize Firebase
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      
-    ),
+    
   );
 
   runApp(
@@ -49,6 +47,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => GoalProvider()),
         ChangeNotifierProvider(create: (_) => GroupProvider()),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
+         Provider(create: (_) => GroupDBService()),
+        Provider(create: (_) => GoalDBService()), 
+        Provider(create: (_) => HabitDBService()), 
       ],
       child: MyApp(),
     ),

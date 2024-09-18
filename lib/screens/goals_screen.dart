@@ -42,15 +42,13 @@ class _GoalScreenState extends State<GoalScreen> {
   int _currentIndex = 1;
 
   @override
-  void initState() {
-    super.initState();
-    _selectedDay = _focusedDay;
-    if (widget.groupId != null) {
-      Provider.of<GoalProvider>(context, listen: false).fetchGroupGoals(widget.groupId!);
-    } else {
-      Provider.of<GoalProvider>(context, listen: false).fetchGoals();
-    }
-  }
+  @override
+void initState() {
+  super.initState();
+  _selectedDay = _focusedDay;
+  Provider.of<GoalProvider>(context, listen: false).fetchGoals();
+}
+
 
   List<Goal> _sortAndFilterGoals(List<Goal> goals) {
     List<Goal> filteredGoals = goals.where((goal) {

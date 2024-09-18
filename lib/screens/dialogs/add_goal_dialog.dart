@@ -73,6 +73,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text('Error adding goal: $error')));
         }
+      
       }
 
       _titleController.clear();

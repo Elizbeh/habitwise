@@ -3,6 +3,7 @@ import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 import 'package:habitwise/services/goals_db_service.dart';
+import 'package:habitwise/services/group_db_service.dart';
 import 'package:habitwise/services/habit_db_service.dart';
 import 'package:habitwise/widgets/goal_tile.dart';
 import 'package:habitwise/widgets/habit_tile.dart';
@@ -24,17 +25,21 @@ class GroupGoalList extends StatelessWidget {
           return Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No goals found for this group.'));
         } else {
           List<Goal> goals = snapshot.data ?? [];
-          return Column(
-            children: goals.map((goal) => GoalTile(goal: goal, groupId: groupId)).toList(),
-          );
+          print('Fetched goals: ${goals.map((goal) => goal.toMap())}');
+          return goals.isEmpty
+            ? Center(child: Text('No goals found.'))
+            : Column(
+                children: goals.map((goal) => GoalTile(goal: goal, groupId: groupId)).toList(),
+              );
         }
       },
     );
   }
 }
-
 class GroupHabitList extends StatelessWidget {
   final String groupId;
 
