@@ -6,16 +6,16 @@ import '../dashboard_screen.dart';
 import '../../methods/auth_methods.dart';
 
 class LoginScreen extends StatefulWidget {
-  final Future<void> Function(String username) onLoginSuccess;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final Function(String username) onLoginSuccess;
 
   const LoginScreen({
-    Key? key,
+    super.key,
     required this.emailController,
     required this.passwordController,
     required this.onLoginSuccess,
-  }) : super(key: key);
+  });
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -26,6 +26,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool obscureText = true; // Initial state for password field
   bool _isLoading = false; // Initial state for loading indicator
   bool _isHovering = false; // Initial state for hover
+  String _message = ''; // Variable to hold 
+  Color _messageColor = Colors.transparent;
+  
 
   @override
   Widget build(BuildContext context) {
@@ -36,25 +39,49 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 60),
                 const Text(
                   'HabitWise',
                   style: TextStyle(
-                    fontFamily: 'Billabong',
-                    color: Color.fromRGBO(126, 35, 191, 0.498),
-                    fontSize: 60,
+                    color:Color.fromRGBO(134, 41, 137, 1.0),
+                    fontWeight: FontWeight.bold,                  fontSize: 34,
                   ),
                 ),
+                SizedBox(height: 8),
                 Image.asset(
                   'assets/images/logo.png',
-                  width: 80,
-                  height: 80,
+                  width: 50,
+                  height: 50,
+                ),
+                
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'Build habits, reach goals. Log in to begin.',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [
-                      const SizedBox(height: 28),
+                      if (_message.isNotEmpty)
+                        Container(
+                          color: _messageColor,
+                          padding: const EdgeInsets.all(10),
+                          child: Text(
+                            _message,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
                       Tooltip(
                         message: 'Enter your email address',
                         child: TextField(
@@ -63,10 +90,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                             hintText: 'Email',
                             hintStyle: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 16,
                             ),
                             filled: true,
-                            fillColor: Colors.grey[200],
+                            fillColor: Colors.grey[300],
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10.0),
                               borderSide: BorderSide.none,
@@ -74,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Tooltip(
                         message: 'Enter your password',
                         child: TextField(
@@ -83,10 +110,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                             hintText: 'Password',
                             hintStyle: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 16,
                             ),
                             filled: true,
-                            fillColor: Colors.grey[200],
+                            fillColor: Colors.grey[300],
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10.0),
                               borderSide: BorderSide.none,
@@ -99,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: () {
                                 setState(() {
                                   obscureText = !obscureText;
-                                });
+                               });
                               },
                             ),
                           ),
@@ -120,12 +147,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                     String password = widget.passwordController.text.trim();
 
                                     if (email.isEmpty || password.isEmpty) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Please fill in all fields'),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
+                                      setState(() {
+                                        _message = 'Please fill in all fields';
+                                        _messageColor = Colors.red;
+                                      });
                                       return;
                                     }
 
@@ -134,44 +159,44 @@ class _LoginScreenState extends State<LoginScreen> {
                                     });
 
                                     // Authenticate user using email and password
-                                    String loginResult = await _authMethod.login(
+                                    AuthResult loginResult = await _authMethod.login(
                                       email: email,
                                       password: password,
                                     );
 
-                                    if (loginResult == 'success') {
-                                      // If login is successful, retrieve user details
-                                      HabitWiseUser? user = await _authMethod.getUserDetails();
+                                    if (loginResult == AuthResult.success) {
+                                      UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
+                                      HabitWiseUser? user = await userProvider.getUserDetails();
 
                                       if (user != null) {
-                                        // Retrieve group IDs for the user
-                                        List<String> groupIds = user.groupIds; // Corrected this line
-
-                                        // If user details are available, navigate to dashboard
-                                        Provider.of<UserProvider>(context, listen: false).setUser(user);
-                                        widget.onLoginSuccess(user.username);
-                                        Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (context) => DashboardScreen(user: user, groupId: ''),
-                                          ),
-                                        );
+                                        if (user.emailVerified) {
+                                          await widget.onLoginSuccess(user.username);
+                                          Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(
+                                              builder: (context) => DashboardScreen(
+                                                 user: user,
+                                                groupId: user.groupIds.isNotEmpty ? user.groupIds[0] : '',
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          setState(() {
+                                            _message = 'Please verify your email address.';
+                                            _messageColor = Colors.red;
+                                          });
+                                        }
                                       } else {
-                                        // Handle case where user details are not available
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('User data is not available'),
-                                            duration: Duration(seconds: 2),
-                                          ),
-                                        );
+                                        setState(() {
+                                          _message = 'User not found. Please sign up.';
+                                          _messageColor = Colors.red;
+                                        });
+                                        Navigator.pushNamed(context, '/signup');
                                       }
                                     } else {
-                                      // If login fails, show error message
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(loginResult),
-                                          duration: const Duration(seconds: 2),
-                                        ),
-                                      );
+                                      setState(() {
+                                        _message = _getErrorMessage(loginResult);
+                                        _messageColor = Colors.red;
+                                      });
                                     }
 
                                     setState(() {
@@ -183,9 +208,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               curve: Curves.easeInOut,
                               decoration: BoxDecoration(
                                 color: _isHovering
-                                    ? Colors.cyan
-                                    : Color.fromARGB(122, 126, 35, 191),
-                                borderRadius: BorderRadius.circular(30),
+                                    ? Color.fromRGBO(46, 197, 187, 1.0)
+                                    : Color.fromRGBO(134, 41, 137, 1.0),
+                                borderRadius: BorderRadius.circular(15),
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               child: const Center(
@@ -204,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const Text(
                             "Forgot your login details? ",
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(fontSize: 14),
                           ),
                           TextButton(
                             onPressed: () {
@@ -214,8 +239,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Get help logging in',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Color.fromARGB(255, 93, 156, 164),
+                                fontSize: 14,
+                                color: Color.fromRGBO(46, 197, 187, 1.0)
+,
                               ),
                             ),
                           ),
@@ -238,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20,
-                                color: Color.fromRGBO(126, 35, 191, 0.498),
+                                color: Color.fromRGBO(134, 41, 137, 1.0),
                               ),
                             ),
                           ),
@@ -253,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Text(
                               "OR",
                               style: TextStyle(
-                                color: Color.fromARGB(255, 93, 156, 164),
+                                color: Color.fromRGBO(46, 197, 187, 1.0),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -301,9 +327,37 @@ class _LoginScreenState extends State<LoginScreen> {
               child: const Center(
                 child: CircularProgressIndicator(),
               ),
-            ),
+            )
         ],
       ),
     );
+  }
+
+  // Helper method to get the error message
+  String _getErrorMessage(AuthResult result) {
+    switch (result) {
+      case AuthResult.invalidInput:
+        return 'Invalid email or password. Please try again.';
+      case AuthResult.userNotFound:
+        return 'User not found. Please check your credentials or sign up.';
+      case AuthResult.wrongPassword:
+        return 'Incorrect password. Please try again.';
+      case AuthResult.userDisabled:
+        return 'This account has been disabled. Please contact support.';
+      case AuthResult.operationNotAllowed:
+        return 'This operation is not allowed. Please contact support.';
+      case AuthResult.tooManyRequests:
+        return 'Too many login attempts. Please try again later.';
+      case AuthResult.emailInUse:
+        return 'This email is already in use. Please try a different one.';
+      case AuthResult.weakPassword:
+        return 'The password is too weak. Please try a stronger password.';
+      case AuthResult.networkError:
+        return 'A network error occurred. Please try again later.';
+      case AuthResult.emailNotVerified:
+        return 'Your email is not verified. Please verify it and try again.';
+      default:
+        return 'An unknown error occurred. Please try again.';
+    }
   }
 }

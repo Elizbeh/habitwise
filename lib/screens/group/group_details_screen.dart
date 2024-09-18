@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:habitwise/main.dart';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
@@ -11,7 +10,7 @@ import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 import 'package:habitwise/services/goals_db_service.dart';
 import 'package:habitwise/services/group_db_service.dart';
-import 'package:habitwise/services/user_db_service.dart';
+import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 import 'package:habitwise/widgets/goal_tile.dart';
 import 'package:habitwise/widgets/habit_tile.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +18,7 @@ import 'package:provider/provider.dart';
 import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
 import 'package:habitwise/services/habit_db_service.dart';
-import 'package:habitwise/screens/setting_screen.dart';  // Import settings page
+
 
 class GroupDetailsScreen extends StatefulWidget {
   final HabitWiseGroup group;
@@ -33,7 +32,7 @@ class GroupDetailsScreen extends StatefulWidget {
 
 class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   final GroupDBService _groupDBService = GroupDBService();
-  final UserDBService _userDBService = UserDBService();
+
   final GoalDBService _goalDBService = GoalDBService();
   final HabitDBService _habitDBService = HabitDBService();
 
@@ -41,9 +40,11 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   String creatorName = '';
   bool isMember = false;
   bool isCreator = false;
-  bool isExpanded = false;
+  bool isMembersExpanded = false;
+  bool _descriptionExpanded =  false;
+  int _selectedIndex = 0; // switch between habits and goals
+  final int _currentIndex = 0;
 
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -54,30 +55,51 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   }
 
   Future<void> _fetchGroupDetails() async {
-    try {
-      final fetchedGroup = widget.group;
-      final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
-      final fetchedCreatorName = await _userDBService.getUserNameById(fetchedGroup.groupCreator);
-      final fetchedIsMember = fetchedGroup.members.contains(userId);
-      final fetchedIsCreator = fetchedGroup.groupCreator == userId;
+  try {
+    final fetchedGroup = widget.group; 
+    final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
 
-      setState(() {
-        group = fetchedGroup;
-        creatorName = fetchedCreatorName;
-        isMember = fetchedIsMember;
-        isCreator = fetchedIsCreator;
-      });
-    } catch (e) {
-      print('Error fetching group details: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to load group details. Please try again.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+    // Fetch the group creator's name
+    final fetchedCreatorName = fetchedGroup.members.firstWhere((member) => member.id == fetchedGroup.groupCreator).name;
+
+    // Check if the current user is a member and/or the creator of the group
+    final fetchedIsMember = fetchedGroup.members.any((member) => member.id == userId);  // Check membership using member.id
+    final fetchedIsCreator = fetchedGroup.groupCreator == userId;
+
+    setState(() {
+      group = fetchedGroup;
+      creatorName = fetchedCreatorName;
+      isMember = fetchedIsMember;
+      isCreator = fetchedIsCreator;
+    });
+  } catch (e) {
+    print('Error fetching group details: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Failed to load group details. Please try again.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+}
+
+  void _onNavItemTapped(int index) {
+    // Navigate to the appropriate screen based on the index
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushNamed('/dashboard');
+        break;
+      case 1:
+        Navigator.of(context).pushNamed('/goals');
+        break;
+      case 2:
+        Navigator.of(context).pushNamed('/habit');
+        break;
+      case 3:
+        Navigator.of(context).pushNamed('/profile');
+        break;
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -85,58 +107,45 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBar(
-          iconTheme: IconThemeData(color: Colors.white),
-          elevation: 0,
-          toolbarHeight: 60,
-          title: Text(
-            '${group?.groupType ?? ''}',
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            title: Text(
+            ' ${group?.groupType ?? 'No Group Name'}',
             style: TextStyle(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+              color: Colors.white, 
+              fontSize: 20, 
+              fontWeight: FontWeight.w600,
             ),
           ),
-          centerTitle: true,
-          flexibleSpace: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromRGBO(126, 35, 191, 0.498),
-                  Color.fromARGB(255, 93, 156, 164),
-                  Color.fromARGB(233, 93, 59, 99),
-                ],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(0),
-                bottomRight: Radius.circular(0),
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                child: Container(
-                  color: Colors.transparent,
+        
+            elevation: 0,
+            flexibleSpace: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color.fromRGBO(134, 41, 137, 1.0),
+                    Color.fromRGBO(181, 58, 185, 1),
+                    Color.fromRGBO(46, 197, 187, 1.0),
+                  ],
+                  begin: Alignment.centerRight,
+                  end: Alignment.bottomLeft,
                 ),
               ),
             ),
+            titleSpacing: 0,
+            actions: [
+              IconButton(
+                icon: Icon(Icons.logout, color: Colors.white),
+                onPressed: () {
+                  Provider.of<UserProvider>(context, listen: false).logoutUser();
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                },
+              ),
+            ],
           ),
-          actions: [
-            IconButton(
-              color: Colors.white,
-              icon: const Icon(Icons.logout),
-              onPressed: () {
-                Provider.of<UserProvider>(context, listen: false).logoutUser();
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/login',
-                  (route) => false,
-                );
-              },
-            ),
-          ],
-        ),
+        
         body: SafeArea(
           child: group != null
               ? Column(
@@ -148,150 +157,119 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Color.fromRGBO(203, 157, 236, 0.494),
-                            Color.fromRGBO(208, 164, 239, 0.475),
+                          Color.fromRGBO(134, 41, 137, 1.0),
+                          Color.fromRGBO(181, 58, 185, 1),
+                          Color.fromRGBO(46, 197, 187, 1.0),
                           ],
                           begin: Alignment.bottomCenter,
                           end: Alignment.bottomRight,
                         ),
                       ),
-                      child: Stack(
+  
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Positioned(
-                            top: 0,
-                            left: 0,
-                            child: CircleAvatar(
-                              radius: 60,
-                              backgroundImage: group!.groupPictureUrl != null
-                                  ? NetworkImage(group!.groupPictureUrl!) as ImageProvider<Object>?
-                                  : null,
-                            ),
+                          // Profile Picture Section
+                          CircleAvatar(
+                            radius: 50,
+                            backgroundImage: group!.groupPictureUrl != null && group!.groupPictureUrl!.isNotEmpty
+                                ? NetworkImage(group!.groupPictureUrl!) as ImageProvider<Object>
+                                : const AssetImage('assets/images/default_profilePic.png'),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 130.0),
+                          SizedBox(width: 16.0),
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(height: 8.0),
-                                Text.rich(
-                                  TextSpan(
-                                    children: [
-                                      TextSpan(
-                                        text: '${group!.groupName}',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.purple,
-                                        ),
-                                      ),
-                                      WidgetSpan(
-                                        alignment: PlaceholderAlignment.bottom,
-                                        baseline: TextBaseline.alphabetic,
-                                        child: SizedBox(
-                                          width: 3,
-                                          height: 3,
-                                          child: Text(
-                                            '₁',
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.black,
-                                              textBaseline: TextBaseline.alphabetic,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: ' by $creatorName',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
+                                Text(
+                                  '${group?.groupType ?? 'Group Type'}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                                 ),
                                 Text(
-                                  'Created on ${DateFormat('yyyy-MM-dd').format(group!.creationDate)} @ ${DateFormat('HH:mm:ss').format(group!.creationDate)}',
-                                  style: TextStyle(fontSize: 10, color: Colors.pink),
-                                ),
-                                SizedBox(height: 4.0),
-                                AnimatedCrossFade(
-                                  firstChild: Container(
-                                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
-                                    child: Text(
-                                      '${group!.description} ',
-                                      style: TextStyle(fontSize: 12),
-                                      maxLines: 4,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  secondChild: Container(
-                                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
-                                    child: Text(
-                                      '${group!.description} ',
-                                      style: TextStyle(fontSize: 12, color: Colors.purple),
-                                      maxLines: 4,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
-                                  duration: Duration(milliseconds: 300),
-                                ),
-                                SizedBox(height: 4.0),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      isExpanded = !isExpanded;
-                                    });
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Flexible(
-                                        child: Text(
-                                          isExpanded ? 'See less ' : 'See more ',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                      Icon(
-                                        isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                                        color: Colors.blue,
-                                      ),
-                                    ],
+                                  'Created by $creatorName on ${DateFormat('yyyy-MM-dd').format(group?.creationDate ?? DateTime.now())}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white70,
                                   ),
                                 ),
                                 SizedBox(height: 8.0),
-                                FutureBuilder<List<String>>(
-                                  future: _fetchMemberUsernames(group!.members),
-                                  builder: (context, membersSnapshot) {
-                                    if (membersSnapshot.connectionState == ConnectionState.waiting) {
-                                      return Center(child: CircularProgressIndicator());
-                                                                        } else if (membersSnapshot.hasError) {
-                                      return Center(child: Text('Error: ${membersSnapshot.error}'));
-                                    } else {
-                                      List<String> memberUsernames = membersSnapshot.data ?? [];
-                                      return DropdownButton<String>(
-                                        value: null,
-                                        hint: Text(
-                                          'Members: ${memberUsernames.join(', ')}',
-                                          style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 12),
-                                        ),
-                                        items: memberUsernames.map((String username) {
-                                          return DropdownMenuItem<String>(
-                                            value: username,
-                                            child: Text(username),
-                                          );
-                                        }).toList(),
-                                        onChanged: (_) {},
-                                      );
-                                    }
+                                // Description Section
+                                Text(
+                                  'Description:',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _descriptionExpanded = !_descriptionExpanded;
+                                    });
                                   },
+                                  child: AnimatedCrossFade(
+                                    firstChild: Container(
+                                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
+                                      child: Text(
+                                        group?.description ?? 'No description provided.',
+                                        maxLines: 2,
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                    ),
+                                    secondChild: Container(
+                                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
+                                      child: Text(
+                                        group?.description ?? 'No description provided.',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                    ),
+                                    crossFadeState: _descriptionExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                                    duration: Duration(milliseconds: 200),
+                                  ),
+                                ),
+                                SizedBox(height: 8.0),
+                                // Members Dropdown Button
+                                DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    isExpanded: true,
+                                    hint: Text(
+                                      'Members (${group?.members.length ?? 0})',
+                                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color:  Colors.white),
+                                    ),
+                                    items: (group?.members ?? []).map((member) {
+                                      return DropdownMenuItem<String>(
+                                        value: member.id,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  backgroundImage: member.profilePictureUrl != null
+                                                    ? NetworkImage(member.profilePictureUrl!) as ImageProvider
+                                                    : AssetImage('assets/images/default_profilePic.png'),
+                                                ),
+                                                SizedBox(width: 8.0),
+                                                Text(member.name ?? 'No Name', style: TextStyle(color: Colors.black)),
+                                              ],
+                                            ),
+                                            // Remove button
+                                            if (isCreator)
+                                              TextButton(
+                                                onPressed: () {
+                                                  // Handle member removal
+                                                },
+                                                child: Text('Remove', style: TextStyle(color: Colors.red)),
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (selectedMemberId) {
+                                      // Handle member selection
+                                    },
+                                  ),
                                 ),
                               ],
                             ),
@@ -299,6 +277,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                         ],
                       ),
                     ),
+                 
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
@@ -504,44 +483,15 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                   ],
                 )
               : Center(
-                  child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(),
                 ),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.star),
-              label: 'Goals',
+              ),
+              bottomNavigationBar: BottomNavigationBarWidget(
+              currentIndex: _currentIndex,
+              onTap: _onNavItemTapped,
+              themeNotifier: appThemeNotifier,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.track_changes),
-              label: 'Habits',
-            ),
-          ],
-          selectedItemColor: Theme.of(context).colorScheme.primary,
-          unselectedItemColor: Theme.of(context).colorScheme.onSurface,
-        ),
-      ),
-    );
-  }
-
-  /// Fetches usernames for a list of user IDs.
-  Future<List<String>> _fetchMemberUsernames(List<String> memberIds) async {
-    List<String> usernames = [];
-    for (String id in memberIds) {
-      try {
-        String username = await _userDBService.getUserNameById(id);
-        usernames.add(username);
-      } catch (e) {
-        print('Error fetching username for $id: $e');
-      }
+          ),
+      );
     }
-    return usernames;
-  }
 }

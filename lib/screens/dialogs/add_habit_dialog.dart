@@ -3,13 +3,14 @@ import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/data/habit_templates.dart';
+import 'package:habitwise/themes/theme.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 
 class AddHabitDialog extends StatefulWidget {
   final String? groupId;
-  final bool isGroupHabit; // Add groupId for group habits, null for personal habits
+  final bool isGroupHabit;
   final Function? onHabitAdded;
 
   const AddHabitDialog({
@@ -24,14 +25,18 @@ class AddHabitDialog extends StatefulWidget {
 }
 
 class _AddHabitDialogState extends State<AddHabitDialog> {
+  // Controllers for text input fields
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController frequencyController = TextEditingController();
+  
+  // Variables to hold form data
   String? selectedCategory;
   DateTime? _startDate;
   DateTime? _endDate;
   Map<String, dynamic>? selectedTemplate;
 
+  // Function to select a date for start or end date
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -51,6 +56,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
     }
   }
 
+  // Function to apply selected template to the form fields
   void _applyTemplate(Map<String, dynamic> template) {
     if (template.containsKey('title')) {
       titleController.text = template['title'];
@@ -66,12 +72,17 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      backgroundColor: Color.fromRGBO(230, 230, 250, 1.0),
       title: Container(
         padding: EdgeInsets.all(8),
-        color: Color.fromRGBO(126, 35, 191, 0.498),
+        decoration: BoxDecoration(
+          color: primaryColor, // Background color of the dialog title
+          borderRadius: BorderRadius.circular(12), // Adjust the radius as needed
+        ),
         child: Text(
-          'Add New Habit',
-          style: TextStyle(color: Colors.white),
+          'New Habit',
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+          textAlign: TextAlign.center,
         ),
       ),
       content: SingleChildScrollView(
@@ -79,6 +90,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Category Dropdown
             DropdownButtonFormField<String>(
               value: selectedCategory,
               items: categoryIcons.keys.map<DropdownMenuItem<String>>((String category) {
@@ -86,9 +98,9 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                   value: category,
                   child: Row(
                     children: [
-                      Icon(categoryIcons[category], color: Colors.purple),
+                      Icon(categoryIcons[category], color: primaryColor), // Icon color
                       SizedBox(width: 8),
-                      Text(category),
+                      Text(category, style: TextStyle(fontSize: 14)),
                     ],
                   ),
                 );
@@ -106,6 +118,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               decoration: InputDecoration(
                 labelText: 'Category',
                 hintText: 'Select category',
+                border: OutlineInputBorder(), // Consistent border style
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -114,19 +127,36 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 return null;
               },
             ),
+            SizedBox(height: 8), // Spacing between fields
+            // Habit Title TextField
             TextFormField(
               controller: titleController,
-              decoration: InputDecoration(labelText: 'Habit Title'),
+              decoration: InputDecoration(
+                labelText: 'Habit Title',
+                border: OutlineInputBorder(),
+              ),
             ),
+            SizedBox(height: 8),
+            // Habit Description TextField
             TextFormField(
               controller: descriptionController,
-              decoration: InputDecoration(labelText: 'Habit Description'),
+              decoration: InputDecoration(
+                labelText: 'Habit Description',
+                border: OutlineInputBorder(),
+              ),
             ),
+            SizedBox(height: 8),
+            // Frequency TextField
             TextFormField(
               controller: frequencyController,
-              decoration: InputDecoration(labelText: 'Frequency per Day'),
+              decoration: InputDecoration(
+                labelText: 'Frequency per Day',
+                border: OutlineInputBorder(),
+              ),
               keyboardType: TextInputType.number,
             ),
+            SizedBox(height: 8),
+            // Start and End Date Selection
             Row(
               children: [
                 Expanded(
@@ -136,24 +166,28 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                       labelText: _startDate == null
                           ? 'Select Start Date'
                           : DateFormat.yMMMd().format(_startDate!),
+                      border: OutlineInputBorder(),
                     ),
                     onTap: () => _selectDate(context, true),
                   ),
                 ),
                 SizedBox(width: 8),
-                                Expanded(
+                Expanded(
                   child: TextFormField(
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: _endDate == null
                           ? 'Select End Date'
                           : DateFormat.yMMMd().format(_endDate!),
+                      border: OutlineInputBorder(),
                     ),
                     onTap: () => _selectDate(context, false),
                   ),
                 ),
               ],
             ),
+            SizedBox(height: 8),
+            // Template Dropdown (visible only if category is selected)
             if (selectedCategory != null &&
                 selectedCategory!.isNotEmpty &&
                 habitTemplates.containsKey(selectedCategory))
@@ -176,25 +210,28 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 decoration: InputDecoration(
                   labelText: 'Choose Template',
                   hintText: 'Select template',
+                  border: OutlineInputBorder(),
                 ),
               ),
           ],
         ),
       ),
       actions: [
+        // Cancel Button
         TextButton(
           style: TextButton.styleFrom(
-            backgroundColor: Colors.grey,
+            backgroundColor: secondaryColor
           ),
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white), // Text color of cancel button
           ),
         ),
+        // Add Habit Button
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
+            backgroundColor: Color.fromRGBO(134, 41, 137, 1.0), // Background color of add button
           ),
           onPressed: () {
             if (selectedCategory != null &&
@@ -209,17 +246,15 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 endDate: _endDate,
                 frequency: int.tryParse(frequencyController.text) ?? 1,
                 isCompleted: false,
-                category: selectedCategory!, // Non-null assertion here
+                category: selectedCategory!,
                 groupId: widget.isGroupHabit ? widget.groupId : null,
               );
 
-              // Determine where to add the habit based on whether it's a group habit
+              // Add the habit to the appropriate provider
               if (widget.isGroupHabit) {
-                // Add the habit to the group details screen
                 Provider.of<HabitProvider>(context, listen: false)
                     .addHabit(widget.groupId!, newHabit);
               } else {
-                // Add the habit to the individual habit screen using the user's UID
                 final userId =
                     Provider.of<UserProvider>(context, listen: false)
                         .user
@@ -239,7 +274,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
           },
           child: Text(
             'Add Habit',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white), // Text color of add button
           ),
         ),
       ],

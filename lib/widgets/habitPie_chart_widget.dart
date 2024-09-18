@@ -84,17 +84,17 @@ class PieChartWidget extends StatelessWidget {
   Color _getColorForCategory(String? category) {
     switch (category) {
       case 'Health & Fitness':
-        return Color.fromRGBO(126, 35, 191, 0.498);
+        return Color.fromRGBO(19, 188, 249, 0.482);
       case 'Work & Productivity':
-        return Color.fromARGB(255, 222, 144, 236);
+        return Color.fromARGB(255, 209, 17, 155);
       case 'Personal Development':
-        return Color.fromRGBO(148, 24, 237, 0.494);
+        return Colors.yellow;
       case 'Self-Care':
-        return Color.fromARGB(57, 181, 77, 199);
+        return Color.fromARGB(255, 80, 41, 170);
       case 'Finance':
-        return Color.fromARGB(255, 201, 5, 236);
+        return Color.fromARGB(255, 5, 236, 55);
       default:
-        return Color.fromARGB(57, 214, 93, 157);
+        return Colors.pink;
     }
   }
 }

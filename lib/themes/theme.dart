@@ -1,55 +1,136 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class AppThemes {
-  // Define your light theme
-  static final ThemeData lightTheme = ThemeData(
-    hintColor: Color.fromARGB(255, 93, 156, 164),
+const Color primaryColor = Color(0xFF862989); // First color for gradient
+const Color secondaryColor = Color(0xFF2EC5BB); // Second color for gradient
+const Color lightTextColor = Colors.white;
+const Color darkTextColor = Colors.black;
+const Color textInputColor = Color(0xFFD9D9D9); // Color for text input fields
+
+ThemeData lightTheme(BuildContext context) {
+  return ThemeData(
+    brightness: Brightness.light,
+    primaryColor: primaryColor,
+    hintColor: darkTextColor,
     scaffoldBackgroundColor: Colors.white,
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.black),
-      bodyMedium: TextStyle(color: Colors.black54),
-    ),
     appBarTheme: AppBarTheme(
-      backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
-      foregroundColor: Colors.white,
+      backgroundColor: Colors.transparent, // Set to transparent to show gradient
+      iconTheme: IconThemeData(color: lightTextColor),
+      titleTextStyle: GoogleFonts.goldman(
+        textStyle: TextStyle(
+          color: lightTextColor,
+          fontSize: 18, // Title font size
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      elevation: 0,
     ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Color.fromARGB(255, 93, 156, 164),
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: textInputColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: secondaryColor, width: 2.0),
+      ),
+      hintStyle: TextStyle(color: secondaryColor),
     ),
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Color.fromRGBO(126, 35, 191, 1.0),
-      primary: Color.fromRGBO(126, 35, 191, 1.0),
-      onPrimary: Colors.white,
-      background: Colors.white,
-      onBackground: Colors.black,
+    textTheme: GoogleFonts.goldmanTextTheme(
+      Theme.of(context).textTheme.apply(
+        bodyColor: darkTextColor,
+        displayColor: darkTextColor,
+      ).copyWith(
+        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold), // Main title
+        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // Secondary title
+        displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), // Tertiary title
+        bodyLarge: TextStyle(fontSize: 18), // Body text
+        bodyMedium: TextStyle(fontSize: 16), // Smaller body text
+        bodySmall: TextStyle(fontSize: 14), // Captions
+        titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600), // Subtitles
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: lightTextColor,
+        backgroundColor: secondaryColor, // Button text color
+        textStyle: GoogleFonts.goldman(
+          fontSize: 18,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+      ),
     ),
   );
+}
 
-  // Define your dark theme
-  static final ThemeData darkTheme = ThemeData(
-    hintColor: Color.fromARGB(233, 93, 59, 99),
-    scaffoldBackgroundColor: Color.fromARGB(255, 18, 18, 18),
-    textTheme: TextTheme(
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white70),
-    ),
+ThemeData darkTheme(BuildContext context) {
+  return ThemeData(
+    brightness: Brightness.dark,
+    primaryColor: primaryColor,
+    hintColor: secondaryColor,
+    scaffoldBackgroundColor: Colors.black,
     appBarTheme: AppBarTheme(
-      backgroundColor: Color.fromARGB(255, 93, 156, 164),
-      foregroundColor: Colors.white,
+      backgroundColor: Colors.transparent, // Set to transparent to show gradient
+      iconTheme: IconThemeData(color: lightTextColor),
+      titleTextStyle: GoogleFonts.goldman(
+        textStyle: TextStyle(
+          color: lightTextColor,
+          fontSize: 18, // Title font size
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      elevation: 0,
     ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Color.fromARGB(255, 93, 156, 164),
-      selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.white70,
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: textInputColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: secondaryColor, width: 2.0),
+      ),
+      hintStyle: TextStyle(color: secondaryColor),
     ),
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Color.fromRGBO(126, 35, 191, 1.0),
-      primary: Color.fromRGBO(126, 35, 191, 1.0),
-      onPrimary: Colors.white,
-      background: Color.fromARGB(255, 18, 18, 18),
-      onBackground: Colors.white,
+    textTheme: GoogleFonts.goldmanTextTheme(
+      Theme.of(context).textTheme.apply(
+        bodyColor: lightTextColor,
+        displayColor: lightTextColor,
+      ).copyWith(
+        displayLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // Main title
+        displayMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.bold), // Secondary title
+        displaySmall: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Tertiary title
+        bodyLarge: TextStyle(fontSize: 16), // Body text
+        bodyMedium: TextStyle(fontSize: 14), // Smaller body text
+        bodySmall: TextStyle(fontSize: 12), // Captions
+        titleMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600), // Subtitles
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: lightTextColor,
+        backgroundColor: secondaryColor, // Button text color
+        textStyle: GoogleFonts.goldman(
+          fontSize: 16,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+      ),
     ),
   );
 }

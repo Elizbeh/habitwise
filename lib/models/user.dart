@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:habitwise/models/member.dart';
 
 class HabitWiseUser {
   final String uid;
@@ -11,6 +12,7 @@ class HabitWiseUser {
   String? profilePictureUrl;
   final bool canCreateGroup;
   final bool canJoinGroups;
+  bool emailVerified; 
 
   // Constructor to initialize the HabitWiseUser instance
   HabitWiseUser({
@@ -24,6 +26,7 @@ class HabitWiseUser {
     this.profilePictureUrl,
     required this.canCreateGroup,
     required this.canJoinGroups,
+    required this.emailVerified,
   });
 
   // Factory constructor to create a HabitWiseUser instance from a map
@@ -39,6 +42,7 @@ class HabitWiseUser {
       profilePictureUrl: data['profilePictureUrl'],
       canCreateGroup: data['canCreateGroup'] ?? false,
       canJoinGroups: data['canJoinGroup'] ?? false,
+      emailVerified: data['emailVerified'] ?? false,
     );
   }
 
@@ -55,6 +59,7 @@ class HabitWiseUser {
       'profilePictureUrl': profilePictureUrl,
       'canCreateGroup': canCreateGroup,
       'canJoinGroup': canJoinGroups,
+      'emailVerified': emailVerified,
     };
   }
 
@@ -70,6 +75,7 @@ class HabitWiseUser {
     String? profilePictureUrl,
     bool? canCreateGroup,
     bool? canJoinGroups,
+    bool? emailVerified,
   }) {
     return HabitWiseUser(
       uid: uid ?? this.uid,
@@ -82,6 +88,17 @@ class HabitWiseUser {
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       canCreateGroup: canCreateGroup ?? this.canCreateGroup,
       canJoinGroups: canJoinGroups ?? this.canJoinGroups,
+      emailVerified: emailVerified ?? this.emailVerified,
+    );
+  }
+
+  // Convert HabitWiseUser to Member
+  Member toMember() {
+    return Member(
+      id: uid,
+      name: username,
+      email: email,
+      profilePictureUrl: profilePictureUrl,
     );
   }
 }

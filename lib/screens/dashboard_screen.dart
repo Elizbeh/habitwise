@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/group.dart';
 import 'package:habitwise/models/habit.dart';
@@ -7,23 +8,24 @@ import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/goal_provider.dart';
+import 'package:habitwise/providers/quote_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/goals_screen.dart';
 import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:habitwise/screens/group/create_group_screen.dart';
+import 'package:habitwise/widgets/geometricBorder.dart';
 import 'package:provider/provider.dart';
 import 'package:confetti/confetti.dart';
 import '../widgets/goalPie_chart_widget.dart';
 import '../widgets/habitPie_chart_widget.dart';
 import '../widgets/bottom_navigation_bar.dart';
-import '../main.dart'; // Import the main.dart to access the global appNotifier
+import '../main.dart';
 
-// Define the gradient colors as constants
 const List<Color> appBarGradientColors = [
-  Color.fromRGBO(126, 35, 191, 0.498),
-  Color.fromARGB(255, 93, 156, 164),
-  Color.fromARGB(233, 93, 59, 99),
+    Color.fromRGBO(134, 41, 137, 1.0),
+    Color.fromRGBO(181, 58, 185, 1),
+    Color.fromRGBO(46, 197, 187, 1.0),
 ];
 
 class DashboardScreen extends StatefulWidget {
@@ -37,13 +39,16 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  bool _isFirstLogin = true;
   late ConfettiController _confettiController;
 
   @override
   void initState() {
     super.initState();
+     _checkFirstLogin();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
     _confettiController.play();
+    Provider.of<QuoteProvider>(context, listen: false).fetchQuote();
   }
 
   @override
@@ -51,24 +56,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _confettiController.dispose();
     super.dispose();
   }
+  Future<void> _checkFirstLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? isFirstLogin = prefs.getBool('isFirstLogin_${widget.user.uid}');
+    
+    if (isFirstLogin == null || isFirstLogin) {
+      setState(() {
+        _isFirstLogin = true;
+      });
+      // Set the flag to false after the first login
+      await prefs.setBool('isFirstLogin_${widget.user.uid}', false);
+    } else {
+      setState(() {
+        _isFirstLogin = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false,
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         toolbarHeight: 80,
-        title: Text(
-          'Dashboard',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white, 
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Image.asset('assets/images/logo.png'),
+              ),
+            ),
+            const SizedBox(width: 8), // Space between logo and title
+            Expanded(
+              child: Text(
+                'Dashboard',
+                style: Theme.of(context).appBarTheme.titleTextStyle,
+              ),
+            ),
+          ],
         ),
-        centerTitle: true,
+        centerTitle: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
@@ -77,8 +114,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             gradient: LinearGradient(
               colors: appBarGradientColors,
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
           child: ClipRRect(
@@ -100,17 +137,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             icon: const Icon(Icons.logout),
             onPressed: () {
               Provider.of<UserProvider>(context, listen: false).logoutUser();
-              Navigator.pushNamedAndRemoveUntil(
-                  context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             },
           ),
         ],
       ),
+      
       body: Stack(
         children: [
           SafeArea(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: 2.0, vertical: 16.0),
               child: Consumer2<HabitProvider, GoalProvider>(
                 builder: (context, habitProvider, goalProvider, child) {
                   final List<Habit> habits = habitProvider.habits;
@@ -123,11 +160,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Stack(
                           children: [
                             Text(
-                              'Welcome, ${widget.user.username}!',
+                              _isFirstLogin
+                                ? 'Welcome, ${widget.user.username}!'
+                                : 'Good to see you again, ${widget.user.username}!',
                               style: TextStyle(
-                                fontSize: 28,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                             Positioned(
                               top: 0,
@@ -139,25 +179,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 numberOfParticles: 10,
                                 gravity: 0.1,
                                 colors: [
-                                  const Color.fromRGBO(126, 35, 191, 0.498),
-                                  Color.fromARGB(255, 93, 156, 164),
+                                Color.fromRGBO(134, 41, 137, 1.0),
+                                Color.fromRGBO(181, 58, 185, 1),
+                                Color.fromRGBO(46, 197, 187, 1.0),
                                 ],
                               ),
                             ),
                           ],
                         ),
                         SizedBox(height: 20.0),
+                        _buildQuoteSection(),
+                        SizedBox(height: 20.0),
                         _buildGroupSection(context),
                         SizedBox(height: 20.0),
                         if (habits.isNotEmpty || goals.isNotEmpty) ...[
-                          _buildGoalsOverview(goals),
-                          SizedBox(height: 20.0),
-                          _buildHabitsOverview(habits),
+                           _buildOverview(habits, goals),
                         ] else ...[
                           PlaceholderWidget(),
                         ],
                       ],
                     ),
+                  
                   );
                 },
               ),
@@ -184,113 +226,255 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
           }
         },
-          themeNotifier: appThemeNotifier, // Use the global appNotifier
+          themeNotifier: appThemeNotifier,
       ),
+    
     );
   }
 
   Widget _buildGroupSection(BuildContext context) {
-    return Consumer<GroupProvider>(
-      builder: (context, groupProvider, child) {
-        List<HabitWiseGroup> joinedGroups = groupProvider.groups;
+  return Consumer<GroupProvider>(
+    builder: (context, groupProvider, child) {
+      List<HabitWiseGroup> joinedGroups = groupProvider.groups;
 
-        return Container(
+      return Container(
+        padding: EdgeInsets.all(10.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Groups',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 10),
+            if (joinedGroups.isNotEmpty)
+              SizedBox(
+                height: 250.0,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: joinedGroups.length,
+                  separatorBuilder: (context, index) => SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    HabitWiseGroup group = joinedGroups[index];
+                    return _buildGroupCard(context, group, groupProvider);
+                  },
+                ),
+              )
+            else
+              Text(
+                'No joined groups',
+                style: TextStyle(color: Color.fromRGBO(46, 197, 187, 1.0)),
+              ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => CreateGroupScreen()),
+                );
+              },
+              child: Text('Create a group'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromRGBO(46, 197, 187, 1.0),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+  Widget _buildGroupCard(
+    BuildContext context, HabitWiseGroup group, GroupProvider groupProvider) {
+  return Stack(
+    children: [
+      InkWell(
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            '/groupDetails',
+            arguments: {
+              'groupId': group.groupId,
+              'user': Provider.of<UserProvider>(context, listen: false).user, // Directly get user
+            },
+          );
+        },
+        child: Container(
+          width: 250.0,
           padding: EdgeInsets.all(10.0),
           decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10.0),
             border: Border.all(
-              color: Color.fromARGB(255, 93, 156, 164),
-              width: 6.0,
+              color: Color.fromRGBO(46, 197, 187, 1.0), // Border color
+              width: 2.0, // Border width
             ),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20.0),
-              topRight: Radius.circular(20.0),
-              bottomRight: Radius.circular(20.0),
-            )
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 6,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                'Groups',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 93, 156, 164)),
-              ),
-              SizedBox(height: 10),
-              if (joinedGroups.isNotEmpty)
-                SizedBox(
-                  height: 200.0,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: joinedGroups.length,
-                    separatorBuilder: (context, index) => SizedBox(width: 10),
-                    itemBuilder: (context, index) {
-                      HabitWiseGroup group = joinedGroups[index];
-                      return Stack(
-                        children: [
-                          Card(
-                            margin: EdgeInsets.symmetric(horizontal: 8.0),
-                            child: InkWell(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/groupDetails',
-                                  arguments: {'groupId': group.groupId},
-                                );
-                              },
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.group_rounded),
-                                  Text(group.groupName),
-                                  SizedBox(height: 20.0),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        '/groupDetails',
-                                        arguments: group.groupId,
-                                      );
-                                    },
-                                    child: Text('View Details'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 0,
-                            right: 0,
-                            child: IconButton(
-                              icon: Icon(Icons.close, color: const Color.fromARGB(255, 236, 132, 124)),
-                              onPressed: () {
-                                // Check if the current user is the group creator
-                                if (group.groupCreator == widget.user.uid) {
-                                  // If user is the creator, delete the group
-                                  groupProvider.deleteGroup(group.groupId);
-                                } else {
-                                  // If user is not the creator, remove the group for the user
-                                  groupProvider.removeGroup(group.groupId);
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                )
-              else
-                Text(
-                  'No joined groups',
-                  style: TextStyle(color: Color.fromARGB(255, 93, 156, 164)),
+                group.groupName,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-              SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (context) => CreateGroupScreen()),
-                  );
-                },
-                child: Text('Create a group'),
+              ),
+              SizedBox(height: 10.0),
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: group.groupPictureUrl != null
+                    ? NetworkImage(group.groupPictureUrl!)
+                    : AssetImage('assets/images/default_profilePic.png')
+                        as ImageProvider,
+              ),
+              SizedBox(height: 10.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.group_rounded,
+                      color: Colors.grey),
+                  SizedBox(width: 5.0),
+                  Text(
+                    'Members: ${group.members.length}',
+                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.0),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                      '/groupDetails',
+                      arguments: group,
+                    );
+                  },
+                  child: Text('View Details'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromRGBO(46, 197, 187, 1.0),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      Positioned(
+        top: 0,
+        right: 0,
+        child: IconButton(
+          icon: Icon(Icons.close, color: Color.fromARGB(255, 236, 132, 124)),
+          onPressed: () {
+            final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
+            if (group.groupCreator == userId) {
+              // If user is the creator, delete the group
+              groupProvider.deleteGroup(group.groupId);
+            } else {
+              // If user is not the creator, leave the group
+              groupProvider.leaveGroup(group.groupId, userId!);
+            }
+          },
+        ),
+      ),
+    ],
+  );
+}
+
+  Widget _buildOverview(List<Habit> habits, List<Goal> goals) {
+  return Container(
+    height: 400,
+    padding: EdgeInsets.symmetric(horizontal: 16.0),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          // Goals Overview
+          Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            margin: EdgeInsets.only(right: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Goals Overview',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(height: 26.0),
+                Container(
+                  height: 250, // Set a fixed height
+                  child: GoalPieChartWidget(goals: goals),
+                ),
+              ],
+            ),
+          ),
+          // Habits Overview
+          Container(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Habits Overview',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(height: 20.0),
+                Container(
+                  height: 250, // Set a fixed height
+                  child: PieChartWidget(habits: habits),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+}
+
+Widget _buildQuoteSection() {
+    return Consumer<QuoteProvider>(
+      builder: (context, quoteProvider, child) {
+        return GeometricBorderContainer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Quote of the Day',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey[800],
+                ),
+              ),
+              SizedBox(height: 10.0),
+              Text(
+                quoteProvider.quote,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.blueGrey[700],
+                ),
               ),
             ],
           ),
@@ -299,46 +483,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildGoalsOverview(List<Goal> goals) {
-    return Container(
-      height: 400,
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          Text(
-            'Your Goals Overview',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          Expanded(child: GoalPieChartWidget(goals: goals)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHabitsOverview(List<Habit> habits) {
-    return Container(
-      height: 400,
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          Text(
-            'Your Habits Overview',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          Expanded(child: PieChartWidget(habits: habits)),
-        ],
-      ),
-    );
-  }
-}
 
 class PlaceholderWidget extends StatelessWidget {
   @override
@@ -353,16 +497,17 @@ class PlaceholderWidget extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(10.0),
           child: Container(
-            height: 300,
-            width: 300,
+            height: 200,
+            width: double.infinity, 
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(40.0),
               image: DecorationImage(
                 image: AssetImage('assets/images/backgroundImg.png'),
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
               ),
             ),
           ),
+        
         ),
         SizedBox(height: 20.0),
         Text(

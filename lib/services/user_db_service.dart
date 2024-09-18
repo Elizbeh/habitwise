@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:habitwise/models/user.dart';
@@ -16,54 +15,36 @@ class UserDBService {
     try {
       await _firestore.collection('users').doc(user.uid).set(user.toMap());
     } catch (e) {
-      logger.e('Error Creating user: $e');
-      throw e;
+      logger.e('Error creating user: $e');
+      throw Exception('Failed to create user');
     }
   }
 
-  /*static Future<String> uploadImageToStorage(File imageFile) async {
+  Future<String> uploadImageToStorage(File imageFile) async {
     try {
       var uuid = Uuid();
       String fileName = '${uuid.v4()}_${path.basename(imageFile.path)}';
-
       Reference ref = FirebaseStorage.instance.ref().child('images/$fileName');
       UploadTask uploadTask = ref.putFile(imageFile);
-
       TaskSnapshot storageTaskSnapshot = await uploadTask;
-      String downloadUrl = await storageTaskSnapshot.ref.getDownloadURL();
-
-      return downloadUrl;
+      return await storageTaskSnapshot.ref.getDownloadURL();
     } catch (e) {
-      print('Error uploading image to Firebase Storage: $e');
-      throw e;
+      logger.e('Error uploading image to Firebase Storage: $e');
+      throw Exception('Failed to upload image');
     }
-  }*/
-  static Future<String> uploadImageToStorage(File imageFile) async {
-  try {
-    var uuid = Uuid();
-    String fileName = '${uuid.v4()}_${path.basename(imageFile.path)}';
-    Reference ref = FirebaseStorage.instance.ref().child('images/$fileName');
-    UploadTask uploadTask = ref.putFile(imageFile);
-    TaskSnapshot storageTaskSnapshot = await uploadTask;
-    return await storageTaskSnapshot.ref.getDownloadURL();
-  } catch (e) {
-    logger.e('Error uploading image to Firebase Storage: $e');
-    throw e;
   }
-}
-
 
   Future<HabitWiseUser?> getUserById(String userId) async {
     try {
       DocumentSnapshot snapshot = await _firestore.collection('users').doc(userId).get();
       if (snapshot.exists) {
-        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-        return HabitWiseUser.fromMap(data);
+        Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+        return data != null ? HabitWiseUser.fromMap(data) : null;
       }
       return null;
     } catch (e) {
-      logger.e('Error getting user: $e');
-      throw e;
+      logger.e('Error getting user by ID: $e');
+      throw Exception('Failed to get user by ID');
     }
   }
 
@@ -72,20 +53,44 @@ class UserDBService {
       await _firestore.collection('users').doc(user.uid).update(user.toMap());
     } catch (e) {
       logger.e('Error updating user profile: $e');
-      throw e;
+      throw Exception('Failed to update user profile');
     }
   }
-  Future<String> getUserNameById(String userId) async {
+
+   // Fetch profile picture URL by user ID
+  Future<String> getUserProfilePictureById(String userId) async {
     try {
       DocumentSnapshot snapshot = await _firestore.collection('users').doc(userId).get();
       if (snapshot.exists) {
-        Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-        return data['username'] ?? 'Unknown';
+        Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+        return data?['profilePictureUrl'] ?? ''; // Return empty string if not found
       }
-      return 'Unknown';
+      return ''; // Return empty string if document does not exist
     } catch (e) {
-      logger.e('Error getting username: $e');
-      throw e;
+      logger.e('Error getting profile picture URL by ID: $e');
+      throw Exception('Failed to get profile picture URL');
+    }
+  }
+
+  Future<Map<String, dynamic>?> getUserDetailsById(String userId) async {
+    try {
+      DocumentSnapshot snapshot = await _firestore.collection('users').doc(userId).get();
+      return snapshot.exists ? snapshot.data() as Map<String, dynamic>? : null;
+    } catch (e) {
+      logger.e('Error getting user details by ID: $e');
+      throw Exception('Failed to get user details');
+    }
+  }
+
+  // Update email verification status in Firestore
+  Future<void> updateEmailVerificationStatus(String userId, bool isVerified) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'emailVerified': isVerified,
+      });
+    } catch (e) {
+      logger.e('Error updating email verification status: $e');
+      throw Exception('Failed to update email verification status');
     }
   }
 }

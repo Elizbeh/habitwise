@@ -8,12 +8,20 @@ import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
 import 'package:habitwise/screens/goals_screen.dart';
 import 'package:habitwise/screens/profile_screen.dart';
+import 'package:habitwise/widgets/custom-calendar.dart';
 import 'package:habitwise/widgets/habit_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
+
+// Define the gradient colors as constants
+const List<Color> appBarGradientColors = [
+    Color.fromRGBO(134, 41, 137, 1.0),
+    Color.fromRGBO(181, 58, 185, 1),
+    Color.fromRGBO(46, 197, 187, 1.0),
+];
 
 class HabitScreen extends StatefulWidget {
   final HabitWiseUser user;
@@ -74,6 +82,7 @@ class _HabitScreenState extends State<HabitScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: appThemeNotifier,
       builder: (context, themeMode, child) {
@@ -81,18 +90,23 @@ class _HabitScreenState extends State<HabitScreen> {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.black),
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white), // Back arrow icon
+              onPressed: () {
+                Navigator.of(context).pop(); // Navigate back
+              },
+            ),
+            iconTheme: IconThemeData(color: Colors.white), // White icons
             elevation: 0,
             toolbarHeight: 80,
-            title: Text(
-              'Habits',
-              style: TextStyle(
-                color: isDarkMode ? Colors.white : Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+            title: Align(
+              alignment: Alignment.centerLeft, // Align the title to the left
+              child: Text(
+                'Habits',
+                style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
               ),
             ),
-            centerTitle: true,
+            centerTitle: false, // Disable center title
             flexibleSpace: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
@@ -100,13 +114,9 @@ class _HabitScreenState extends State<HabitScreen> {
                   bottomRight: Radius.circular(30),
                 ),
                 gradient: LinearGradient(
-                  colors: [
-                    const Color.fromRGBO(126, 35, 191, 0.498),
-                    const Color.fromARGB(255, 93, 156, 164),
-                    const Color.fromARGB(233, 93, 59, 99),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+                  colors: appBarGradientColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
               ),
               child: ClipRRect(
@@ -123,7 +133,38 @@ class _HabitScreenState extends State<HabitScreen> {
               ),
             ),
             actions: [
+              DropdownButton<String>(
+                value: selectedCategory,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedCategory = newValue ?? 'All';
+                  });
+                },
+                underline: SizedBox(), // Remove underline
+                icon: Icon(Icons.arrow_drop_down, color: Colors.white), // White dropdown icon
+                style: TextStyle(color: Colors.white), // White text in dropdown
+                dropdownColor: theme.scaffoldBackgroundColor, // Dropdown uses the theme background
+                items: <String>[
+                  'All',
+                  'Health & Fitness',
+                  'Work & Productivity',
+                  'Personal Development',
+                  'Self-Care',
+                  'Finance',
+                  'Education',
+                  'Relationships',
+                  'Hobbies'
+                ].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                isDense: true, // Make dropdown compact
+              ),
+              const SizedBox(width: 20), // Space between DropdownButton and the right-side button
               PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert, color: Colors.white), // 3-dotted icon in white
                 onSelected: (String result) {
                   setState(() {
                     sortingCriteria = result;
@@ -144,64 +185,13 @@ class _HabitScreenState extends State<HabitScreen> {
                   ),
                 ],
               ),
-              const SizedBox(width: 10),
-              DropdownButton<String>(
-                value: selectedCategory,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedCategory = newValue ?? 'All';
-                  });
-                },
-                items: <String>[
-                  'All',
-                  'Health & Fitness',
-                  'Work & Productivity',
-                  'Personal Development',
-                  'Self-Care',
-                  'Finance',
-                  'Education',
-                  'Relationships',
-                  'Hobbies'
-                ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(
-                      value,
-                      style: TextStyle(color: Colors.white,)
-                    ),
-                  );
-                }).toList(),
-              ),
-              IconButton(
-                color: isDarkMode ? Colors.white : Colors.black,
-                icon: const Icon(Icons.logout),
-                onPressed: () {
-                  Provider.of<UserProvider>(context, listen: false).logoutUser();
-                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-                },
-              ),
             ],
-          ),
+          ),        
           body: SafeArea(
             child: Column(
               children: [
-                TableCalendar(
-                  firstDay: DateTime.utc(2024, 1, 1),
-                  lastDay: DateTime.utc(2035, 1, 1),
-                  focusedDay: _selectedDay,
-                  calendarFormat: _calendarFormat,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  onFormatChanged: (format) {
-                    setState(() {
-                      _calendarFormat = format;
-                    });
-                  },
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                    });
-                  },
-                ),
+                CustomCalendar(),
+                Divider(height: 10.0, thickness: 2.0),
                 Expanded(
                   child: Consumer<HabitProvider>(
                     builder: (context, habitProvider, child) {
@@ -239,7 +229,8 @@ class _HabitScreenState extends State<HabitScreen> {
                 builder: (context) => const AddHabitDialog(isGroupHabit: false),
               );
             },
-            child: const Icon(Icons.add),
+            child: const Icon(Icons.add, color: Colors.white,),
+            backgroundColor: theme.primaryColor,
           ),
           bottomNavigationBar: BottomNavigationBarWidget(
             currentIndex: _currentIndex,
@@ -269,6 +260,7 @@ class _HabitScreenState extends State<HabitScreen> {
             },
             themeNotifier: appThemeNotifier, // Pass the themeNotifier to the BottomNavigationBarWidget
           ),
+        
         );
       },
     );

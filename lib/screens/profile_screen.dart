@@ -13,6 +13,12 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 
+const List<Color> appBarGradientColors = [
+    Color.fromRGBO(134, 41, 137, 1.0),
+    Color.fromRGBO(181, 58, 185, 1),
+    Color.fromRGBO(46, 197, 187, 1.0),
+];
+
 
 class ProfilePage extends StatefulWidget {
   final HabitWiseUser user;
@@ -166,36 +172,47 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         toolbarHeight: 80,
-        title: const Text(
-          'Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
+        title: Row(
+          children: [
+            Container(
+              width: 40, // Adjust width as needed
+              height: 40, // Adjust height as needed
+              decoration: BoxDecoration(
+                color: Colors.white, // Background color for logo
+                borderRadius: BorderRadius.circular(8), // Optional: rounded corners
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(4.0), // Optional: padding around the logo
+                child: Image.asset('assets/images/logo.png'),
+              ),
+            ),
+            const SizedBox(width: 8), // Space between logo and title
+            Expanded(
+              child: Text(
+                'Profile',
+                style: Theme.of(context).appBarTheme.titleTextStyle,
+              ),
+            ),
+          ],
         ),
-        centerTitle: true,
+        centerTitle: false,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(30),
               bottomRight: Radius.circular(30),
             ),
             gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(255, 93, 156, 164),
-                Color.fromARGB(233, 93, 59, 99),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
+              colors: appBarGradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
           child: ClipRRect(
-            borderRadius: const BorderRadius.only(
+            borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(30),
               bottomRight: Radius.circular(30),
             ),
@@ -213,12 +230,11 @@ class _ProfilePageState extends State<ProfilePage> {
             icon: const Icon(Icons.logout),
             onPressed: () {
               Provider.of<UserProvider>(context, listen: false).logoutUser();
-              Navigator.pushNamedAndRemoveUntil(
-                context, '/login', (route) => false);
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
             },
           ),
         ],
-      ),
+      ), 
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -251,7 +267,8 @@ class _ProfilePageState extends State<ProfilePage> {
               Navigator.of(context).pushReplacementNamed('/habit');
             }
           }
-        }, themeNotifier: appThemeNotifier,
+        }, 
+        themeNotifier: appThemeNotifier,
       ),
     );
   }
@@ -267,7 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
             radius: 60,
             backgroundImage: profilePictureUrl.isNotEmpty
                 ? CachedNetworkImageProvider(profilePictureUrl)
-                : AssetImage('assets/default_avatar1.png') as ImageProvider,
+                : const AssetImage('assets/images/default_profilePic.png') as ImageProvider,
           ),
           const SizedBox(width: 10),
           Column(

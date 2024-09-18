@@ -84,7 +84,7 @@ class GoalPieChartWidget extends StatelessWidget {
   Color _getColorForCategory(String? category) {
     switch (category) {
       case 'Health & Fitness':
-        return Color.fromRGBO(126, 35, 191, 0.498);
+        return Color.fromRGBO(134, 41, 137, 1.0);
       case 'Work & Productivity':
         return Colors.green;
       case 'Personal Development':

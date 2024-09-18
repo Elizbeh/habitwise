@@ -2,7 +2,7 @@
     <application
         android:label="habitwise"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/logo"
         android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"

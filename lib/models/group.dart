@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:habitwise/models/member.dart';
 
 class HabitWiseGroup {
   final String groupId;
   final String groupName;
-  final List<String> members;
+  List<Member> members;
   final List<String> goals;
   final List<String> habits;
   final String groupType;
@@ -26,34 +27,36 @@ class HabitWiseGroup {
   });
 
   factory HabitWiseGroup.fromMap(Map<String, dynamic> map) {
-    return HabitWiseGroup(
-      groupId: map['groupId'] as String,
-      groupName: map['groupName'] as String,
-      members: List<String>.from(map['members'] ?? []),
-      goals: List<String>.from(map['goals'] ?? []),
-      habits: List<String>.from(map['habits'] ?? []),
-      groupType: map['groupType'] as String,
-      groupPictureUrl: map['groupPictureUrl'] as String?,
-      groupCreator: map['groupCreator'] as String,
-      creationDate: (map['creationDate'] as Timestamp).toDate(),
-      description: map['description'] as String,
-    );
-  }
+  return HabitWiseGroup(
+    groupId: map['groupId'] as String,
+    groupName: map['groupName'] as String,
+    members: List<Member>.from(map['members']?.map((m) => Member.fromMap(m)) ?? []),
+    goals: List<String>.from(map['goals'] ?? []),
+    habits: List<String>.from(map['habits'] ?? []),
+    groupType: map['groupType'] as String,
+    groupPictureUrl: map['groupPictureUrl'] as String?,
+    groupCreator: map['groupCreator'] as String,
+    creationDate: (map['creationDate'] as Timestamp).toDate(),
+    description: map['description'] as String,
+  );
+}
+
 
   Map<String, dynamic> toMap() {
-    return {
-      'groupId': groupId,
-      'groupName': groupName,
-      'members': members,
-      'goals': goals,
-      'habits': habits,
-      'groupType': groupType,
-      'groupPictureUrl': groupPictureUrl,
-      'groupCreator': groupCreator,
-      'creationDate': creationDate,
-      'description': description,
-    };
-  }
+  return {
+    'groupId': groupId,
+    'groupName': groupName,
+    'members': members.map((member) => member.toMap()).toList(), // Convert each Member to a map
+    'goals': goals,
+    'habits': habits,
+    'groupType': groupType,
+    'groupPictureUrl': groupPictureUrl,
+    'groupCreator': groupCreator,
+    'creationDate': creationDate,
+    'description': description,
+  };
+}
+
 
   HabitWiseGroup copyWith({
     String? groupId,
@@ -61,7 +64,7 @@ class HabitWiseGroup {
     String? groupCreator,
     DateTime? creationDate,
     String? description,
-    List<String>? members,
+    List<Member>? members,
     List<String>? goals,
     List<String>? habits,
     String? groupType,

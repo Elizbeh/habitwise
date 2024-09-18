@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:habitwise/methods/auth_methods.dart';
+import 'package:habitwise/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
   // Instances of controllers and callbacks required for sign-up
-  final AuthMethod authMethod = AuthMethod();
-  final Future<Null> Function(String username) onSignupSuccess;
+  final Future<void> Function(String username) onSignupSuccess;
   final TextEditingController emailController;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
@@ -20,78 +20,75 @@ class SignUpScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _SignUpScreenState createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderStateMixin {
-  // State variables for password visibility, loading state, and error messages
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
-  String _errorMessage = '';
+  String _message = ''; // Combined message for success and error
+  Color _messageColor = Colors.red; // Default message color
 
-  // Animation controller and color animation for the sign-up header
   late AnimationController _animationController;
   late Animation<Color?> _colorAnimation;
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize the animation controller with a 3-second duration, repeating indefinitely
     _animationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
 
-    // Define a color animation that transitions between two colors
     _colorAnimation = ColorTween(
-      begin: const Color.fromARGB(255, 93, 156, 164),
-      end: const Color.fromRGBO(126, 35, 191, 0.498),
+      begin: Color.fromRGBO(46, 197, 187, 1.0),
+      end: Color.fromRGBO(134, 41, 137, 1.0),
     ).animate(_animationController);
   }
 
   @override
   void dispose() {
-    // Dispose of the animation controller to free resources
     _animationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+     final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
       body: Stack(
         children: [
-          // Main content of the screen wrapped in a SingleChildScrollView
           SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 40.0),
+                const SizedBox(height: 60.0),
                 const Text(
                   'HabitWise',
                   style: TextStyle(
-                    fontFamily: 'Billabong',
-                    color: Color.fromRGBO(126, 35, 191, 0.498),
-                    fontSize: 50,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromRGBO(134, 41, 137, 1.0),
+                    fontSize: 32,
                   ),
                 ),
                 Image.asset(
                   'assets/images/logo.png',
-                  width: 80,
-                  height: 80,
+                  width: 50,
+                  height: 50,
                 ),
                 const SizedBox(height: 8),
+                
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 93, 156, 164),
+                        color: Colors.black,
                       ),
                       children: [
                         WidgetSpan(
@@ -102,7 +99,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               return Text(
                                 'Sign up',
                                 style: TextStyle(
-                                  fontSize: 30,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: _colorAnimation.value,
                                 ),
@@ -118,7 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   child: Column(
                     children: [
                       // Email input field
@@ -127,47 +124,41 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Email',
-                          hintStyle: const TextStyle(
-                            fontSize: 22,
-                          ),
+                          hintStyle: const TextStyle(fontSize: 16),
                           filled: true,
-                          fillColor: Colors.grey[200],
+                          fillColor: Colors.grey[300],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
                       // Username input field
                       TextField(
                         controller: widget.usernameController,
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           hintText: 'Username',
-                          hintStyle: const TextStyle(
-                            fontSize: 24,
-                          ),
+                          hintStyle: const TextStyle(fontSize: 16),
                           filled: true,
-                          fillColor: Colors.grey[200],
+                          fillColor: Colors.grey[300],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 18),
-                      // Password input field with visibility toggle
+                      const SizedBox(height: 16),
+                      // Password input field
                       TextField(
                         controller: widget.passwordController,
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Password',
-                          hintStyle: const TextStyle(
-                            fontSize: 24,
-                          ),
+                          hintStyle: const TextStyle(fontSize: 16),
                           filled: true,
-                          fillColor: Colors.grey[200],
+                          fillColor: Colors.grey[300],
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10.0),
                             borderSide: BorderSide.none,
@@ -184,16 +175,14 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      const SizedBox(height: 18),
-                      // Confirm Password input field with visibility toggle
+                      const SizedBox(height: 16),
+                      // Confirm Password input field
                       TextField(
                         controller: widget.passwordConfirmController,
                         obscureText: !_isConfirmPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Confirm Password',
-                          hintStyle: const TextStyle(
-                            fontSize: 24,
-                          ),
+                          hintStyle: const TextStyle(fontSize: 16),
                           filled: true,
                           fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
@@ -212,8 +201,8 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      const SizedBox(height: 28),
-                      // Sign-Up button
+                      const SizedBox(height: 48),
+                      // Sign Up Button
                       Container(
                         width: double.infinity,
                         child: ElevatedButton(
@@ -224,91 +213,57 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             String password = widget.passwordController.text.trim();
                             String confirmPassword = widget.passwordConfirmController.text.trim();
 
-                            // Input validation
-                            if (email.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please enter your email'),
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (username.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please enter your username'),
-                                ),
-                              );
-                              return;
-                            }
-
-                            if (password.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Please enter your password'),
-                                ),
-                              );
+                            // Basic validation checks
+                            if (email.isEmpty || username.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+                              setState(() {
+                                _message = 'Please fill in all fields correctly';
+                                _messageColor = Colors.red;
+                              });
                               return;
                             }
 
                             if (confirmPassword != password) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Passwords do not match'),
-                                ),
-                              );
+                              setState(() {
+                                _message = 'Passwords do not match';
+                                _messageColor = Colors.red;
+                              });
                               return;
                             }
 
-                            // Set loading state
                             setState(() {
                               _isLoading = true;
-                              _errorMessage = '';
+                              _message = '';
                             });
 
                             // Attempt to sign up the user
-                            String result = '';
-                            try {
-                              AuthResult authResult = await widget.authMethod.signUpUser(
-                                email: email,
-                                username: username,
-                                password: password,
-                                confirmPassword: confirmPassword,
-                              );
-                              if (authResult == AuthResult.success) {
-                                result = 'success';
-                              } else {
-                                result = 'An error occurred during sign up';
-                              }
-                            } catch (e) {
-                              result = 'An error occurred during sign up';
-                            }
+                            await userProvider.signUpUser(
+                              email: email,
+                              password: password,
+                              username: username,
+                              confirmPassword: confirmPassword,
+                              context: context,
+                            );
 
-                            setState(() async {
+                            // Handle success and error messages
+                            setState(() {
                               _isLoading = false;
-                              if (result == 'success') {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Sign up successful'),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                                await widget.onSignupSuccess(username);
-                                Navigator.pushReplacementNamed(context, '/login');
+                              if (userProvider.errorMessage.isNotEmpty) {
+                                _message = userProvider.errorMessage;
+                                _messageColor = Colors.red;
                               } else {
-                                _errorMessage = result;
+                                _message = 'Sign up successful. Please verify your email.';
+                                _messageColor = Colors.green;
                               }
                             });
                           },
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(const Color.fromRGBO(126, 35, 191, 0.498)),
+                            backgroundColor: MaterialStateProperty.all(Color.fromRGBO(134, 41, 137, 1.0)),
                             padding: MaterialStateProperty.all(
                               const EdgeInsets.symmetric(vertical: 16),
                             ),
                             shape: MaterialStateProperty.all(
                               RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                           ),
@@ -322,51 +277,51 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                                            const SizedBox(height: 16),
-                      const Divider(color: Colors.grey),
+                      
+                      // Display error or success message
+                      Text(
+                        _message,
+                        style: TextStyle(
+                          color: _messageColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      // Link to the login page for users who already have an account
+                      // Navigation to login screen
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
-                            'Already have an account? ',
+                            'Already have an account?',
                             style: TextStyle(fontSize: 18),
                           ),
-                          GestureDetector(
-                            onTap: () {
+                          TextButton(
+                            onPressed: () {
                               Navigator.pushNamed(context, '/login');
                             },
                             child: const Text(
                               'Log in',
                               style: TextStyle(
-                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 93, 156, 164),
+                                color: Color.fromRGBO(46, 197, 187, 1.0),
+                                fontSize: 20,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      // Display error message if there's any
-                      if (_errorMessage.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        Text(
-                          _errorMessage,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ],
                     ],
                   ),
                 ),
-              ],
+              ]
             ),
           ),
-          // Display loading indicator while processing
+          // Show loading indicator if _isLoading is true
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.5),
-              child: Center(
+              child: const Center(
                 child: CircularProgressIndicator(),
               ),
             ),

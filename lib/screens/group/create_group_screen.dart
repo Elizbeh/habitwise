@@ -3,20 +3,20 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/user_provider.dart';
-import 'package:habitwise/screens/dashboard_screen.dart';
-import 'package:habitwise/screens/group/group_details_screen.dart';
+import 'package:habitwise/themes/theme.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/models/group.dart';
+import 'package:habitwise/models/member.dart';
 import 'package:habitwise/services/storage_service.dart';
 import 'package:provider/provider.dart';
 
-// Define the gradient colors as constants
 const List<Color> appBarGradientColors = [
-  Color.fromRGBO(126, 35, 191, 0.498),
-  Color.fromARGB(255, 93, 156, 164),
-  Color.fromARGB(233, 93, 59, 99),
+   Color.fromRGBO(134, 41, 137, 1.0),
+   Color.fromRGBO(134, 41, 137, 1.0),
+   Color.fromRGBO(181, 58, 185, 1),
+   Color.fromRGBO(46, 197, 187, 1.0),
 ];
 
 class CreateGroupScreen extends StatefulWidget {
@@ -33,7 +33,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   int _currentIndex = 0;
 
   Future<void> _selectGroupPhoto() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -48,7 +49,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         return await _storageService.uploadGroupPhoto(_groupPhoto!);
       } catch (e) {
         print('Error uploading group photo: $e');
-        // Optionally, you could show a message to the user about the failure
       }
     }
     return null;
@@ -77,11 +77,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       try {
         String? groupPhotoUrl = await _uploadGroupPhoto();
 
+        Member currentUser = Member(
+          id: userId,
+          name: user.username,
+          email: user.email,
+          profilePictureUrl: user.profilePictureUrl,
+        );
+
         HabitWiseGroup newGroup = HabitWiseGroup(
-          groupId: '',  // Initially empty
+          groupId: '',
           groupName: groupName,
           description: description,
-          members: [userId],
+          members: [currentUser],
           goals: [],
           habits: [],
           groupType: groupType,
@@ -90,10 +97,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           creationDate: DateTime.now(),
         );
 
-        // Create the group and get the groupId
-        String groupId = await Provider.of<GroupProvider>(context, listen: false).createGroup(newGroup);
+        String groupId = await Provider.of<GroupProvider>(context, listen: false)
+            .createGroup(newGroup);
 
-        // Update the newGroup with the actual groupId
         newGroup = newGroup.copyWith(groupId: groupId);
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -103,11 +109,10 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           ),
         );
 
-        // Navigate to GroupDetailsScreen with the newGroup and user
         Navigator.pushReplacementNamed(
           context,
           '/groupDetails',
-          arguments: newGroup, // Pass the entire updated group object
+          arguments: newGroup
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,22 +137,21 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       _currentIndex = index;
     });
 
-    // Define your navigation logic based on the index
     switch (index) {
       case 0:
         Navigator.pushNamed(context, '/dashboard');
         break;
       case 1:
-        Navigator.pushNamed(context, '/goals'); // Adjust the route as needed
+        Navigator.pushNamed(context, '/goals');
         break;
       case 2:
-        Navigator.pushNamed(context, '/habit'); // Adjust the route as needed
+        Navigator.pushNamed(context, '/habit');
         break;
       case 3:
-        Navigator.pushNamed(context, '/profile'); // Adjust the route as needed
+        Navigator.pushNamed(context, '/profile');
         break;
       case 4:
-        Navigator.pushNamed(context, '/settings'); // Adjust the route as needed
+        Navigator.pushNamed(context, '/settings');
         break;
     }
   }
@@ -165,18 +169,14 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         toolbarHeight: 80,
         title: Text(
-          'Create Group',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+                'Create Group',
+                style: Theme.of(context).appBarTheme.titleTextStyle,
+              ),
+        centerTitle: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
@@ -185,8 +185,8 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             ),
             gradient: LinearGradient(
               colors: appBarGradientColors,
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
           child: ClipRRect(
@@ -213,44 +213,38 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           ),
         ],
       ),
+ 
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextField(
+                const SizedBox(height: 20),
+                _buildTextField(
                   controller: _groupNameController,
-                  decoration: InputDecoration(labelText: 'Group Name'),
+                  label: 'Group Name',
+                  icon: Icons.group,
                 ),
-                SizedBox(height: 16.0),
-                TextField(
+                const SizedBox(height: 20),
+                _buildTextField(
                   controller: _groupTypeController,
-                  decoration: InputDecoration(labelText: 'Group Type'),
+                  label: 'Group Type',
+                  icon: Icons.category,
                 ),
-                TextField(
+                const SizedBox(height: 20),
+                _buildTextField(
                   controller: _descriptionController,
-                  decoration: InputDecoration(labelText: 'Description'),
+                  label: 'Description',
+                  icon: Icons.description,
+                  maxLines: 4,
                 ),
-                SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: _selectGroupPhoto,
-                  child: Text('Select Group Photo'),
-                ),
-                SizedBox(height: 16.0),
-                if (_groupPhoto != null)
-                  Image.file(
-                    _groupPhoto!,
-                    height: 150,
-                    width: 150,
-                    fit: BoxFit.cover,
-                  ),
-                SizedBox(height: 16.0),
-                ElevatedButton(
-                  onPressed: _createGroup,
-                  child: Text('Create Group'),
-                ),
+                const SizedBox(height: 20),
+                _buildPhotoSelector(context),
+                const SizedBox(height: 20),
+                _buildCreateButton(context),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -259,7 +253,82 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       bottomNavigationBar: BottomNavigationBarWidget(
         currentIndex: _currentIndex,
         onTap: _onBottomNavBarTapped,
-        themeNotifier: ValueNotifier(ThemeMode.light), // Adjust based on your theme logic
+        themeNotifier: ValueNotifier(ThemeMode.light),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+        required IconData icon,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+        prefixIcon: Icon(icon, color: Color.fromRGBO(134, 41, 137, 1.0)),
+        filled: true,
+        fillColor: Colors.grey.shade200,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+          borderSide: BorderSide(color: Color.fromRGBO(134, 41, 137, 1.0)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoSelector(BuildContext context) {
+    return Column(
+      children: [
+        ElevatedButton.icon(
+          onPressed: _selectGroupPhoto,
+          icon: Icon(Icons.photo, color: Colors.white, size: 32),
+          label: Text(
+            'Select Group Photo',
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+            backgroundColor: secondaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        if (_groupPhoto != null)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              _groupPhoto!,
+              height: 150,
+              width: 150,
+              fit: BoxFit.cover,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCreateButton(BuildContext context) {
+    return ElevatedButton(
+      onPressed: _createGroup,
+      child: Text('Create Group', style: TextStyle(fontSize: 18, color: Colors.white)),
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        backgroundColor: Color.fromRGBO(134, 41, 137, 1.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        elevation: 5,
       ),
     );
   }

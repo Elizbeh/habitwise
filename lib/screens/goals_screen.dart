@@ -4,6 +4,7 @@ import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
+import 'package:habitwise/widgets/custom-calendar.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:habitwise/screens/dialogs/edit_goal_dialog.dart';
@@ -13,6 +14,14 @@ import 'package:habitwise/screens/dashboard_screen.dart';
 import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import '../main.dart';
+
+// Define the gradient colors as constants
+const List<Color> appBarGradientColors = [
+    Color.fromRGBO(134, 41, 137, 1.0),
+    Color.fromRGBO(181, 58, 185, 1),
+    Color.fromRGBO(46, 197, 187, 1.0),
+];
+
 
 class GoalScreen extends StatefulWidget {
   final HabitWiseUser user;
@@ -25,7 +34,6 @@ class GoalScreen extends StatefulWidget {
 }
 
 class _GoalScreenState extends State<GoalScreen> {
-  
   String sortingCriteria = 'Priority';
   String selectedCategory = 'All';
   CalendarFormat _calendarFormat = CalendarFormat.week;
@@ -33,13 +41,10 @@ class _GoalScreenState extends State<GoalScreen> {
   late DateTime _selectedDay;
   int _currentIndex = 1;
 
-
-
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
-    // Fetch goals based on groupId or general goals
     if (widget.groupId != null) {
       Provider.of<GoalProvider>(context, listen: false).fetchGroupGoals(widget.groupId!);
     } else {
@@ -72,21 +77,28 @@ class _GoalScreenState extends State<GoalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white), // Back arrow icon
+          onPressed: () {
+            Navigator.of(context).pop(); // Navigate back
+          },
+        ),
+        iconTheme: IconThemeData(color: Colors.white), // White icons
         elevation: 0,
         toolbarHeight: 80,
-        title: Text(
-          'Goals',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
+        title: Align(
+          alignment: Alignment.centerLeft, // Align the title to the left
+          child: Text(
+            'Goals',
+            style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
           ),
         ),
-        centerTitle: true,
+        centerTitle: false, // Disable center title
         flexibleSpace: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
@@ -94,13 +106,9 @@ class _GoalScreenState extends State<GoalScreen> {
               bottomRight: Radius.circular(30),
             ),
             gradient: LinearGradient(
-              colors: [
-                Color.fromRGBO(126, 35, 191, 0.498),
-                Color.fromARGB(255, 93, 156, 164),
-                Color.fromARGB(233, 93, 59, 99),
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
+              colors: appBarGradientColors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
           ),
           child: ClipRRect(
@@ -117,7 +125,38 @@ class _GoalScreenState extends State<GoalScreen> {
           ),
         ),
         actions: [
+          DropdownButton<String>(
+            value: selectedCategory,
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedCategory = newValue ?? 'All';
+              });
+            },
+            underline: SizedBox(), // Remove underline
+            icon: Icon(Icons.arrow_drop_down, color: Colors.white), // White dropdown icon
+            style: TextStyle(color: Colors.white), // White text in dropdown
+            dropdownColor: theme.scaffoldBackgroundColor, // Dropdown uses the theme background
+            items: <String>[
+              'All',
+              'Health & Fitness',
+              'Work & Productivity',
+              'Personal Development',
+              'Self-Care',
+              'Finance',
+              'Education',
+              'Relationships',
+              'Hobbies'
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            isDense: true, // Make dropdown compact
+          ),
+          const SizedBox(width: 20), // Space between DropdownButton and the right-side button
           PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, color: Colors.white), // 3-dotted icon in white
             onSelected: (String result) {
               setState(() {
                 sortingCriteria = result;
@@ -138,56 +177,14 @@ class _GoalScreenState extends State<GoalScreen> {
               ),
             ],
           ),
-          const SizedBox(width: 10),
-          DropdownButton<String>(
-            value: selectedCategory,
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedCategory = newValue ?? 'All';
-              });
-            },
-            items: <String>[
-              'All',
-              'Health & Fitness',
-              'Work & Productivity',
-              'Personal Development',
-              'Self-Care',
-              'Finance',
-              'Education',
-              'Relationships',
-              'Hobbies'
-            ].map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-          ),
         ],
       ),
+      
       body: SafeArea(
         child: Column(
           children: [
-            TableCalendar(
-              firstDay: DateTime.utc(2024, 1, 1),
-              lastDay: DateTime.utc(2035, 1, 1),
-              focusedDay: _focusedDay,
-              calendarFormat: _calendarFormat,
-              selectedDayPredicate: (day) {
-                return isSameDay(_selectedDay, day);
-              },
-              onFormatChanged: (format) {
-                setState(() {
-                  _calendarFormat = format;
-                });
-              },
-              onDaySelected: (selectedDay, focusedDay) {
-                setState(() {
-                  _selectedDay = selectedDay;
-                  _focusedDay = focusedDay;
-                });
-              },
-            ),
+            CustomCalendar(),
+            Divider(height: 10.0, thickness: 2.0),          
             Expanded(
               child: Consumer<GoalProvider>(
                 builder: (context, provider, child) {
@@ -212,11 +209,11 @@ class _GoalScreenState extends State<GoalScreen> {
                               addGoalToGroup: (Goal newGoal) {
                                 // Handle the updated goal ...
                               },
-                              groupId: widget.groupId ?? '', // Provide default value for groupId
+                              groupId: widget.groupId ?? '', 
                             ),
                           );
                         },
-                        child: GoalTile(goal: goal, groupId: widget.groupId ?? ''), // Provide default value for groupId
+                        child: GoalTile(goal: goal, groupId: widget.groupId ?? ''), 
                       );
                     },
                   );
@@ -226,7 +223,7 @@ class _GoalScreenState extends State<GoalScreen> {
           ],
         ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
@@ -251,11 +248,13 @@ class _GoalScreenState extends State<GoalScreen> {
                   ));
                 }
               },
-              groupId: widget.groupId ?? '', // Provide default value for groupId
+              groupId: widget.groupId ?? '', 
             ),
           );
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white,),
+        backgroundColor: theme.primaryColor,
+        
       ),
       bottomNavigationBar: BottomNavigationBarWidget(
         currentIndex: _currentIndex,
@@ -266,7 +265,7 @@ class _GoalScreenState extends State<GoalScreen> {
                 MaterialPageRoute(
                   builder: (context) => DashboardScreen(
                     user: widget.user,
-                    groupId: widget.groupId ?? '', // Provide default value for groupId
+                    groupId: widget.groupId ?? '', 
                   ),
                 ),
               );
@@ -275,11 +274,11 @@ class _GoalScreenState extends State<GoalScreen> {
                 MaterialPageRoute(
                   builder: (context) => HabitScreen(
                     user: widget.user,
-                    groupId: widget.groupId ?? '', // Provide default value for groupId
+                    groupId: widget.groupId ?? '', 
                   ),
                 ),
               );
-                          } else if (index == 3) {
+            } else if (index == 3) {
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(
                   builder: (context) => ProfilePage(user: widget.user),
@@ -292,6 +291,3 @@ class _GoalScreenState extends State<GoalScreen> {
     );
   }
 }
-
-                
-             
