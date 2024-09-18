@@ -13,9 +13,9 @@ class GoalProvider with ChangeNotifier {
   GoalProvider({this.groupId}) {
     Future.microtask(() {
       if (groupId != null && groupId!.isNotEmpty) {
-        fetchGroupGoals(groupId!); // Fetch group goals if groupId is provided
+        fetchGroupGoals(groupId!);
       } else {
-        fetchGoals(); // Otherwise, fetch individual goals
+        fetchGoals();
       }
     });
   }
