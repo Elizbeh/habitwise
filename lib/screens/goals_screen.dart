@@ -42,7 +42,6 @@ class _GoalScreenState extends State<GoalScreen> {
   int _currentIndex = 1;
 
   @override
-  @override
 void initState() {
   super.initState();
   _selectedDay = _focusedDay;

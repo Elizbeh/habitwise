@@ -105,5 +105,16 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  
+  Future<void> updateGroup(HabitWiseGroup group) async {
+    try {
+      await _groupDBService.updateGroup(group);
+      int index = _groups.indexWhere((g) => g.groupId == group.groupId);
+      if (index != -1) {
+        _groups[index] = group;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('Error updating group: $e');
+    }
+  }
 }

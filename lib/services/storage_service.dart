@@ -8,7 +8,7 @@ import 'package:uuid/uuid.dart';
 class StorageService {
   final firebase_storage.FirebaseStorage _storage = firebase_storage.FirebaseStorage.instance;
 
-// Method to upload a file to Firebase Storage and return the download URL
+
   /*Future<String> uploadFile(File file) async {
     try {
       var uuid = Uuid();
@@ -59,6 +59,20 @@ class StorageService {
 
   Future<String> uploadGroupPhoto(File file) async {
   return await uploadFile(file, folder: 'group_images');
+}
+
+Future<File> getImageFileFromUrl(String imageUrl) async {
+  try {
+    final response = await HttpClient().getUrl(Uri.parse(imageUrl));
+    final fileBytes = await response.close().then((res) => res.toList());
+    final filePath = path.join(Directory.systemTemp.path, path.basename(imageUrl));
+    final file = File(filePath);
+    await file.writeAsBytes(fileBytes.expand((x) => x).toList());
+    return file;
+  } catch (e) {
+    print('Error fetching image from URL: $e');
+    throw e;
+  }
 }
 
 }

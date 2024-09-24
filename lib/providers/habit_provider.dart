@@ -12,13 +12,23 @@ class HabitProvider extends ChangeNotifier {
 
   List<Habit> get habits => _habits;
 
-  void initializeHabits(String groupId) {
+  // Initialize habits based on groupId
+  void initializeHabits(String? groupId) {
     _habitsSubscription?.cancel();
-    _habitsSubscription = _habitDBService.getHabits(groupId).listen((fetchHabits) {
-      _habits = fetchHabits;
-      _checkAchievements();
-      notifyListeners();
-    });
+    if (groupId != null && groupId.isNotEmpty) {
+      _habitsSubscription = _habitDBService.getGroupHabitsStream(groupId).listen((fetchHabits) {
+        _habits = fetchHabits;
+        _checkAchievements();
+        notifyListeners();
+      });
+    } else {
+      // Listen for individual habits
+      _habitsSubscription = _habitDBService.getUserHabitsStream().listen((fetchHabits) {
+        _habits = fetchHabits;
+        _checkAchievements();
+        notifyListeners();
+      });
+    }
   }
 
   @override
@@ -27,9 +37,16 @@ class HabitProvider extends ChangeNotifier {
     super.dispose();
   }
 
-  void addHabit(String groupId, Habit habit) {
-    _habits.add(habit);
-    _habitDBService.addHabit(groupId, habit);
+  // Adding a habit either to a group or to the user
+  Future<void> addHabit(Habit habit, {String? groupId}) async {
+    if (groupId != null && groupId.isNotEmpty) {
+      // If groupId is provided, add to the group habits
+      _habits.add(habit); // Update local state
+      await _habitDBService.addHabitToGroup(groupId, habit);
+    } else {
+      // If no groupId, add to user's habits
+      await _habitDBService.addHabitToUser(habit);
+    }
     _checkAchievements();
     notifyListeners();
   }
@@ -102,4 +119,7 @@ class HabitProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+
+  
 }

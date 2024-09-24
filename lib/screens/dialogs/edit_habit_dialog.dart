@@ -1,104 +1,299 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/habit.dart';
-import 'package:habitwise/services/habit_db_service.dart';
+import 'package:habitwise/providers/habit_provider.dart';
+import 'package:habitwise/providers/user_provider.dart';
+import 'package:habitwise/screens/data/habit_templates.dart';
+import 'package:habitwise/themes/theme.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:habitwise/screens/data/icons/category_icons.dart';
 
-class HabitProvider extends ChangeNotifier {
-  List<Habit> _habits = []; // List to store habits
-  final HabitDBService _habitDBService = HabitDBService(); // Instance of HabitDBService for database operations
-  StreamSubscription? _habitsSubscription; // Subscription for listening to changes in habits stream
+class EditHabitDialog extends StatefulWidget {
+  final Habit habit;
+  final String? groupId; // Optional group ID for group habits
+  final bool isGroupHabit; // Indicates if the habit is for a group
+  final Function? onHabitUpdated; // Callback for when the habit is updated
 
-  List<Map<String, dynamic>> achievements = []; // List to store achievements
+  const EditHabitDialog({
+    Key? key,
+    required this.habit,
+    required this.isGroupHabit,
+    this.groupId,
+    this.onHabitUpdated,
+  }) : super(key: key);
 
-  List<Habit> get habits => _habits; // Getter for habits list
+  @override
+  _EditHabitDialogState createState() => _EditHabitDialogState();
+}
 
-  // Method to initialize habits by subscribing to habit changes from the database
-  void initializeHabits(String groupId) {
-    _habitsSubscription?.cancel();
-    _habitsSubscription = _habitDBService.getHabits(groupId).listen((fetchHabits) {
-      _habits = fetchHabits; // Update habits list with fetched habits
-      _checkAchievements(); // Check achievements whenever habits change
-      notifyListeners(); // Notify listeners to update UI
-    });
+class _EditHabitDialogState extends State<EditHabitDialog> {
+  // Controllers for the input fields
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController frequencyController = TextEditingController();
+
+  String? selectedCategory; // Currently selected category
+  DateTime? _startDate; // Start date of the habit
+  DateTime? _endDate; // End date of the habit
+  Map<String, dynamic>? selectedTemplate; // Currently selected habit template
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controllers and state with current habit data
+    titleController.text = widget.habit.title;
+    descriptionController.text = widget.habit.description ?? '';
+    frequencyController.text = widget.habit.frequency.toString();
+    selectedCategory = widget.habit.category;
+    _startDate = widget.habit.startDate;
+    _endDate = widget.habit.endDate;
+  }
+
+  // Method to select a date for either start or end date
+  Future<void> _selectDate(BuildContext context, bool isStart) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStart ? (_startDate ?? DateTime.now()) : (_endDate ?? DateTime.now()),
+      firstDate: DateTime(2023),
+      lastDate: DateTime(2090),
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _startDate = picked; // Set start date
+        } else {
+          _endDate = picked; // Set end date
+        }
+      });
+    }
+  }
+
+  // Apply the selected template values to the input fields
+  void _applyTemplate(Map<String, dynamic> template) {
+    if (template.containsKey('title')) {
+      titleController.text = template['title'];
+    }
+    if (template.containsKey('description')) {
+      descriptionController.text = template['description'];
+    }
+    if (template.containsKey('frequency')) {
+      frequencyController.text = template['frequency'].toString();
+    }
+  }
+
+  // Method to update the habit based on user inputs
+  void _updateHabit(BuildContext context) {
+    // Validate input fields
+    if (selectedCategory != null &&
+        titleController.text.isNotEmpty &&
+        frequencyController.text.isNotEmpty &&
+        _startDate != null && 
+        (_endDate == null || _endDate!.isAfter(_startDate!))) {
+      
+      final updatedHabit = widget.habit.copyWith(
+        title: titleController.text,
+        description: descriptionController.text,
+        startDate: _startDate!,
+        endDate: _endDate,
+        frequency: int.tryParse(frequencyController.text) ?? 1,
+        category: selectedCategory!,
+      );
+
+      // Update the habit in the appropriate provider
+      try {
+        if (widget.isGroupHabit) {
+          Provider.of<HabitProvider>(context, listen: false)
+              .updateHabit(widget.groupId!, widget.habit.id, updatedHabit); // Update group habit
+        } else {
+          final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
+          if (userId != null) {
+            Provider.of<HabitProvider>(context, listen: false)
+                .updateHabit(userId, widget.habit.id, updatedHabit); // Update user habit
+          }
+        }
+
+        // Call the optional callback after updating
+        widget.onHabitUpdated?.call();
+        Navigator.pop(context); // Close the dialog
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error updating habit: ${e.toString()}'),
+        ));
+      }
+    } else {
+      // Show an error if required fields are missing or invalid
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Please fill out all required fields correctly.'),
+      ));
+    }
   }
 
   @override
-  void dispose() {
-    _habitsSubscription?.cancel(); // Cancel subscription to avoid memory leaks
-    super.dispose();
-  }
-
-  // Method to add a habit to the database and update the local list
-  void addHabit(String groupId, Habit habit) {
-    _habits.add(habit); // Add habit to local list
-    _habitDBService.addHabit(groupId, habit); // Add habit to database
-    _checkAchievements(); // Check achievements after adding a habit
-    notifyListeners(); // Notify listeners to update UI
-  }
-
-  // Method to clear the existing habits list (useful for refreshing)
-  Future<void> fetchHabits() async {
-    _habits.clear(); // Clear the existing habits
-    notifyListeners(); // Notify listeners to update UI
-  }
-
-  // Method to remove a habit from the database and local list
-  void removeHabit(String groupId, String habitId) {
-    _habits.removeWhere((habit) => habit.id == habitId); // Remove habit from local list
-    _checkAchievements(); // Check achievements after removing a habit
-    notifyListeners(); // Notify listeners to update UI
-    _habitDBService.removeHabit(groupId, habitId); // Remove habit from database
-  }
-
-  // Method to update a habit in the database and local list
-  void updateHabit(String groupId, String habitId, Habit updatedHabit) {
-    final index = _habits.indexWhere((habit) => habit.id == habitId); // Find index of habit in local list
-    if (index != -1) {
-      _habits[index] = updatedHabit; // Update habit in local list
-      _checkAchievements(); // Check achievements after updating a habit
-      notifyListeners(); // Notify listeners to update UI
-      _habitDBService.updateHabit(groupId, updatedHabit); // Update habit in database
-    }
-  }
-
-  // Method to get a habit by its ID
-  Habit getHabitById(String id) {
-    return _habits.firstWhere((habit) => habit.id == id, orElse: () => throw Exception('Habit not found'));
-  }
-
-  // Method to check achievements based on completed habits
-  void _checkAchievements() {
-    final completedHabitsCount = _habits.where((habit) => habit.isCompleted).length;
-
-    // Clear previous achievements
-    achievements.clear();
-
-    // Example achievements based on habits
-    if (completedHabitsCount >= 1) {
-      achievements.add({
-        'title': 'First Habit Completed',
-        'icon': Icons.star,
-        'color': Colors.amber,
-      });
-    }
-
-    if (completedHabitsCount >= 5) {
-      achievements.add({
-        'title': 'Habit Master',
-        'icon': Icons.star_half,
-        'color': Colors.amber[700],
-      });
-    }
-
-    if (completedHabitsCount >= 10) {
-      achievements.add({
-        'title': 'Habit Guru',
-        'icon': Icons.star_border,
-        'color': Colors.amber[900],
-      });
-    }
-
-    // Notify listeners to update achievements in UI
-    notifyListeners();
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Color.fromRGBO(230, 230, 250, 1.0),
+      title: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: primaryColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          'Edit Habit',
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+          textAlign: TextAlign.center,
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dropdown for selecting category
+            DropdownButtonFormField<String>(
+              value: selectedCategory,
+              items: categoryIcons.keys.map<DropdownMenuItem<String>>((String category) {
+                return DropdownMenuItem<String>(
+                  value: category,
+                  child: Row(
+                    children: [
+                      Icon(categoryIcons[category], color: primaryColor),
+                      SizedBox(width: 8),
+                      Text(category, style: TextStyle(fontSize: 14)),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? value) {
+                setState(() {
+                  selectedCategory = value; // Update selected category
+                  selectedTemplate = null; // Reset selected template when category changes
+                  if (value != null && habitTemplates.containsKey(value)) {
+                    selectedTemplate = habitTemplates[value]![0]; // Default to first template
+                    _applyTemplate(selectedTemplate!); // Apply template
+                  }
+                });
+              },
+              decoration: InputDecoration(
+                labelText: 'Category',
+                hintText: 'Select category',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 8),
+            // Input for habit title
+            TextFormField(
+              controller: titleController,
+              decoration: InputDecoration(
+                labelText: 'Habit Title',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 8),
+            // Input for habit description
+            TextFormField(
+              controller: descriptionController,
+              decoration: InputDecoration(
+                labelText: 'Habit Description',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 8),
+            // Input for frequency
+            TextFormField(
+              controller: frequencyController,
+              decoration: InputDecoration(
+                labelText: 'Frequency per Day',
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 8),
+            // Date pickers for start and end dates
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: _startDate == null
+                          ? 'Select Start Date'
+                          : DateFormat.yMMMd().format(_startDate!),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () => _selectDate(context, true), // Select start date
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: _endDate == null
+                          ? 'Select End Date'
+                          : DateFormat.yMMMd().format(_endDate!),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () => _selectDate(context, false), // Select end date
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            // Dropdown for selecting template
+            if (selectedCategory != null &&
+                selectedCategory!.isNotEmpty &&
+                habitTemplates.containsKey(selectedCategory))
+              DropdownButtonFormField<Map<String, dynamic>>(
+                value: selectedTemplate,
+                items: habitTemplates[selectedCategory!]!.map((template) {
+                  return DropdownMenuItem<Map<String, dynamic>>(
+                    value: template,
+                    child: Text(template['title']),
+                  );
+                }).toList(),
+                onChanged: (template) {
+                  if (template != null) {
+                    setState(() {
+                      selectedTemplate = template; // Update selected template
+                      _applyTemplate(template); // Apply the selected template
+                    });
+                  }
+                },
+                decoration: InputDecoration(
+                  labelText: 'Choose Template',
+                  hintText: 'Select template',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+          ],
+        ),
+      ),
+            actions: [
+        // Cancel button to close the dialog without making changes
+        TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: secondaryColor,
+          ),
+          onPressed: () => Navigator.pop(context), // Close the dialog
+          child: Text(
+            'Cancel',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        // Update button to save changes made to the habit
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color.fromRGBO(134, 41, 137, 1.0), // Custom color for the button
+          ),
+          onPressed: () => _updateHabit(context), // Call the update function
+          child: Text(
+            'Update Habit',
+            style: TextStyle(color: Colors.white), // Text color for the button
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -10,7 +10,7 @@ class Goal {
   late final int target;
   final DateTime targetDate;
   late final DateTime? endDate;
-  late final bool isCompleted;
+  final bool isCompleted;
 
   String? userId;
 

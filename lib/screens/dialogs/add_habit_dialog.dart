@@ -9,9 +9,9 @@ import 'package:provider/provider.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 
 class AddHabitDialog extends StatefulWidget {
-  final String? groupId;
-  final bool isGroupHabit;
-  final Function? onHabitAdded;
+  final String? groupId; // Optional group ID for group habits
+  final bool isGroupHabit; // Indicates if the habit is for a group
+  final Function? onHabitAdded; // Callback function to run after adding a habit
 
   const AddHabitDialog({
     Key? key,
@@ -25,18 +25,15 @@ class AddHabitDialog extends StatefulWidget {
 }
 
 class _AddHabitDialogState extends State<AddHabitDialog> {
-  // Controllers for text input fields
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController frequencyController = TextEditingController();
-  
-  // Variables to hold form data
+
   String? selectedCategory;
   DateTime? _startDate;
   DateTime? _endDate;
   Map<String, dynamic>? selectedTemplate;
 
-  // Function to select a date for start or end date
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -56,7 +53,6 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
     }
   }
 
-  // Function to apply selected template to the form fields
   void _applyTemplate(Map<String, dynamic> template) {
     if (template.containsKey('title')) {
       titleController.text = template['title'];
@@ -76,8 +72,8 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
       title: Container(
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: primaryColor, // Background color of the dialog title
-          borderRadius: BorderRadius.circular(12), // Adjust the radius as needed
+          color: primaryColor,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
           'New Habit',
@@ -90,7 +86,6 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Category Dropdown
             DropdownButtonFormField<String>(
               value: selectedCategory,
               items: categoryIcons.keys.map<DropdownMenuItem<String>>((String category) {
@@ -98,7 +93,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                   value: category,
                   child: Row(
                     children: [
-                      Icon(categoryIcons[category], color: primaryColor), // Icon color
+                      Icon(categoryIcons[category], color: primaryColor),
                       SizedBox(width: 8),
                       Text(category, style: TextStyle(fontSize: 14)),
                     ],
@@ -108,9 +103,9 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               onChanged: (String? value) {
                 setState(() {
                   selectedCategory = value;
-                  selectedTemplate = null; // Reset selected template when category changes
+                  selectedTemplate = null; 
                   if (value != null && habitTemplates.containsKey(value)) {
-                    selectedTemplate = habitTemplates[value]![0]; // Default to first template
+                    selectedTemplate = habitTemplates[value]![0];
                     _applyTemplate(selectedTemplate!);
                   }
                 });
@@ -118,17 +113,10 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               decoration: InputDecoration(
                 labelText: 'Category',
                 hintText: 'Select category',
-                border: OutlineInputBorder(), // Consistent border style
+                border: OutlineInputBorder(),
               ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select a category';
-                }
-                return null;
-              },
             ),
-            SizedBox(height: 8), // Spacing between fields
-            // Habit Title TextField
+            SizedBox(height: 8),
             TextFormField(
               controller: titleController,
               decoration: InputDecoration(
@@ -137,7 +125,6 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               ),
             ),
             SizedBox(height: 8),
-            // Habit Description TextField
             TextFormField(
               controller: descriptionController,
               decoration: InputDecoration(
@@ -146,7 +133,6 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               ),
             ),
             SizedBox(height: 8),
-            // Frequency TextField
             TextFormField(
               controller: frequencyController,
               decoration: InputDecoration(
@@ -156,7 +142,6 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               keyboardType: TextInputType.number,
             ),
             SizedBox(height: 8),
-            // Start and End Date Selection
             Row(
               children: [
                 Expanded(
@@ -187,7 +172,6 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               ],
             ),
             SizedBox(height: 8),
-            // Template Dropdown (visible only if category is selected)
             if (selectedCategory != null &&
                 selectedCategory!.isNotEmpty &&
                 habitTemplates.containsKey(selectedCategory))
@@ -217,7 +201,6 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
         ),
       ),
       actions: [
-        // Cancel Button
         TextButton(
           style: TextButton.styleFrom(
             backgroundColor: secondaryColor
@@ -225,48 +208,57 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
           onPressed: () => Navigator.pop(context),
           child: Text(
             'Cancel',
-            style: TextStyle(color: Colors.white), // Text color of cancel button
+            style: TextStyle(color: Colors.white),
           ),
         ),
-        // Add Habit Button
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color.fromRGBO(134, 41, 137, 1.0), // Background color of add button
+            backgroundColor: Color.fromRGBO(134, 41, 137, 1.0),
           ),
-          onPressed: () {
+          onPressed: () async {
             if (selectedCategory != null &&
                 titleController.text.isNotEmpty &&
                 frequencyController.text.isNotEmpty) {
-              final newHabit = Habit(
-                id: DateTime.now().toString(),
-                title: titleController.text,
-                description: descriptionController.text,
-                createdAt: DateTime.now(),
-                startDate: _startDate ?? DateTime.now(),
-                endDate: _endDate,
-                frequency: int.tryParse(frequencyController.text) ?? 1,
-                isCompleted: false,
-                category: selectedCategory!,
-                groupId: widget.isGroupHabit ? widget.groupId : null,
-              );
+              
+              if (_startDate != null && (_endDate == null || _endDate!.isAfter(_startDate!))) {
+                final newHabit = Habit(
+                  id: '',
+                  title: titleController.text,
+                  description: descriptionController.text,
+                  createdAt: DateTime.now(),
+                  startDate: _startDate!,
+                  endDate: _endDate,
+                  frequency: int.tryParse(frequencyController.text) ?? 1,
+                  isCompleted: false,
+                  category: selectedCategory!,
+                  groupId: widget.isGroupHabit ? widget.groupId : null,
+                );
 
-              // Add the habit to the appropriate provider
-              if (widget.isGroupHabit) {
-                Provider.of<HabitProvider>(context, listen: false)
-                    .addHabit(widget.groupId!, newHabit);
-              } else {
-                final userId =
-                    Provider.of<UserProvider>(context, listen: false)
-                        .user
-                        ?.uid;
-                if (userId != null) {
-                  Provider.of<HabitProvider>(context, listen: false)
-                      .addHabit(userId, newHabit);
+                // Add habit using Firebase-generated ID
+                if (widget.isGroupHabit && widget.groupId != null) {
+                  await Provider.of<HabitProvider>(context, listen: false)
+                      .addHabit(newHabit, groupId: widget.groupId);
+                } else {
+                  final userId = Provider.of<UserProvider>(context, listen: false)
+                      .user
+                      ?.uid;
+                  if (userId != null) {
+                    await Provider.of<HabitProvider>(context, listen: false)
+                        .addHabit(newHabit);
+                  }
                 }
+
+                if (widget.onHabitAdded != null) {
+                  widget.onHabitAdded!();
+                }
+
+                Navigator.pop(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Start date must be before end date.'),
+                ));
               }
-              Navigator.pop(context);
             } else {
-              // Show an error if required fields are missing
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text('Please fill out all required fields'),
               ));

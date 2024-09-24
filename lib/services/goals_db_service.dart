@@ -2,11 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:habitwise/models/goal.dart';
 
 class GoalDBService {
-  // Collection for individual goals
+  // Collection reference for individual goals
   final CollectionReference goalCollection =
       FirebaseFirestore.instance.collection('goals');
 
-  // Collection for groups
+  // Collection reference for groups
   final CollectionReference groupCollection =
       FirebaseFirestore.instance.collection('groups');
 
@@ -16,7 +16,7 @@ class GoalDBService {
       await goalCollection.doc(goal.id).set(goal.toMap());
     } catch (error) {
       print("Error adding individual goal: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 
@@ -30,7 +30,7 @@ class GoalDBService {
           .set(goal.toMap());
     } catch (error) {
       print("Error adding group goal: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 
@@ -56,13 +56,13 @@ class GoalDBService {
     });
   }
 
-  // Remove an individual goal
+  // Remove an individual goal from the 'goals' collection
   Future<void> removeGoal(String goalId) async {
     try {
       await goalCollection.doc(goalId).delete();
     } catch (error) {
       print("Error removing individual goal: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 
@@ -76,7 +76,7 @@ class GoalDBService {
           .delete();
     } catch (error) {
       print("Error removing group goal: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 
@@ -86,7 +86,7 @@ class GoalDBService {
       await goalCollection.doc(updatedGoal.id).update(updatedGoal.toMap());
     } catch (error) {
       print("Error updating individual goal: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 
@@ -100,7 +100,7 @@ class GoalDBService {
           .update(updatedGoal.toMap());
     } catch (error) {
       print("Error updating group goal: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 
@@ -110,7 +110,7 @@ class GoalDBService {
       await goalCollection.doc(goalId).update({'isCompleted': true});
     } catch (error) {
       print("Error marking individual goal as completed: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 
@@ -124,7 +124,7 @@ class GoalDBService {
           .update({'isCompleted': true});
     } catch (error) {
       print("Error marking group goal as completed: $error");
-      throw error;
+      throw error; // Re-throwing error to handle it at the call site
     }
   }
 }

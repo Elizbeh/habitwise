@@ -71,5 +71,6 @@ class GroupHabitList extends StatelessWidget {
         }
       },
     );
+  
   }
 }
