@@ -12,13 +12,17 @@ class UserDBService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> createUser(HabitWiseUser user) async {
-    try {
+  try {
+    // Check if the user already exists to prevent duplicates
+    DocumentSnapshot existingUser = await _firestore.collection('users').doc(user.uid).get();
+    if (!existingUser.exists) {
       await _firestore.collection('users').doc(user.uid).set(user.toMap());
-    } catch (e) {
-      logger.e('Error creating user: $e');
-      throw Exception('Failed to create user');
     }
+  } catch (e) {
+    logger.e('Error creating user: $e');
+    throw Exception('Failed to create user');
   }
+}
 
   Future<String> uploadImageToStorage(File imageFile) async {
     try {

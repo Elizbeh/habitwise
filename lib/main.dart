@@ -39,6 +39,7 @@ void main() async {
    options: firebaseOptions
   );
 
+  
   runApp(
     
     MultiProvider(
@@ -81,9 +82,44 @@ class MyApp extends StatelessWidget {
           initialRoute: '/',
           routes: {
             // Splash screen as the initial route
-            '/': (context) => SplashScreen(),
-            
-            // Landing Page after splash screen
+            '/': (context) => FutureBuilder<HabitWiseUser?>(
+                  future: Provider.of<UserProvider>(context, listen: false).getUserDetails(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Scaffold(body: Center(child: CircularProgressIndicator()));
+                    } else if (snapshot.hasData && snapshot.data != null) {
+                      final user = snapshot.data!;
+                      if (user.emailVerified) {
+                        return DashboardScreen(
+                          user: user,
+                          groupId: user.groupIds.isNotEmpty ? user.groupIds[0] : '',
+                        );
+                      } else {
+                        return LandingPage(
+                          onThemeChanged: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => SettingsPage(themeNotifier: appThemeNotifier),
+                              ),
+                            );
+                          },
+                          themeNotifier: appThemeNotifier,
+                        ); // Prompt user to verify email
+                      }
+                    } else {
+                      return LandingPage(
+                        onThemeChanged: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => SettingsPage(themeNotifier: appThemeNotifier),
+                            ),
+                          );
+                        },
+                        themeNotifier: appThemeNotifier,
+                      ); // User is not logged in
+                    }
+                  },
+                ),
             '/landing': (context) => LandingPage(
               onThemeChanged: () {
                 Navigator.of(context).push(
@@ -94,7 +130,6 @@ class MyApp extends StatelessWidget {
               },
               themeNotifier: appThemeNotifier,
             ),
-            
             // Verify email screen
             '/verifyEmail': (context) => VerifyEmailScreen(),
             

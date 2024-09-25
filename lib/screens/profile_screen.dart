@@ -7,6 +7,8 @@ import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
+import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/habit_screen.dart';
 import 'package:habitwise/services/storage_service.dart';
 import 'package:habitwise/services/user_db_service.dart';
 import 'package:image_picker/image_picker.dart';
@@ -256,20 +258,27 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBarWidget(
-        currentIndex: 3,
+        currentIndex: 3, // DashboardScreen is at index 0
         onTap: (index) {
           if (index != 3) {
             if (index == 0) {
-              Navigator.of(context).pushReplacementNamed('/dashboard');
-            } else if (index == 1) {
-              Navigator.of(context).pushReplacementNamed('/goals');
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => DashboardScreen(user: widget.user, groupId: '',)),
+              );
             } else if (index == 2) {
-              Navigator.of(context).pushReplacementNamed('/habit');
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => HabitScreen(user: widget.user, groupId: '', )),
+              );
+            } else if (index == 3) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => ProfilePage(user: widget.user)),
+              );
             }
           }
-        }, 
-        themeNotifier: appThemeNotifier,
+        },
+          themeNotifier: appThemeNotifier,
       ),
+       
     );
   }
 

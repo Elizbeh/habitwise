@@ -12,7 +12,7 @@ class HabitWiseUser {
   String? profilePictureUrl;
   final bool canCreateGroup;
   final bool canJoinGroups;
-  bool emailVerified; 
+  bool emailVerified;
 
   // Constructor to initialize the HabitWiseUser instance
   HabitWiseUser({
@@ -35,13 +35,13 @@ class HabitWiseUser {
       uid: data['uid'],
       email: data['email'],
       username: data['username'],
-      goals: List<String>.from(data['goals']),
-      habits: List<String>.from(data['habits']),
-      soloStats: Map<String, dynamic>.from(data['soloStats']),
-      groupIds: List<String>.from(data['groupIds']),
+      goals: List<String>.from(data['goals'] ?? []),
+      habits: List<String>.from(data['habits'] ?? []),
+      soloStats: Map<String, dynamic>.from(data['soloStats'] ?? {}),
+      groupIds: List<String>.from(data['groupIds'] ?? []),
       profilePictureUrl: data['profilePictureUrl'],
       canCreateGroup: data['canCreateGroup'] ?? false,
-      canJoinGroups: data['canJoinGroup'] ?? false,
+      canJoinGroups: data['canJoinGroups'] ?? false,
       emailVerified: data['emailVerified'] ?? false,
     );
   }
@@ -58,7 +58,7 @@ class HabitWiseUser {
       'groupIds': groupIds,
       'profilePictureUrl': profilePictureUrl,
       'canCreateGroup': canCreateGroup,
-      'canJoinGroup': canJoinGroups,
+      'canJoinGroups': canJoinGroups,
       'emailVerified': emailVerified,
     };
   }

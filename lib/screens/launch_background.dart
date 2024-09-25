@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:habitwise/providers/user_provider.dart';
+import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:provider/provider.dart';
 import 'landing_page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,7 +17,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   void initState() {
     super.initState();
 
-    // Initialization of animation controller for the fade effect
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -25,18 +27,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       curve: Curves.easeIn,
     );
 
-    // Start the animation
     _animationController.forward();
 
-    // Navigate to the LandingPage after a delay
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () async {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      bool isLoggedIn = userProvider.isEmailVerified;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => LandingPage(
-            onThemeChanged: () {},
-            themeNotifier: ValueNotifier(ThemeMode.light), // Pass actual theme notifier here
-          ),
+          builder: (context) {
+            final user = userProvider.user; // HabitWiseUser?
+            final groupId = userProvider.groupId; // Ensure this getter is defined
+
+            if (user != null) {
+              return DashboardScreen(user: user, groupId: groupId);
+            } else {
+              return LandingPage(
+                onThemeChanged: () {},
+                themeNotifier: ValueNotifier(ThemeMode.light),
+              );
+            }
+          },
         ),
       );
     });
@@ -44,7 +56,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
   @override
   void dispose() {
-    _animationController.dispose(); // Dispose the animation controller to free up resources
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -55,7 +67,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return Scaffold(
       body: Stack(
         children: [
-          // Background gradient with animated color shift
           AnimatedContainer(
             duration: const Duration(seconds: 2),
             decoration: const BoxDecoration(
@@ -70,7 +81,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
             ),
           ),
-          // Add a subtle overlay for depth
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -84,7 +94,6 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
-          // Fade animation for the logo with a container background
           Center(
             child: FadeTransition(
               opacity: _fadeAnimation,
@@ -93,20 +102,20 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 child: Container(
                   padding: const EdgeInsets.all(20.0),
                   decoration: BoxDecoration(
-                    color: Colors.white, // Contrasting background color for the logo
+                    color: Colors.white,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
                         spreadRadius: 5,
                         blurRadius: 10,
-                        offset: const Offset(0, 3), // Offset of the shadow
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Image.asset(
                     'assets/images/logo.png',
-                    width: screenWidth * 0.2, // Adjust the width according to your needs
+                    width: screenWidth * 0.2,
                   ),
                 ),
               ),

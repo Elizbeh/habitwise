@@ -1,30 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth for email verification
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:habitwise/screens/auth/verify_email_screen.dart';
 import '../models/user.dart';
 import '../services/user_db_service.dart';
-import '../services/group_db_service.dart'; // Import GroupDBService
+import '../services/group_db_service.dart';
 import '../methods/auth_methods.dart';
 import '../models/group.dart';
 
 class UserProvider extends ChangeNotifier {
   final AuthMethod _authMethod = AuthMethod();
   final UserDBService _userDBService = UserDBService();
-  final GroupDBService _groupDBService = GroupDBService(); // Instantiate GroupDBService
+  final GroupDBService _groupDBService = GroupDBService();
 
   HabitWiseUser? _user;
-  List<HabitWiseGroup> _userGroups = []; // To store groups fetched
+  List<HabitWiseGroup> _userGroups = [];
   bool _isLoading = false;
   String _errorMessage = '';
 
   HabitWiseUser? get user => _user;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
-  bool get isEmailVerified => _authMethod.getCurrentUser()?.emailVerified ?? false; // Updated to check from FirebaseAuth
-  List<HabitWiseGroup> get userGroups => _userGroups; // Getter for user groups
-
+  bool get isEmailVerified => _authMethod.getCurrentUser()?.emailVerified ?? false;
+  List<HabitWiseGroup> get userGroups => _userGroups;
+  
   UserProvider() {
-    Future.microtask(() => getUserDetails());
+    _checkUserSession();
+  }
+
+  get groupId => null;
+
+  Future<void> _checkUserSession() async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final User? currentUser = _authMethod.getCurrentUser();
+      if (currentUser != null) {
+        await getUserDetails();
+      } else {
+        _errorMessage = 'No user is currently logged in.';
+      }
+    } catch (e) {
+      _errorMessage = 'Error checking user session: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void setUser(HabitWiseUser? user) {
@@ -32,18 +52,15 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Method to reload user and check email verification
   Future<bool> reloadAndCheckEmailVerification() async {
     try {
       final User? currentUser = _authMethod.getCurrentUser();
       if (currentUser != null) {
-        await currentUser.reload(); // Reload the user to get the latest data
-        User? updatedUser = _authMethod.getCurrentUser(); // Get updated user info
-
+        await currentUser.reload();
+        User? updatedUser = _authMethod.getCurrentUser();
         if (updatedUser != null && updatedUser.emailVerified) {
-          // Update the emailVerified flag in the user object
           _user?.emailVerified = true;
-          notifyListeners(); // Notify listeners to update the UI if necessary
+          notifyListeners();
           return true;
         }
       }
@@ -57,7 +74,7 @@ class UserProvider extends ChangeNotifier {
   Future<HabitWiseUser?> getUserDetails() async {
     _isLoading = true;
     _errorMessage = '';
-    _safeNotifyListeners();
+    notifyListeners();
 
     try {
       final currentUser = _authMethod.getCurrentUser();
@@ -65,7 +82,6 @@ class UserProvider extends ChangeNotifier {
         final userDetails = await _userDBService.getUserDetailsById(currentUser.uid);
         if (userDetails != null) {
           _user = HabitWiseUser.fromMap(userDetails);
-          // Fetch groups after fetching user details
           await fetchUserGroups();
         } else {
           _errorMessage = 'User details not found.';
@@ -77,17 +93,16 @@ class UserProvider extends ChangeNotifier {
       _errorMessage = 'Error getting user details: $e';
     } finally {
       _isLoading = false;
-      _safeNotifyListeners();
+      notifyListeners();
     }
     return _user;
   }
 
-  // Resend verification email if needed
   Future<void> resendVerificationEmail() async {
     try {
       final User? currentUser = _authMethod.getCurrentUser();
       if (currentUser != null && !currentUser.emailVerified) {
-        await currentUser.sendEmailVerification(); // Sends the verification email
+        await currentUser.sendEmailVerification();
         _errorMessage = 'Verification email sent. Please check your inbox.';
       }
     } catch (e) {
@@ -99,14 +114,12 @@ class UserProvider extends ChangeNotifier {
   Future<void> loginUser({required String email, required String password}) async {
     _isLoading = true;
     _errorMessage = '';
-    _safeNotifyListeners();
+    notifyListeners();
 
     try {
       AuthResult result = await _authMethod.login(email: email, password: password);
-
       if (result == AuthResult.success) {
         await getUserDetails();
-
         if (_user != null && !_user!.emailVerified) {
           _errorMessage = 'Please verify your email address.';
         }
@@ -117,7 +130,7 @@ class UserProvider extends ChangeNotifier {
       _errorMessage = 'Error logging in: $e';
     } finally {
       _isLoading = false;
-      _safeNotifyListeners();
+      notifyListeners();
     }
   }
 
@@ -130,7 +143,7 @@ class UserProvider extends ChangeNotifier {
   }) async {
     _isLoading = true;
     _errorMessage = '';
-    _safeNotifyListeners();
+    notifyListeners();
 
     try {
       AuthResult result = await _authMethod.signUpUser(
@@ -154,14 +167,14 @@ class UserProvider extends ChangeNotifier {
       _errorMessage = 'Error signing up: $e';
     } finally {
       _isLoading = false;
-      _safeNotifyListeners();
+      notifyListeners();
     }
   }
 
   Future<void> verifyEmailAndCompleteRegistration() async {
     _isLoading = true;
     _errorMessage = '';
-    _safeNotifyListeners();
+    notifyListeners();
 
     try {
       AuthResult result = await _authMethod.verifyEmailAndCompleteRegistration();
@@ -174,43 +187,42 @@ class UserProvider extends ChangeNotifier {
       _errorMessage = 'Error verifying email: $e';
     } finally {
       _isLoading = false;
-      _safeNotifyListeners();
+      notifyListeners();
     }
   }
 
   Future<void> logoutUser() async {
     _isLoading = true;
     _errorMessage = '';
-    _safeNotifyListeners();
+    notifyListeners();
 
     try {
       await _authMethod.logout();
       _user = null;
-      _userGroups.clear(); // Clear user groups on logout
+      _userGroups.clear();
     } catch (e) {
       _errorMessage = 'Error logging out: $e';
     } finally {
       _isLoading = false;
-      _safeNotifyListeners();
+      notifyListeners();
     }
   }
 
   Future<void> fetchUserGroups() async {
-  try {
-    final userId = _user?.uid; // Use _user?.uid instead of userId
-    if (userId != null) {
-      _userGroups = await _groupDBService.getAllGroups(userId);
-      notifyListeners();
-    } else {
-      _errorMessage = 'User ID is not available.';
+    try {
+      final userId = _user?.uid;
+      if (userId != null) {
+        _userGroups = await _groupDBService.getAllGroups(userId);
+        notifyListeners();
+      } else {
+        _errorMessage = 'User ID is not available.';
+        notifyListeners();
+      }
+    } catch (e) {
+      _errorMessage = 'Error fetching user groups: $e';
       notifyListeners();
     }
-  } catch (e) {
-    _errorMessage = 'Error fetching user groups: $e';
-    notifyListeners();
   }
-}
-
 
   String _handleAuthError(AuthResult result) {
     switch (result) {
@@ -260,7 +272,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> updateUserProfile(HabitWiseUser user) async {
     _isLoading = true;
     _errorMessage = '';
-    _safeNotifyListeners();
+    notifyListeners();
 
     try {
       await _userDBService.updateUserProfile(user);
@@ -269,7 +281,7 @@ class UserProvider extends ChangeNotifier {
       _errorMessage = 'Error updating user profile: $e';
     } finally {
       _isLoading = false;
-      _safeNotifyListeners();
+      notifyListeners();
     }
   }
 }
