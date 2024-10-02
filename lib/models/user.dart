@@ -9,10 +9,12 @@ class HabitWiseUser {
   final List<String> habits;
   final Map<String, dynamic> soloStats;
   final List<String> groupIds;
+  final Map<String, String> groupRoles;
   String? profilePictureUrl;
   final bool canCreateGroup;
-  final bool canJoinGroups;
+  bool canJoinGroups;
   bool emailVerified;
+  
 
   // Constructor to initialize the HabitWiseUser instance
   HabitWiseUser({
@@ -23,10 +25,12 @@ class HabitWiseUser {
     required this.habits,
     required this.soloStats,
     required this.groupIds,
+    required this.groupRoles,
     this.profilePictureUrl,
-    required this.canCreateGroup,
+    this.canCreateGroup = true,
     required this.canJoinGroups,
     required this.emailVerified,
+  
   });
 
   // Factory constructor to create a HabitWiseUser instance from a map
@@ -39,8 +43,9 @@ class HabitWiseUser {
       habits: List<String>.from(data['habits'] ?? []),
       soloStats: Map<String, dynamic>.from(data['soloStats'] ?? {}),
       groupIds: List<String>.from(data['groupIds'] ?? []),
+      groupRoles: Map<String, String>.from(data['groupRoles'] ?? {}),
       profilePictureUrl: data['profilePictureUrl'],
-      canCreateGroup: data['canCreateGroup'] ?? false,
+      canCreateGroup: data['canCreateGroup'] ?? true,
       canJoinGroups: data['canJoinGroups'] ?? false,
       emailVerified: data['emailVerified'] ?? false,
     );
@@ -56,6 +61,7 @@ class HabitWiseUser {
       'habits': habits,
       'soloStats': soloStats,
       'groupIds': groupIds,
+      'groupRoles': groupRoles,
       'profilePictureUrl': profilePictureUrl,
       'canCreateGroup': canCreateGroup,
       'canJoinGroups': canJoinGroups,
@@ -72,6 +78,7 @@ class HabitWiseUser {
     List<String>? habits,
     Map<String, dynamic>? soloStats,
     List<String>? groupIds,
+    final Map<String, String>? groupRoles,
     String? profilePictureUrl,
     bool? canCreateGroup,
     bool? canJoinGroups,
@@ -85,6 +92,7 @@ class HabitWiseUser {
       habits: habits ?? this.habits,
       soloStats: soloStats ?? this.soloStats,
       groupIds: groupIds ?? this.groupIds,
+      groupRoles: groupRoles ?? this.groupRoles,
       profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
       canCreateGroup: canCreateGroup ?? this.canCreateGroup,
       canJoinGroups: canJoinGroups ?? this.canJoinGroups,
@@ -99,6 +107,7 @@ class HabitWiseUser {
       name: username,
       email: email,
       profilePictureUrl: profilePictureUrl,
+      
     );
   }
 }

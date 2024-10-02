@@ -91,7 +91,7 @@ void initState() {
         title: Align(
           alignment: Alignment.centerLeft, // Align the title to the left
           child: Text(
-            'Goals',
+            'Personal Goal Board',
             style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
           ),
         ),
@@ -231,7 +231,7 @@ void initState() {
                   if (widget.groupId != null && widget.groupId!.isNotEmpty) {
                     await Provider.of<GoalProvider>(context, listen: false).addGoalToGroup(goal, widget.groupId!);
                   } else {
-                    await Provider.of<GoalProvider>(context, listen: false).addGoal(goal);
+                    await Provider.of<GoalProvider>(context, listen: false).addGoal( goal);
                   }
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                     content: Text('Goal added successfully!'),

@@ -19,7 +19,7 @@ ThemeData lightTheme(BuildContext context) {
       titleTextStyle: GoogleFonts.goldman(
         textStyle: TextStyle(
           color: lightTextColor,
-          fontSize: 18, // Title font size
+          fontSize: 20, // Title font size
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -53,7 +53,7 @@ ThemeData lightTheme(BuildContext context) {
         bodyLarge: TextStyle(fontSize: 18), // Body text
         bodyMedium: TextStyle(fontSize: 16), // Smaller body text
         bodySmall: TextStyle(fontSize: 14), // Captions
-        titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600), // Subtitles
+        titleMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600), // Subtitles
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -61,7 +61,7 @@ ThemeData lightTheme(BuildContext context) {
         foregroundColor: lightTextColor,
         backgroundColor: secondaryColor, // Button text color
         textStyle: GoogleFonts.goldman(
-          fontSize: 18,
+          fontSize: 20,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),

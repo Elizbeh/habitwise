@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:habitwise/models/group.dart';
-import 'package:habitwise/services/member_db_service.dart'; // Make sure this import is correct
+import 'package:habitwise/models/member.dart';
+import 'package:habitwise/services/member_db_service.dart';
 
 class GroupDBService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -9,20 +10,19 @@ class GroupDBService {
   CollectionReference get groupsCollection => _firestore.collection('groups');
 
   Future<String> createGroup(HabitWiseGroup group) async {
-  try {
-    // Convert the group to a map and add it to Firestore
-    DocumentReference docRef = await groupsCollection.add(group.toMap());
+    try {
+      // Convert the group to a map and add it to Firestore
+      DocumentReference docRef = await groupsCollection.add(group.toMap());
 
-    // Update the document with the groupId
-    await docRef.update({'groupId': docRef.id});
+      // Update the document with the groupId
+      await docRef.update({'groupId': docRef.id});
 
-    return docRef.id;
-  } catch (e) {
-    print('Error creating group: $e');
-    throw e;
+      return docRef.id;
+    } catch (e) {
+      print('Error creating group: $e');
+      throw e;
+    }
   }
-}
-
 
   Future<List<HabitWiseGroup>> getAllGroups(String userId) async {
     try {
@@ -70,6 +70,7 @@ class GroupDBService {
       'members': FieldValue.arrayRemove([userId])
     });
   }
+  
 
   Future<void> deleteGroup(String groupId) async {
     try {
@@ -112,22 +113,62 @@ class GroupDBService {
     }
   }
 
-Future<List<String>> getGroupGoals(String groupId) async {
-  try {
-    DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
-    if (doc.exists) {
-      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-      print('Group goals data: ${data['goals']}');  // Add this line to debug
-      return List<String>.from(data['goals'] ?? []);
-    } else {
-      throw Exception('Group not found');
+  Future<List<String>> getGroupGoals(String groupId) async {
+    try {
+      DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
+      if (doc.exists) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        print('Group goals data: ${data['goals']}');  // Debugging line
+        return List<String>.from(data['goals'] ?? []);
+      } else {
+        throw Exception('Group not found');
+      }
+    } catch (e) {
+      print('Error fetching group goals: $e');
+      throw e;
     }
+  }
+
+  Future<HabitWiseGroup?> getGroupByCode(String groupCode) async {
+  try {
+    // Assuming you have a 'groupCode' field in your group documents
+    QuerySnapshot snapshot = await groupsCollection
+        .where('groupCode', isEqualTo: groupCode)
+        .limit(1)
+        .get();
+    
+    if (snapshot.docs.isNotEmpty) {
+      return HabitWiseGroup.fromMap(snapshot.docs.first.data() as Map<String, dynamic>);
+    }
+    return null; // Group not found
   } catch (e) {
-    print('Error fetching group goals: $e');
-    throw e;
+    print('Error fetching group by code: $e');
+    return null;
   }
 }
 
+  Future<void> joinGroupByCode(String groupCode, String userId) async {
+    try {
+      HabitWiseGroup? group = await getGroupByCode(groupCode);
+      if (group != null) {
+        await joinGroup(group.groupId, userId);
+      } else {
+        throw Exception("Group not found with code: $groupCode");
+      }
+    } catch (e) {
+      print('Error joining group by code: $e');
+      throw e;
+    }
+  }
 
+  Future<void> addMemberToGroup(String groupId, Member newMember) async {
+  final groupRef = FirebaseFirestore.instance.collection('groups').doc(groupId);
   
+  await groupRef.update({
+    'members': FieldValue.arrayUnion([newMember.toMap()]), // Add new member
+  });
+}
+
+
+
 }

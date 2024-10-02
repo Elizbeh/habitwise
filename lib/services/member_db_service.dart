@@ -4,6 +4,7 @@ import 'package:habitwise/models/member.dart';
 class MemberDBService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  
   Future<List<Member>> getGroupMembers(String groupId) async {
     final snapshot = await _db.collection('groups').doc(groupId).collection('members').get();
     return snapshot.docs.map((doc) => Member.fromMap(doc.data())).toList();

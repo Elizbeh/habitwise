@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -46,12 +47,20 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => HabitProvider()),
-        ChangeNotifierProvider(create: (_) => GoalProvider()),
+        ChangeNotifierProvider(
+          create: (_) {
+            final user = FirebaseAuth.instance.currentUser;
+            if (user == null) {
+              throw Exception('User is not logged in'); // Handle user not logged in
+            }
+            return GoalProvider(userId: user.uid);
+          },
+        ),
         ChangeNotifierProvider(create: (_) => GroupProvider()),
         ChangeNotifierProvider(create: (_) => QuoteProvider()),
-         Provider(create: (_) => GroupDBService()),
-        Provider(create: (_) => GoalDBService()), 
-        Provider(create: (_) => HabitDBService()), 
+        Provider(create: (_) => GroupDBService()),
+        Provider(create: (_) => GoalDBService()),
+        Provider(create: (_) => HabitDBService()),
       ],
       child: MyApp(),
     ),
@@ -135,8 +144,7 @@ class MyApp extends StatelessWidget {
             
             // Login screen with additional logic for successful login
             '/login': (context) => LoginScreen(
-              emailController: TextEditingController(),
-              passwordController: TextEditingController(),
+
               onLoginSuccess: (String username) async {
                 UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
 

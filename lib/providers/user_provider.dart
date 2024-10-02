@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/screens/auth/verify_email_screen.dart';
 import '../models/user.dart';
 import '../services/user_db_service.dart';
@@ -7,27 +8,35 @@ import '../services/group_db_service.dart';
 import '../methods/auth_methods.dart';
 import '../models/group.dart';
 
+
 class UserProvider extends ChangeNotifier {
   final AuthMethod _authMethod = AuthMethod();
   final UserDBService _userDBService = UserDBService();
   final GroupDBService _groupDBService = GroupDBService();
+  final GroupProvider _groupProvider = GroupProvider(); // Initialize GroupProvider
 
   HabitWiseUser? _user;
-  List<HabitWiseGroup> _userGroups = [];
   bool _isLoading = false;
   String _errorMessage = '';
 
   HabitWiseUser? get user => _user;
+  
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   bool get isEmailVerified => _authMethod.getCurrentUser()?.emailVerified ?? false;
-  List<HabitWiseGroup> get userGroups => _userGroups;
-  
+  List<HabitWiseGroup> get userGroups => _groupProvider.userGroups; // Use GroupProvider to access userGroups
+
+ // Add this getter if you want to get the first group ID
+  String? get groupId {
+    if (_groupProvider.userGroups.isNotEmpty) {
+      return _groupProvider.userGroups.first.groupId; // Assuming each group has an 'id'
+    }
+    return null; // If no group is available, return null
+  }
+
   UserProvider() {
     _checkUserSession();
   }
-
-  get groupId => null;
 
   Future<void> _checkUserSession() async {
     _isLoading = true;
@@ -47,57 +56,50 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  void setUser(HabitWiseUser? user) {
-    _user = user;
+  Future<HabitWiseUser?> getUserDetails() async {
+  _isLoading = true;
+  _errorMessage = '';
+  notifyListeners();
+
+  try {
+    final currentUser = _authMethod.getCurrentUser();
+    if (currentUser != null) {
+      final userDetails = await _userDBService.getUserDetailsById(currentUser.uid);
+      if (userDetails != null) {
+        _user = HabitWiseUser.fromMap(userDetails);
+        await _groupProvider.fetchGroups(currentUser.uid); // Fetch user groups from GroupProvider
+      } else {
+        _errorMessage = 'User details not found.';
+      }
+    } else {
+      _errorMessage = 'Current user is null.';
+    }
+  } catch (e) {
+    _errorMessage = 'Error getting user details: ${e.toString()}'; // Consider using e.toString() for better clarity
+  } finally {
+    _isLoading = false;
     notifyListeners();
   }
+}
 
-  Future<bool> reloadAndCheckEmailVerification() async {
-    try {
-      final User? currentUser = _authMethod.getCurrentUser();
-      if (currentUser != null) {
-        await currentUser.reload();
-        User? updatedUser = _authMethod.getCurrentUser();
-        if (updatedUser != null && updatedUser.emailVerified) {
-          _user?.emailVerified = true;
-          notifyListeners();
-          return true;
-        }
-      }
-    } catch (e) {
-      _errorMessage = 'Error reloading and checking email verification: $e';
-      notifyListeners();
-    }
-    return false;
-  }
-
-  Future<HabitWiseUser?> getUserDetails() async {
+   Future<void> fetchUserGroups() async {
     _isLoading = true;
-    _errorMessage = '';
     notifyListeners();
 
     try {
       final currentUser = _authMethod.getCurrentUser();
       if (currentUser != null) {
-        final userDetails = await _userDBService.getUserDetailsById(currentUser.uid);
-        if (userDetails != null) {
-          _user = HabitWiseUser.fromMap(userDetails);
-          await fetchUserGroups();
-        } else {
-          _errorMessage = 'User details not found.';
-        }
+        await _groupProvider.fetchGroups(currentUser.uid); // Fetch user groups from GroupProvider
       } else {
-        _errorMessage = 'Current user is null.';
+        _errorMessage = 'Current user is null, cannot fetch groups.';
       }
     } catch (e) {
-      _errorMessage = 'Error getting user details: $e';
+      _errorMessage = 'Error fetching user groups: $e';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
-    return _user;
   }
-
   Future<void> resendVerificationEmail() async {
     try {
       final User? currentUser = _authMethod.getCurrentUser();
@@ -199,27 +201,11 @@ class UserProvider extends ChangeNotifier {
     try {
       await _authMethod.logout();
       _user = null;
-      _userGroups.clear();
+      _groupProvider.clearUserGroups(); // Clear user groups in GroupProvider
     } catch (e) {
       _errorMessage = 'Error logging out: $e';
     } finally {
       _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> fetchUserGroups() async {
-    try {
-      final userId = _user?.uid;
-      if (userId != null) {
-        _userGroups = await _groupDBService.getAllGroups(userId);
-        notifyListeners();
-      } else {
-        _errorMessage = 'User ID is not available.';
-        notifyListeners();
-      }
-    } catch (e) {
-      _errorMessage = 'Error fetching user groups: $e';
       notifyListeners();
     }
   }
@@ -251,14 +237,6 @@ class UserProvider extends ChangeNotifier {
       default:
         return 'An error occurred.';
     }
-  }
-
-  void _safeNotifyListeners() {
-    Future.microtask(() {
-      if (!_isDisposed) {
-        notifyListeners();
-      }
-    });
   }
 
   bool _isDisposed = false;

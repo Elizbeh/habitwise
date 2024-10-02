@@ -103,7 +103,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               onChanged: (String? value) {
                 setState(() {
                   selectedCategory = value;
-                  selectedTemplate = null; 
+                  selectedTemplate = null;
                   if (value != null && habitTemplates.containsKey(value)) {
                     selectedTemplate = habitTemplates[value]![0];
                     _applyTemplate(selectedTemplate!);
@@ -237,14 +237,14 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 // Add habit using Firebase-generated ID
                 if (widget.isGroupHabit && widget.groupId != null) {
                   await Provider.of<HabitProvider>(context, listen: false)
-                      .addHabit(newHabit, groupId: widget.groupId);
+                      .addHabit(newHabit, groupId: widget.groupId!); // Use addGroupHabit here
                 } else {
                   final userId = Provider.of<UserProvider>(context, listen: false)
                       .user
                       ?.uid;
                   if (userId != null) {
                     await Provider.of<HabitProvider>(context, listen: false)
-                        .addHabit(newHabit);
+                        .addHabit(newHabit); // Use addHabitToUser here
                   }
                 }
 

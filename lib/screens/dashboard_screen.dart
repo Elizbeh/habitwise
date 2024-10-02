@@ -48,7 +48,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
      _checkFirstLogin();
     _confettiController = ConfettiController(duration: const Duration(seconds: 3));
     _confettiController.play();
-    Provider.of<QuoteProvider>(context, listen: false).fetchQuote();
+    // Fetch the quote after a slight delay to ensure the widget is built
+    Future.delayed(Duration.zero, () {
+      Provider.of<QuoteProvider>(context, listen: false).fetchQuote();
+  });
   }
 
   @override
@@ -99,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: 8), // Space between logo and title
             Expanded(
               child: Text(
-                'Dashboard',
+                'HabitWize',
                 style: Theme.of(context).appBarTheme.titleTextStyle,
               ),
             ),
@@ -150,7 +153,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: EdgeInsets.symmetric(horizontal: 2.0, vertical: 16.0),
               child: Consumer2<HabitProvider, GoalProvider>(
                 builder: (context, habitProvider, goalProvider, child) {
-                  final List<Habit> habits = habitProvider.habits;
+                  final List<Habit> habits = habitProvider.personalHabits;
                   final List<Goal> goals = goalProvider.goals;
 
                   return SingleChildScrollView(
@@ -270,16 +273,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: TextStyle(color: Color.fromRGBO(46, 197, 187, 1.0)),
               ),
             SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => CreateGroupScreen()),
-                );
-              },
-              child: Text('Create a group'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color.fromRGBO(46, 197, 187, 1.0),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => CreateGroupScreen()),
+                    );
+                  },
+                  child: Text('Create a group'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromRGBO(46, 197, 187, 1.0),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    _showJoinGroupDialog(context, groupProvider);
+                  },
+                  child: Text('Join a group'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color.fromRGBO(134, 41, 137, 1.0),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -287,6 +304,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
     },
   );
 }
+
+  void _showJoinGroupDialog(BuildContext context, GroupProvider groupProvider) {
+    final TextEditingController groupCodeController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Join a Group'),
+          content: TextField(
+            controller: groupCodeController,
+            decoration: InputDecoration(hintText: "Enter Group Code"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                String groupCode = groupCodeController.text.trim();
+                if (groupCode.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please enter a group code.')),
+                  );
+                  return;
+                }
+
+                // Call the join group method
+                groupProvider.joinGroup(groupCode, widget.user.uid).then((success) {
+                  if (success) {
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Joined group successfully!')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed to join group.')),
+                    );
+                  }
+                });
+              },
+              child: Text('Join'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildGroupCard(
     BuildContext context, HabitWiseGroup group, GroupProvider groupProvider) {

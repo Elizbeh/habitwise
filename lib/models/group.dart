@@ -11,6 +11,8 @@ class HabitWiseGroup {
   final String groupCreator;
   final DateTime creationDate;
   final String description;
+  final String groupCode; 
+  
 
   HabitWiseGroup({
     required this.groupId,
@@ -22,6 +24,7 @@ class HabitWiseGroup {
     required this.groupCreator,
     required this.creationDate,
     required this.description,
+    required this.groupCode,
   });
 
   factory HabitWiseGroup.fromMap(Map<String, dynamic> map) {
@@ -35,6 +38,7 @@ class HabitWiseGroup {
       groupCreator: map['groupCreator'] as String,
       creationDate: (map['creationDate'] as Timestamp).toDate(),
       description: map['description'] as String,
+      groupCode: map['groupCode'] as String,
     );
   }
 
@@ -49,6 +53,7 @@ class HabitWiseGroup {
       'groupCreator': groupCreator,
       'creationDate': Timestamp.fromDate(creationDate),
       'description': description,
+      'groupCode': groupCode,
     };
   }
 
@@ -62,6 +67,7 @@ class HabitWiseGroup {
     List<String>? habits,
     String? groupType,
     String? groupPictureUrl,
+    String? groupCode,
   }) {
     return HabitWiseGroup(
       groupId: groupId ?? this.groupId,
@@ -73,6 +79,17 @@ class HabitWiseGroup {
       groupCreator: groupCreator ?? this.groupCreator, 
       creationDate: creationDate ?? this.creationDate, 
       description: description ?? this.description,
+      groupCode: groupCode ?? this.groupCode,
     );
+  }
+
+   // Method to check if a member is an admin
+  bool isUserAdmin(String userId) {
+    return userId == groupCreator;
+  }
+
+  // Optionally, a method to get the role of a user in the group
+  String getUserRole(String userId, Map<String, String> groupRoles) {
+    return groupRoles[userId] ?? 'member'; // Default role is 'member'
   }
 }

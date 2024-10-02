@@ -1,4 +1,5 @@
-import 'dart:io'; // Required for working with File
+import 'dart:io'; // Required for working with File 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:habitwise/themes/theme.dart'; // Custom theme
 import 'package:habitwise/models/user.dart'; // User model
@@ -65,6 +66,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         groupPictureUrl: '',
         groupCreator: '',
         creationDate: DateTime.now(),
+        groupCode: '',
       );
     }
   }
@@ -108,6 +110,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     return null; // No photo uploaded
   }
 
+ /* // Generates a unique group code
+  String _generateGroupCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    return List.generate(6, (index) => chars[(chars.length * Math.random()).floor()]).join();
+  }
+*/
   // Saves the group data (either creates a new group or updates an existing one)
   Future<void> _saveGroup() async {
     String groupName = _groupNameController.text.trim();
@@ -144,6 +152,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
           members: _group.members.isEmpty ? [currentUser] : _group.members,
           groupCreator: _group.groupCreator.isEmpty ? user.uid : _group.groupCreator,
           creationDate: _group.creationDate,
+          groupCode: _createGroupCode(),
         );
 
         // Create or update group based on context
@@ -246,7 +255,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-                // Input fields for group details
+                                // Input fields for group details
                 _buildTextField(
                   controller: _groupNameController,
                   label: 'Group Name',
@@ -266,10 +275,18 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                   maxLines: 3,
                 ),
                 const SizedBox(height: 10),
+                // Group code section
+                _buildTextField(
+                  controller: TextEditingController(text: _createGroupCode()),
+                  label: 'Group Code',
+                  icon: Icons.vpn_key,
+                  enabled: false, // Disable editing to prevent user changes
+                ),
+                const SizedBox(height: 10),
                 // Group photo section
                 Text(
                   'Group Photo',
-                  style: Theme.of(context).textTheme.subtitle1?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
@@ -333,10 +350,12 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     required String label,
     required IconData icon,
     int maxLines = 1,
+    bool enabled = true,
   }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
+      enabled: enabled,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
@@ -347,4 +366,26 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       ),
     );
   }
+
+// Generates a unique and fun group code
+String _createGroupCode() {
+  // Get first three letters of group type (if available)
+  String groupTypeCode = _groupTypeController.text.length >= 3 
+      ? _groupTypeController.text.substring(0, 3).toUpperCase() 
+      : _groupTypeController.text.toUpperCase();
+
+  // Get first two letters of group name (if available)
+  String groupNameCode = _groupNameController.text.length >= 2 
+      ? _groupNameController.text.substring(0, 2).toUpperCase() 
+      : _groupNameController.text.toUpperCase();
+
+  // Generate a random alphanumeric string of 4 characters
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  final random = Random();
+  String randomCode = List.generate(4, (index) => characters[random.nextInt(characters.length)]).join();
+
+  // Combine the group type, group name, and random code
+  return '$groupTypeCode-$groupNameCode-$randomCode';
+}
+
 }

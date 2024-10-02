@@ -102,7 +102,7 @@ class _HabitScreenState extends State<HabitScreen> {
             title: Align(
               alignment: Alignment.centerLeft, // Align the title to the left
               child: Text(
-                'Habits',
+                'Routine Builder',
                 style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
               ),
             ),
@@ -195,7 +195,7 @@ class _HabitScreenState extends State<HabitScreen> {
                 Expanded(
                   child: Consumer<HabitProvider>(
                     builder: (context, habitProvider, child) {
-                      final filteredHabits = _sortAndFilterHabits(habitProvider.habits);
+                      final filteredHabits = _sortAndFilterHabits(habitProvider.personalHabits);
                       if (filteredHabits.isEmpty) {
                         return Center(child: Text('No habits found for the selected criteria.'));
                       }
@@ -210,7 +210,7 @@ class _HabitScreenState extends State<HabitScreen> {
                             leadingIcon: leadingIcon,
                             onCompleted: () {
                               // Function to mark habit as completed
-                              habitProvider.markHabitAsComplete(widget.groupId, habit.id);
+                              habitProvider.markHabitAsComplete(habit.id, groupId: '' );
                             },
                           );
                         },

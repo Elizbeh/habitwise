@@ -6,14 +6,10 @@ import '../dashboard_screen.dart';
 import '../../methods/auth_methods.dart';
 
 class LoginScreen extends StatefulWidget {
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
   final Function(String username) onLoginSuccess;
 
   const LoginScreen({
     super.key,
-    required this.emailController,
-    required this.passwordController,
     required this.onLoginSuccess,
   });
 
@@ -23,12 +19,27 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthMethod _authMethod = AuthMethod(); // Private instance of AuthMethod
+  late TextEditingController _emailController; // Initialize email controller
+  late TextEditingController _passwordController; // Initialize password controller
   bool obscureText = true; // Initial state for password field
   bool _isLoading = false; // Initial state for loading indicator
   bool _isHovering = false; // Initial state for hover
   String _message = ''; // Variable to hold 
   Color _messageColor = Colors.transparent;
-  
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(); // Instantiate email controller
+    _passwordController = TextEditingController(); // Instantiate password controller
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose(); // Dispose controllers to avoid memory leaks
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,25 +54,22 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Text(
                   'HabitWise',
                   style: TextStyle(
-                    color:Color.fromRGBO(134, 41, 137, 1.0),
-                    fontWeight: FontWeight.bold,                  fontSize: 34,
+                    color: Color.fromRGBO(134, 41, 137, 1.0),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 34,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Image.asset(
                   'assets/images/logo.png',
                   width: 50,
                   height: 50,
                 ),
-                
                 const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Text(
                     'Build habits, reach goals. Log in to begin.',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -75,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: const EdgeInsets.all(10),
                           child: Text(
                             _message,
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                             ),
@@ -85,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Tooltip(
                         message: 'Enter your email address',
                         child: TextField(
-                          controller: widget.emailController,
+                          controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             hintText: 'Email',
@@ -105,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Tooltip(
                         message: 'Enter your password',
                         child: TextField(
-                          controller: widget.passwordController,
+                          controller: _passwordController,
                           obscureText: obscureText,
                           decoration: InputDecoration(
                             hintText: 'Password',
@@ -126,194 +134,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: () {
                                 setState(() {
                                   obscureText = !obscureText;
-                               });
+                                });
                               },
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 48),
-                      Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.symmetric(horizontal: 20),
-                        child: MouseRegion(
-                          onEnter: (_) => setState(() => _isHovering = true),
-                          onExit: (_) => setState(() => _isHovering = false),
-                          child: InkWell(
-                            onTap: _isLoading
-                                ? null
-                                : () async {
-                                    String email = widget.emailController.text.trim();
-                                    String password = widget.passwordController.text.trim();
-
-                                    if (email.isEmpty || password.isEmpty) {
-                                      setState(() {
-                                        _message = 'Please fill in all fields';
-                                        _messageColor = Colors.red;
-                                      });
-                                      return;
-                                    }
-
-                                    setState(() {
-                                      _isLoading = true;
-                                    });
-
-                                    // Authenticate user using email and password
-                                    AuthResult loginResult = await _authMethod.login(
-                                      email: email,
-                                      password: password,
-                                    );
-
-                                    if (loginResult == AuthResult.success) {
-                                      UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
-                                      HabitWiseUser? user = await userProvider.getUserDetails();
-
-                                      if (user != null) {
-                                        if (user.emailVerified) {
-                                          await widget.onLoginSuccess(user.username);
-                                          Navigator.of(context).pushReplacement(
-                                            MaterialPageRoute(
-                                              builder: (context) => DashboardScreen(
-                                                 user: user,
-                                                groupId: user.groupIds.isNotEmpty ? user.groupIds[0] : '',
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          setState(() {
-                                            _message = 'Please verify your email address.';
-                                            _messageColor = Colors.red;
-                                          });
-                                        }
-                                      } else {
-                                        setState(() {
-                                          _message = 'User not found. Please sign up.';
-                                          _messageColor = Colors.red;
-                                        });
-                                        Navigator.pushNamed(context, '/signup');
-                                      }
-                                    } else {
-                                      setState(() {
-                                        _message = _getErrorMessage(loginResult);
-                                        _messageColor = Colors.red;
-                                      });
-                                    }
-
-                                    setState(() {
-                                      _isLoading = false;
-                                    });
-                                  },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeInOut,
-                              decoration: BoxDecoration(
-                                color: _isHovering
-                                    ? Color.fromRGBO(46, 197, 187, 1.0)
-                                    : Color.fromRGBO(134, 41, 137, 1.0),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: const Center(
-                                child: Text(
-                                  'Log in',
-                                  style: TextStyle(color: Colors.white, fontSize: 24),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      _buildLoginButton(context),
                       const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Forgot your login details? ",
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/forgot_password');
-                            },
-                            child: const Text(
-                              'Get help logging in',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                                color: Color.fromRGBO(46, 197, 187, 1.0)
-,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "Don't have an account? ",
-                            style: TextStyle(fontSize: 18),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/signup');
-                            },
-                            child: const Text(
-                              'Sign up',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                                color: Color.fromRGBO(134, 41, 137, 1.0),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(child: Divider()),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: Text(
-                              "OR",
-                              style: TextStyle(
-                                color: Color.fromRGBO(46, 197, 187, 1.0),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Expanded(child: Divider()),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          // Implement Google sign-in logic here: TO DO
-                        },
-                        icon: Image.asset(
-                          'assets/images/google_icon.png',
-                          width: 24,
-                          height: 24,
-                          semanticLabel: 'Google logo',
-                        ),
-                        label: const Text(
-                          'Sign in with Google',
-                          style: TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.black,
-                          backgroundColor: Colors.white,
-                          minimumSize: const Size(double.infinity, 50),
-                          side: const BorderSide(color: Colors.grey),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
+                      _buildFooterButtons(context),
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -333,7 +163,138 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // Helper method to get the error message
+  Widget _buildLoginButton(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _isHovering = true),
+        onExit: (_) => setState(() => _isHovering = false),
+        child: InkWell(
+          onTap: _isLoading ? null : () => _handleLogin(context),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            decoration: BoxDecoration(
+              color: _isHovering
+                  ? Color.fromRGBO(46, 197, 187, 1.0)
+                  : Color.fromRGBO(134, 41, 137, 1.0),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: const Center(
+              child: Text(
+                'Log in',
+                style: TextStyle(color: Colors.white, fontSize: 24),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooterButtons(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Forgot your login details? "),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/forgot_password');
+              },
+              child: const Text(
+                'Get help logging in',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Color.fromRGBO(46, 197, 187, 1.0),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const Divider(),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text("Don't have an account? "),
+            TextButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/signup');
+              },
+              child: const Text(
+                'Sign up',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Color.fromRGBO(134, 41, 137, 1.0),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _handleLogin(BuildContext context) async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _message = 'Please fill in all fields';
+        _messageColor = Colors.red;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    AuthResult loginResult = await _authMethod.login(
+      email: email,
+      password: password,
+    );
+
+    if (loginResult == AuthResult.success) {
+      UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.getUserDetails();
+      HabitWiseUser? user = userProvider.user;
+
+      if (user != null && user.emailVerified) {
+        await userProvider.fetchUserGroups();
+        await widget.onLoginSuccess(user.username);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(
+              user: user,
+              groupId: user.groupIds.isNotEmpty ? user.groupIds[0] : '',
+            ),
+          ),
+        );
+      } else {
+        setState(() {
+          _message = 'Please verify your email address.';
+          _messageColor = Colors.red;
+        });
+      }
+    } else {
+      setState(() {
+        _message = _getErrorMessage(loginResult);
+        _messageColor = Colors.red;
+      });
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
   String _getErrorMessage(AuthResult result) {
     switch (result) {
       case AuthResult.invalidInput:

@@ -101,7 +101,7 @@ void initState() {
     Widget build(BuildContext context) {
       return MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => GoalProvider(groupId: group?.groupId)),
+          ChangeNotifierProvider(create: (_) => GoalProvider( groupId: group?.groupId, userId: widget.user.uid)),
           ChangeNotifierProvider(create: (_) => HabitProvider()),
           ChangeNotifierProvider(create: (_) => GroupProvider()),
           ],
@@ -113,7 +113,7 @@ void initState() {
                 onPressed: () => Navigator.of(context).pop(),
               ),
               title: Text(
-              ' ${group?.groupType ?? 'No Group Name'}',
+              ' ${group?.groupName?? 'No Group Name'}',
               style: TextStyle(
                 color: Colors.white, 
                 fontSize: 20, 
@@ -153,78 +153,60 @@ void initState() {
                   children: [
                     // Banner below AppBar
                     Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          width: 2.0, // Adjust the thickness here
-                          color: Colors.transparent, // Use transparent to let the gradient show through
-                        ),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(20.0), // Adjust radius as needed
-                          bottomRight: Radius.circular(20.0),
-                        ),
-                        // This is the gradient border effect
-                        gradient: LinearGradient(
-                          colors: [
-                            Color.fromRGBO(134, 41, 137, 1.0),
-                            Color.fromRGBO(181, 58, 185, 1),
-                            Color.fromRGBO(46, 197, 187, 1.0),
-                          ],
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: Container(
-                        // Inner container that will have a transparent background
-                        decoration: BoxDecoration(
-                          color: Colors.transparent, // Make the inner area transparent
-                          borderRadius: BorderRadius.only(
-                            bottomLeft: Radius.circular(20.0), // Same radius as gradient border
-                            bottomRight: Radius.circular(20.0),
-                          ),
-                        ),
-                        padding: EdgeInsets.all(8.0), // Inner padding
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Profile Picture Section
-                            CircleAvatar(
-                              radius: 70,
-                              backgroundImage: group!.groupPictureUrl != null && group!.groupPictureUrl!.isNotEmpty
-                                  ? NetworkImage(group!.groupPictureUrl!) as ImageProvider<Object>
-                                  : const AssetImage('assets/images/default_profilePic.png'),
-                            ),
-                            SizedBox(width: 8.0),
-                            Expanded(
-                              child: GroupInfoSection(
-                                group: group!,
-                                creatorName: creatorName,
-                                isCreator: isCreator,
-                                onMemberRemoved: (memberId) {
-                                  // Handle member removal here
-                                },
-                                onEditGroupInfo: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CreateGroupScreen(
-                                        groupToEdit: group,
-                                        onGroupUpdated: () {
-                                          setState(() {
-                                            // Update UI
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+  width: double.infinity,
+  padding: EdgeInsets.all(8.0),
+  decoration: BoxDecoration(
+    gradient: LinearGradient(
+      colors: [
+        Color.fromRGBO(134, 41, 137, 1.0), // Start color
+        Color.fromRGBO(46, 197, 187, 1.0), // End color
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    ),
+    borderRadius: BorderRadius.only(
+      bottomLeft: Radius.circular(30.0),
+      bottomRight: Radius.circular(30.0),
+    ),
+    border: Border.all(
+      color: Colors.transparent, // No background color for the border itself
+      width: 1.0, // Set the thickness of the border
+    ),
+  ),
+  child: Container(
+    // This inner container provides the transparent background effect
+    decoration: BoxDecoration(
+      color: Colors.transparent, // Outer container transparent
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(30.0),
+        bottomRight: Radius.circular(30.0),
+      ),
+    ),
+    child: GroupInfoSection(
+      group: group!,
+      creatorName: creatorName,
+      isCreator: isCreator,
+      onMemberRemoved: (memberId) {
+        // Handle member removal here
+      },
+      onEditGroupInfo: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateGroupScreen(
+              groupToEdit: group,
+              onGroupUpdated: () {
+                setState(() {
+                  // Update UI
+                });
+              },
+            ),
+          ),
+        );
+      },
+    ),
+  ),
+),
                
                     Expanded(
                       child: Padding(

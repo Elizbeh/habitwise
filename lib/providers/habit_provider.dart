@@ -4,93 +4,132 @@ import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/services/habit_db_service.dart';
 
 class HabitProvider extends ChangeNotifier {
-  List<Habit> _habits = [];
+  List<Habit> _personalHabits = [];
+  List<Habit> _groupHabits = [];
   final HabitDBService _habitDBService = HabitDBService();
-  StreamSubscription? _habitsSubscription;
+  StreamSubscription? _personalHabitsSubscription;
+  StreamSubscription? _groupHabitsSubscription;
 
+  // List to store achievements
   List<Map<String, dynamic>> achievements = [];
 
-  List<Habit> get habits => _habits;
+  // Getters for habits
+  List<Habit> get personalHabits => _personalHabits;
+  List<Habit> get groupHabits => _groupHabits;
 
-  // Initialize habits based on groupId
-  void initializeHabits(String? groupId) {
-    _habitsSubscription?.cancel();
+  // Initialize habits for personal or group based on groupId
+  void initializeHabits({String? groupId}) {
     if (groupId != null && groupId.isNotEmpty) {
-      _habitsSubscription = _habitDBService.getGroupHabitsStream(groupId).listen((fetchHabits) {
-        _habits = fetchHabits;
-        _checkAchievements();
-        notifyListeners();
-      });
+      // Fetch group habits if groupId is provided
+      _initializeGroupHabits(groupId);
     } else {
-      // Listen for individual habits
-      _habitsSubscription = _habitDBService.getUserHabitsStream().listen((fetchHabits) {
-        _habits = fetchHabits;
-        _checkAchievements();
-        notifyListeners();
-      });
+      // Fetch personal habits
+      _initializePersonalHabits();
     }
+  }
+
+  // Initialize personal habits
+  void _initializePersonalHabits() {
+    _personalHabitsSubscription?.cancel(); // Cancel any existing subscription
+    _personalHabitsSubscription = _habitDBService.getUserHabitsStream().listen((fetchHabits) {
+      _personalHabits = fetchHabits;
+      _checkAchievements();
+      notifyListeners();
+    });
+  }
+
+  // Initialize group habits
+  void _initializeGroupHabits(String groupId) {
+    _groupHabitsSubscription?.cancel(); // Cancel any existing subscription
+    _groupHabitsSubscription = _habitDBService.getGroupHabitsStream(groupId).listen((fetchHabits) {
+      _groupHabits = fetchHabits;
+      notifyListeners();
+    });
   }
 
   @override
   void dispose() {
-    _habitsSubscription?.cancel();
+    _personalHabitsSubscription?.cancel();
+    _groupHabitsSubscription?.cancel();
     super.dispose();
   }
 
-  // Adding a habit either to a group or to the user
+  // Add a habit either to a group or to the user
   Future<void> addHabit(Habit habit, {String? groupId}) async {
     if (groupId != null && groupId.isNotEmpty) {
       // If groupId is provided, add to the group habits
-      _habits.add(habit); // Update local state
+      _groupHabits.add(habit); // Update local state
       await _habitDBService.addHabitToGroup(groupId, habit);
     } else {
-      // If no groupId, add to user's habits
+      // If no groupId, add to user's personal habits
+      _personalHabits.add(habit); // Update local state
       await _habitDBService.addHabitToUser(habit);
     }
     _checkAchievements();
     notifyListeners();
   }
 
-  Future<void> fetchHabits() async {
-    _habits.clear();
-    notifyListeners();
-  }
-
-  void removeHabit(String groupId, String habitId) {
-    _habits.removeWhere((habit) => habit.id == habitId);
-    _habitDBService.removeHabit(groupId, habitId);
+  // Remove a habit from personal or group habits
+  Future<void> removeHabit(String habitId, {String? groupId}) async {
+    if (groupId != null && groupId.isNotEmpty) {
+      _groupHabits.removeWhere((habit) => habit.id == habitId);
+      await _habitDBService.removeHabitFromGroup(groupId, habitId);
+    } else {
+      _personalHabits.removeWhere((habit) => habit.id == habitId);
+      await _habitDBService.removeHabitFromUser(habitId);
+    }
     _checkAchievements();
     notifyListeners();
   }
 
-  void updateHabit(String groupId, String habitId, Habit updatedHabit) {
-    final index = _habits.indexWhere((habit) => habit.id == habitId);
-    if (index != -1) {
-      _habits[index] = updatedHabit;
-      _habitDBService.updateHabit(groupId, updatedHabit);
-      _checkAchievements();
-      notifyListeners();
+  // Update a habit in personal or group habits
+  Future<void> updateHabit(Habit updatedHabit, {String? groupId}) async {
+    if (groupId != null && groupId.isNotEmpty) {
+      final index = _groupHabits.indexWhere((habit) => habit.id == updatedHabit.id);
+      if (index != -1) {
+        _groupHabits[index] = updatedHabit;
+        await _habitDBService.updateHabitInGroup(groupId, updatedHabit);
+      }
+    } else {
+      final index = _personalHabits.indexWhere((habit) => habit.id == updatedHabit.id);
+      if (index != -1) {
+        _personalHabits[index] = updatedHabit;
+        await _habitDBService.updateHabitInUser(updatedHabit);
+      }
+    }
+    _checkAchievements();
+    notifyListeners();
+  }
+
+  // Mark a habit as complete in personal or group habits
+  void markHabitAsComplete(String habitId, {String? groupId}) {
+    if (groupId != null && groupId.isNotEmpty) {
+      final habit = _groupHabits.firstWhere((habit) => habit.id == habitId);
+      final updatedHabit = habit.complete();
+      updateHabit(updatedHabit, groupId: groupId);
+    } else {
+      final habit = _personalHabits.firstWhere((habit) => habit.id == habitId);
+      final updatedHabit = habit.complete();
+      updateHabit(updatedHabit);
     }
   }
 
-  void markHabitAsComplete(String groupId, String habitId) {
-    final habit = getHabitById(habitId);
-    final updatedHabit = habit.complete();
-    updateHabit(groupId, habitId, updatedHabit);
+  // Increment progress for a habit in personal or group habits
+  void incrementHabitProgress(String habitId, {String? groupId}) {
+    if (groupId != null && groupId.isNotEmpty) {
+      final habit = _groupHabits.firstWhere((habit) => habit.id == habitId);
+      final updatedHabit = habit.incrementProgress();
+      updateHabit(updatedHabit, groupId: groupId);
+    } else {
+      final habit = _personalHabits.firstWhere((habit) => habit.id == habitId);
+      final updatedHabit = habit.incrementProgress();
+      updateHabit(updatedHabit);
+    }
   }
 
-  Habit getHabitById(String id) {
-    return _habits.firstWhere((habit) => habit.id == id, orElse: () => throw Exception('Habit not found'));
-  }
-
-  void incrementHabitProgress(String groupId, String habitId) {
-    final habit = getHabitById(habitId);
-    final updatedHabit = habit.incrementProgress();
-    updateHabit(groupId, habitId, updatedHabit);
-  }
-
+  // Check and update achievements
   void _checkAchievements() {
-    final completedHabitsCount = _habits.where((habit) => habit.isCompleted).length;
+    final completedHabitsCount = _personalHabits.where((habit) => habit.isCompleted).length;
     achievements.clear();
 
     if (completedHabitsCount >= 1) {
@@ -119,7 +158,4 @@ class HabitProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-
-
-  
 }

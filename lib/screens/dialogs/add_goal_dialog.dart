@@ -30,71 +30,75 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
 
   // Function to add a goal
   void _addGoal(BuildContext context) async {
-    // Ensure all fields are filled before adding the goal
-    if (_titleController.text.isNotEmpty &&
-        _descriptionController.text.isNotEmpty &&
-        _selectedCategory.isNotEmpty &&
-        _targetController.text.isNotEmpty &&
-        _selectedDate != null &&
-        _selectedTime != null) {
+  // Ensure all fields are filled before adding the goal
+  if (_titleController.text.isNotEmpty &&
+      _descriptionController.text.isNotEmpty &&
+      _selectedCategory.isNotEmpty &&
+      _targetController.text.isNotEmpty &&
+      _selectedDate != null &&
+      _selectedTime != null) {
 
-      // Constructing the target date and time
-      final DateTime targetDate = DateTime(
-        _selectedDate!.year,
-        _selectedDate!.month,
-        _selectedDate!.day,
-        _selectedTime!.hour,
-        _selectedTime!.minute,
-      );
+    // Constructing the target date and time
+    final DateTime targetDate = DateTime(
+      _selectedDate!.year,
+      _selectedDate!.month,
+      _selectedDate!.day,
+      _selectedTime!.hour,
+      _selectedTime!.minute,
+    );
 
-      // Creating the goal object
-      final Goal goal = Goal(
-        title: _titleController.text,
-        description: _descriptionController.text,
-        category: _selectedCategory,
-        targetDate: targetDate,
-        target: int.parse(_targetController.text),
-        id: UniqueKey().toString(),
-        priority: 0,
-        progress: 0,
-        endDate: targetDate,
-        isCompleted: false,
-      );
+    // Creating the goal object
+    final Goal goal = Goal(
+      title: _titleController.text,
+      description: _descriptionController.text,
+      category: _selectedCategory,
+      targetDate: targetDate,
+      target: int.parse(_targetController.text),
+      id: UniqueKey().toString(),
+      priority: 0,
+      progress: 0,
+      endDate: targetDate, // Assuming endDate is the same as targetDate
+      isCompleted: false,
+    );
 
-      // Check if the goal is being added to a group
-      if (widget.groupId.isNotEmpty) {
-        try {
-          await Provider.of<GoalProvider>(context, listen: false)
-              .addGoalToGroup(goal, widget.groupId); // Add goal to group
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Goal added to group successfully!')));
-        } catch (error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error adding goal to group: $error')));
-        }
-      } else {
-        // If not adding to a group, add to individual goals
-        try {
-          await Provider.of<GoalProvider>(context, listen: false).addGoal(goal);
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Goal added successfully!')));
-        } catch (error) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('Error adding goal: $error')));
-        }
+    // Check if the goal is being added to a group
+    if (widget.groupId.isNotEmpty) {
+      try {
+        await Provider.of<GoalProvider>(context, listen: false)
+            .addGoalToGroup(goal, widget.groupId); // Add goal to group
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Goal added to group successfully!')));
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error adding goal to group: $error')));
       }
-
-      // Clear input fields after adding the goal
-      _titleController.clear();
-      _descriptionController.clear();
-      _targetController.clear();
-      _selectedCategory = '';
-      _selectedTemplate = null;
-
-      // Close the dialog
-      Navigator.pop(context);
+    } else {
+      // If not adding to a group, add to individual goals
+      try {
+        await Provider.of<GoalProvider>(context, listen: false).addGoal(goal);
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Goal added successfully!')));
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error adding goal: $error')));
+      }
     }
+
+    // Clear input fields after adding the goal
+    _titleController.clear();
+    _descriptionController.clear();
+    _targetController.clear();
+    _selectedCategory = '';
+    _selectedTemplate = null; // Assuming this resets the selected template
+
+    // Close the dialog
+    Navigator.pop(context);
+  } else {
+    // If any field is empty, show a warning message
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please fill in all fields.')));
   }
+}
 
   // Function to select a date
   Future<void> _selectDate(BuildContext context) async {
@@ -131,7 +135,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
         side: BorderSide(color: primaryColor, width: 3.0),
         borderRadius: BorderRadius.circular(12.0), // Rounded dialog corners
       ),
-      backgroundColor: Color.fromRGBO(230, 230, 250, 1.0), // Light background color
+      backgroundColor: Colors.white, // Light background color
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

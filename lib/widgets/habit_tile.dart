@@ -5,13 +5,13 @@ import 'package:habitwise/providers/habit_provider.dart';
 
 class HabitTile extends StatefulWidget {
   final Habit habit;
-  final String groupId;
+  final String? groupId; // Make groupId nullable for individual habits
   final IconData leadingIcon;
   final VoidCallback? onCompleted; // Callback to handle completion
 
   const HabitTile({
-    required this.groupId,
     required this.habit,
+    this.groupId, // Nullable for individual habits
     required this.leadingIcon,
     this.onCompleted,
   });
@@ -23,7 +23,7 @@ class HabitTile extends StatefulWidget {
 class _HabitTileState extends State<HabitTile> {
   void _updateProgress(int increment) {
     final habitProvider = Provider.of<HabitProvider>(context, listen: false);
-    habitProvider.incrementHabitProgress(widget.groupId, widget.habit.id);
+    habitProvider.incrementHabitProgress(widget.habit.id, groupId: widget.groupId); // Pass groupId if available
   }
 
   @override
@@ -100,14 +100,14 @@ class _HabitTileState extends State<HabitTile> {
               icon: const Icon(Icons.delete),
               onPressed: () {
                 Provider.of<HabitProvider>(context, listen: false)
-                    .removeHabit(widget.groupId, widget.habit.id); // Remove habit from provider
+                    .removeHabit(widget.habit.id, groupId: widget.groupId); // Remove habit from provider
               },
             ),
             IconButton(
               icon: const Icon(Icons.check_circle),
               onPressed: () {
                 Provider.of<HabitProvider>(context, listen: false)
-                    .markHabitAsComplete(widget.groupId, widget.habit.id); // Mark habit as complete
+                    .markHabitAsComplete(widget.habit.id, groupId: widget.groupId); // Mark habit as complete
                 if (widget.onCompleted != null) {
                   widget.onCompleted!(); // Invoke onCompleted callback
                 }
@@ -193,9 +193,8 @@ class _HabitTileState extends State<HabitTile> {
                       category: selectedCategory,
                     );
                     Provider.of<HabitProvider>(context, listen: false).updateHabit(
-                      widget.groupId,
-                      habit.id,
                       updatedHabit,
+                      groupId: widget.groupId, // Pass groupId if available
                     ); // Update habit in provider
                     Navigator.pop(context);
                   },

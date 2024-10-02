@@ -27,32 +27,28 @@ class AuthMethod {
   final UserDBService _userDBService = UserDBService();
 
   Future<AuthResult> login({required String email, required String password}) async {
-    try {
-      UserCredential authResult = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  try {
+    UserCredential authResult = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      User? user = authResult.user;
-      if (user != null) {
-        await user.reload(); // Ensure we have the latest information
-        user = _auth.currentUser; // Refresh user object
-        if (user != null && user.emailVerified) {
-          return AuthResult.success;
-        } else {
-          return AuthResult.emailNotVerified;
-        }
-      } else {
-        return AuthResult.unknownError;
-      }
-    } on FirebaseAuthException catch (e) {
-      logger.e('Firebase Auth Error: ${e.message}');
-      return _handleFirebaseAuthError(e);
-    } catch (e) {
-      logger.e('Error signing in: $e');
-      return AuthResult.unknownError;
+    User? user = authResult.user;
+    if (user != null) {
+      await user.reload(); // Ensure we have the latest information
+      // Reload user again to get updated status
+      user = _auth.currentUser; 
+      return user!.emailVerified ? AuthResult.success : AuthResult.emailNotVerified;
     }
+    return AuthResult.unknownError;
+  } on FirebaseAuthException catch (e) {
+    logger.e('Firebase Auth Error: ${e.message}');
+    return _handleFirebaseAuthError(e);
+  } catch (e) {
+    logger.e('Error signing in: $e');
+    return AuthResult.unknownError;
   }
+}
 
   Future<AuthResult> signUpUser({
     required String email,
@@ -90,6 +86,7 @@ class AuthMethod {
           habits: [],
           soloStats: {},
           groupIds: [],
+          groupRoles: {},
           canCreateGroup: false,
           canJoinGroups: true,
           emailVerified: false,

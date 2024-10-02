@@ -2,18 +2,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:habitwise/models/goal.dart';
 
 class GoalDBService {
-  // Collection reference for individual goals
-  final CollectionReference goalCollection =
-      FirebaseFirestore.instance.collection('goals');
-
   // Collection reference for groups
   final CollectionReference groupCollection =
       FirebaseFirestore.instance.collection('groups');
 
-  // Add an individual goal to the 'goals' collection
-  Future<void> addGoal(Goal goal) async {
+  /// Adds a goal to the user's goals collection
+Future<void> addUserGoal(String userId, Goal goal) async {
+  try {
+    await FirebaseFirestore.instance.collection('users').doc(userId).collection('goals').add(goal.toMap());
+  } catch (error) {
+    print("Error adding goal to Firestore: $error");
+    throw error; // Rethrow the error to handle it in the caller
+  }
+}
+
+
+  // Add an individual goal to the user's 'goals' subcollection
+  Future<void> addGoal(String userId, Goal goal) async {
     try {
-      await goalCollection.doc(goal.id).set(goal.toMap());
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goal.id)
+          .set(goal.toMap());
     } catch (error) {
       print("Error adding individual goal: $error");
       throw error; // Re-throwing error to handle it at the call site
@@ -34,6 +46,20 @@ class GoalDBService {
     }
   }
 
+  // Fetch user goals from the user's 'goals' subcollection
+  Stream<List<Goal>> getUserGoalsStream(String userId) {
+    return FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('goals')
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => Goal.fromMap(doc.data() as Map<String, dynamic>))
+              .toList();
+        });
+  }
+
   // Fetch group goals from the group's 'goals' subcollection
   Stream<List<Goal>> getGroupGoalsStream(String groupId) {
     return groupCollection
@@ -47,19 +73,15 @@ class GoalDBService {
         });
   }
 
-  // Fetch all individual goals from the 'goals' collection
-  Stream<List<Goal>> getGoals() {
-    return goalCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return Goal.fromMap(doc.data() as Map<String, dynamic>);
-      }).toList();
-    });
-  }
-
-  // Remove an individual goal from the 'goals' collection
-  Future<void> removeGoal(String goalId) async {
+  // Remove an individual goal from the user's 'goals' subcollection
+  Future<void> removeGoal(String userId, String goalId) async {
     try {
-      await goalCollection.doc(goalId).delete();
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
+          .delete();
     } catch (error) {
       print("Error removing individual goal: $error");
       throw error; // Re-throwing error to handle it at the call site
@@ -80,15 +102,21 @@ class GoalDBService {
     }
   }
 
-  // Update an individual goal in the 'goals' collection
-  Future<void> updateGoal(Goal updatedGoal) async {
+  // Update an individual goal in the user's 'goals' subcollection
+  Future<void> updateGoal(String userId, Goal updatedGoal) async {
     try {
-      await goalCollection.doc(updatedGoal.id).update(updatedGoal.toMap());
+      await FirebaseFirestore.instance
+          .collection('users') // Access the users collection
+          .doc(userId) // Reference the specific user document
+          .collection('goals') // Access the user's goals subcollection
+          .doc(updatedGoal.id) // Reference the goal document by ID
+          .update(updatedGoal.toMap()); // Update the goal using its map representation
     } catch (error) {
       print("Error updating individual goal: $error");
       throw error; // Re-throwing error to handle it at the call site
     }
   }
+
 
   // Update a group goal in the group's 'goals' subcollection
   Future<void> updateGroupGoal(String groupId, Goal updatedGoal) async {
@@ -105,9 +133,14 @@ class GoalDBService {
   }
 
   // Mark an individual goal as completed
-  Future<void> markGoalAsCompleted(String goalId) async {
+  Future<void> markGoalAsCompleted(String userId, String goalId) async {
     try {
-      await goalCollection.doc(goalId).update({'isCompleted': true});
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('goals')
+          .doc(goalId)
+          .update({'isCompleted': true});
     } catch (error) {
       print("Error marking individual goal as completed: $error");
       throw error; // Re-throwing error to handle it at the call site

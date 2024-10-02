@@ -104,12 +104,12 @@ class _EditHabitDialogState extends State<EditHabitDialog> {
       try {
         if (widget.isGroupHabit) {
           Provider.of<HabitProvider>(context, listen: false)
-              .updateHabit(widget.groupId!, widget.habit.id, updatedHabit); // Update group habit
+              .updateHabit(updatedHabit, groupId: widget.groupId); // Update group habit
         } else {
           final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
           if (userId != null) {
             Provider.of<HabitProvider>(context, listen: false)
-                .updateHabit(userId, widget.habit.id, updatedHabit); // Update user habit
+                .updateHabit(updatedHabit, groupId: ''); // Update user habit
           }
         }
 

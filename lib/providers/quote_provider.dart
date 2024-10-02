@@ -1,3 +1,4 @@
+// QuoteProvider.dart
 import 'package:flutter/material.dart';
 import 'package:habitwise/services/quote_service.dart';
 
@@ -11,7 +12,7 @@ class QuoteProvider extends ChangeNotifier {
     try {
       _quote = await _quoteService.fetchQuote();
     } catch (e) {
-      _quote = 'Failed to load quote';
+      _quote = 'Failed to load quote: $e'; // Include the error message
     }
     notifyListeners();
   }

@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             final groupId = userProvider.groupId; // Ensure this getter is defined
 
             if (user != null) {
-              return DashboardScreen(user: user, groupId: groupId);
+              return DashboardScreen(user: user, groupId: groupId!);
             } else {
               return LandingPage(
                 onThemeChanged: () {},

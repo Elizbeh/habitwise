@@ -103,7 +103,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final habitProvider = Provider.of<HabitProvider>(context, listen: false);
     final goalProvider = Provider.of<GoalProvider>(context, listen: false);
 
-    final completedHabits = habitProvider.habits.where((habit) => habit.isCompleted).length;
+    final completedHabits = habitProvider.personalHabits.where((habit) => habit.isCompleted).length;
     final completedGoals = goalProvider.goals.where((goal) => goal.isCompleted).length;
 
     print('Completed Habits: $completedHabits');
@@ -317,8 +317,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildHabitStats(BuildContext context) {
     return Consumer<HabitProvider>(
       builder: (context, provider, child) {
-        final totalHabits = provider.habits.length;
-        final completedHabits = provider.habits.where((habit) => habit.isCompleted).length;
+        final totalHabits = provider.personalHabits.length;
+        final completedHabits = provider.personalHabits.where((habit) => habit.isCompleted).length;
         final inProgressHabits = totalHabits - completedHabits;
 
         return Column(
