@@ -11,12 +11,8 @@ class GroupDBService {
 
   Future<String> createGroup(HabitWiseGroup group) async {
     try {
-      // Convert the group to a map and add it to Firestore
       DocumentReference docRef = await groupsCollection.add(group.toMap());
-
-      // Update the document with the groupId
       await docRef.update({'groupId': docRef.id});
-
       return docRef.id;
     } catch (e) {
       print('Error creating group: $e');
@@ -41,36 +37,24 @@ class GroupDBService {
     }
   }
 
-  Future<HabitWiseGroup> getGroupById(String groupId) async {
-    try {
-      DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
-      if (doc.exists) {
-        return HabitWiseGroup.fromMap(doc.data() as Map<String, dynamic>);
-      } else {
-        throw Exception('Group not found');
-      }
-    } catch (e) {
-      print('Error fetching group by ID: $e');
-      throw e;
-    }
-  }
-
-  Future<void> updateGroup(HabitWiseGroup group) async {
-    await groupsCollection.doc(group.groupId).update(group.toMap());
-  }
-
-  Future<void> joinGroup(String groupId, String userId) async {
+  Future<void> joinGroup(String groupId, String userId, Member newMember) async {
+  try {
     await groupsCollection.doc(groupId).update({
-      'members': FieldValue.arrayUnion([userId])
+      'members': FieldValue.arrayUnion([newMember.toMap()]) // Add serialized Member object
     });
+    await _memberDBService.addMemberToGroup(groupId, newMember);
+  } catch (e) {
+    print('Error joining group: $e');
+    throw e;
   }
+}
+
 
   Future<void> leaveGroup(String groupId, String userId) async {
     await groupsCollection.doc(groupId).update({
       'members': FieldValue.arrayRemove([userId])
     });
   }
-  
 
   Future<void> deleteGroup(String groupId) async {
     try {
@@ -91,34 +75,11 @@ class GroupDBService {
     }
   }
 
-  Future<void> addHabitToGroup(String groupId, String habit) async {
-    try {
-      await groupsCollection.doc(groupId).update({
-        'habits': FieldValue.arrayUnion([habit]),
-      });
-    } catch (e) {
-      print('Error adding habit to group: $e');
-      throw e;
-    }
-  }
-
-  Future<void> updateGroupPicture(String groupId, String imageUrl) async {
-    try {
-      await groupsCollection.doc(groupId).update({
-        'groupPictureUrl': imageUrl,
-      });
-    } catch (e) {
-      print('Error updating group picture URL: $e');
-      throw e;
-    }
-  }
-
   Future<List<String>> getGroupGoals(String groupId) async {
     try {
       DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
       if (doc.exists) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        print('Group goals data: ${data['goals']}');  // Debugging line
         return List<String>.from(data['goals'] ?? []);
       } else {
         throw Exception('Group not found');
@@ -129,46 +90,33 @@ class GroupDBService {
     }
   }
 
-  Future<HabitWiseGroup?> getGroupByCode(String groupCode) async {
+  Future<List<Member>> getGroupMembers(String groupId) async {
   try {
-    // Assuming you have a 'groupCode' field in your group documents
-    QuerySnapshot snapshot = await groupsCollection
-        .where('groupCode', isEqualTo: groupCode)
-        .limit(1)
-        .get();
-    
-    if (snapshot.docs.isNotEmpty) {
-      return HabitWiseGroup.fromMap(snapshot.docs.first.data() as Map<String, dynamic>);
+    DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
+    if (doc.exists) {
+      // Ensure doc.data() is cast to a Map<String, dynamic>
+      Map<String, dynamic> data = Map<String, dynamic>.from(doc.data() as Map);
+      
+      // Now safely extract 'members' as a list
+      List<dynamic> membersData = List.from(data['members'] ?? []);
+      return membersData
+          .map((memberData) => Member.fromMap(Map<String, dynamic>.from(memberData))) // Safely cast each member to Map<String, dynamic>
+          .toList();
+    } else {
+      throw Exception('Group not found');
     }
-    return null; // Group not found
   } catch (e) {
-    print('Error fetching group by code: $e');
-    return null;
+    print('Error fetching group members: $e');
+    throw e;
   }
 }
 
-  Future<void> joinGroupByCode(String groupCode, String userId) async {
+   Future<void> updateGroup(HabitWiseGroup group) async {
     try {
-      HabitWiseGroup? group = await getGroupByCode(groupCode);
-      if (group != null) {
-        await joinGroup(group.groupId, userId);
-      } else {
-        throw Exception("Group not found with code: $groupCode");
-      }
+      await _firestore.collection('groups').doc(group.groupId).update(group.toMap());
     } catch (e) {
-      print('Error joining group by code: $e');
-      throw e;
+      print("Error updating group: $e");
+      rethrow;
     }
   }
-
-  Future<void> addMemberToGroup(String groupId, Member newMember) async {
-  final groupRef = FirebaseFirestore.instance.collection('groups').doc(groupId);
-  
-  await groupRef.update({
-    'members': FieldValue.arrayUnion([newMember.toMap()]), // Add new member
-  });
-}
-
-
-
 }

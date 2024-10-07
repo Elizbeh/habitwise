@@ -90,28 +90,99 @@ class _HabitScreenState extends State<HabitScreen> {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: Colors.white), // Back arrow icon
-              onPressed: () {
-                Navigator.of(context).pop(); // Navigate back
-              },
-            ),
+            automaticallyImplyLeading: false, // Remove default back button
             iconTheme: IconThemeData(color: Colors.white), // White icons
             elevation: 0,
-            toolbarHeight: 80,
-            title: Align(
-              alignment: Alignment.centerLeft, // Align the title to the left
-              child: Text(
-                'Routine Builder',
-                style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
-              ),
+            toolbarHeight: 150, // Increase height to create space for title and categories
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start, // Align items to the start
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).pop(); // Navigate back
+                      },
+                      child: Icon(Icons.arrow_back, color: Colors.white), // Custom back arrow icon
+                    ),
+                    const SizedBox(width: 10), // Space between the back icon and title
+                    Text(
+                      'Routine Builder',
+                      style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
+                    ),
+                    const Spacer(), // Use Spacer to push the vertical menu icon to the right
+                    PopupMenuButton<String>(
+                      icon: Icon(Icons.more_vert, color: Colors.white), // 3-dotted icon in white
+                      onSelected: (String result) {
+                        setState(() {
+                          sortingCriteria = result;
+                        });
+                      },
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'Priority',
+                          child: Text('Priority'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'Completion Status',
+                          child: Text('Completion Status'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'Category',
+                          child: Text('Category'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10), // Space between title and categories
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: <String>[
+                      'All',
+                      'Health',
+                      'Work',
+                      'Personal',
+                      'Self-Care',
+                      'Finance',
+                      'Education',
+                      'Relationships',
+                      'Hobbies',
+                    ].map((category) {
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedCategory = category;
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5), // Reduced padding
+                          margin: EdgeInsets.symmetric(horizontal: 4), // Reduced margin
+                          decoration: BoxDecoration(
+                            color: selectedCategory == category ? Colors.white : Colors.transparent,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            category,
+                            style: TextStyle(
+                              color: selectedCategory == category ? Colors.black : Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
             ),
-            centerTitle: false, // Disable center title
+            centerTitle: false,
             flexibleSpace: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+                  bottomLeft: Radius.circular(0),
+                  bottomRight: Radius.circular(50),
                 ),
                 gradient: LinearGradient(
                   colors: appBarGradientColors,
@@ -121,8 +192,8 @@ class _HabitScreenState extends State<HabitScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+                  bottomLeft: Radius.circular(0),
+                  bottomRight: Radius.circular(50),
                 ),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
@@ -132,61 +203,7 @@ class _HabitScreenState extends State<HabitScreen> {
                 ),
               ),
             ),
-            actions: [
-              DropdownButton<String>(
-                value: selectedCategory,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    selectedCategory = newValue ?? 'All';
-                  });
-                },
-                underline: SizedBox(), // Remove underline
-                icon: Icon(Icons.arrow_drop_down, color: Colors.white), // White dropdown icon
-                style: TextStyle(color: Colors.white), // White text in dropdown
-                dropdownColor: theme.scaffoldBackgroundColor, // Dropdown uses the theme background
-                items: <String>[
-                  'All',
-                  'Health & Fitness',
-                  'Work & Productivity',
-                  'Personal Development',
-                  'Self-Care',
-                  'Finance',
-                  'Education',
-                  'Relationships',
-                  'Hobbies'
-                ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                isDense: true, // Make dropdown compact
-              ),
-              const SizedBox(width: 20), // Space between DropdownButton and the right-side button
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_vert, color: Colors.white), // 3-dotted icon in white
-                onSelected: (String result) {
-                  setState(() {
-                    sortingCriteria = result;
-                  });
-                },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
-                    value: 'Priority',
-                    child: Text('Priority'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'Completion Status',
-                    child: Text('Completion Status'),
-                  ),
-                  const PopupMenuItem<String>(
-                    value: 'Category',
-                    child: Text('Category'),
-                  ),
-                ],
-              ),
-            ],
-          ),        
+          ),
           body: SafeArea(
             child: Column(
               children: [

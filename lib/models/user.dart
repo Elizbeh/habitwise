@@ -11,7 +11,7 @@ class HabitWiseUser {
   final List<String> groupIds;
   final Map<String, String> groupRoles;
   String? profilePictureUrl;
-  final bool canCreateGroup;
+  bool canCreateGroup;
   bool canJoinGroups;
   bool emailVerified;
   

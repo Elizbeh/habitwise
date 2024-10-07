@@ -12,14 +12,14 @@ ThemeData lightTheme(BuildContext context) {
     brightness: Brightness.light,
     primaryColor: primaryColor,
     hintColor: darkTextColor,
-    scaffoldBackgroundColor: Colors.white,
+    scaffoldBackgroundColor: Color.fromARGB(255, 237, 234, 234),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent, // Set to transparent to show gradient
       iconTheme: IconThemeData(color: lightTextColor),
-      titleTextStyle: GoogleFonts.goldman(
+      titleTextStyle: GoogleFonts.roboto(
         textStyle: TextStyle(
           color: lightTextColor,
-          fontSize: 20, // Title font size
+          fontSize: 24, // Title font size
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -60,7 +60,7 @@ ThemeData lightTheme(BuildContext context) {
       style: ElevatedButton.styleFrom(
         foregroundColor: lightTextColor,
         backgroundColor: secondaryColor, // Button text color
-        textStyle: GoogleFonts.goldman(
+        textStyle: GoogleFonts.roboto(
           fontSize: 20,
         ),
         shape: RoundedRectangleBorder(
@@ -80,10 +80,10 @@ ThemeData darkTheme(BuildContext context) {
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent, // Set to transparent to show gradient
       iconTheme: IconThemeData(color: lightTextColor),
-      titleTextStyle: GoogleFonts.goldman(
+      titleTextStyle: GoogleFonts.roboto(
         textStyle: TextStyle(
           color: lightTextColor,
-          fontSize: 18, // Title font size
+          fontSize: 24, // Title font size
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -106,26 +106,26 @@ ThemeData darkTheme(BuildContext context) {
       ),
       hintStyle: TextStyle(color: secondaryColor),
     ),
-    textTheme: GoogleFonts.goldmanTextTheme(
+    textTheme: GoogleFonts.robotoTextTheme(
       Theme.of(context).textTheme.apply(
         bodyColor: lightTextColor,
         displayColor: lightTextColor,
       ).copyWith(
-        displayLarge: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // Main title
-        displayMedium: TextStyle(fontSize: 26, fontWeight: FontWeight.bold), // Secondary title
-        displaySmall: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Tertiary title
-        bodyLarge: TextStyle(fontSize: 16), // Body text
-        bodyMedium: TextStyle(fontSize: 14), // Smaller body text
-        bodySmall: TextStyle(fontSize: 12), // Captions
-        titleMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600), // Subtitles
+        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold), // Main title
+        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // Secondary title
+        displaySmall: TextStyle(fontSize: 26, fontWeight: FontWeight.bold), // Tertiary title
+        bodyLarge: TextStyle(fontSize: 20), // Body text
+        bodyMedium: TextStyle(fontSize: 18), // Smaller body text
+        bodySmall: TextStyle(fontSize: 14), // Captions
+        titleMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w600), // Subtitles
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         foregroundColor: lightTextColor,
         backgroundColor: secondaryColor, // Button text color
-        textStyle: GoogleFonts.goldman(
-          fontSize: 16,
+        textStyle: GoogleFonts.roboto(
+          fontSize: 22,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),

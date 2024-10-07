@@ -50,34 +50,51 @@ void initState() {
 }
 
   Future<void> _fetchGroupDetails() async {
-  try {
-    final fetchedGroup = widget.group; 
-    final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
+    try {
+      final fetchedGroup = widget.group;
+      final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
 
-    // Fetch the group creator's name
-    final fetchedCreatorName = fetchedGroup.members.firstWhere((member) => member.id == fetchedGroup.groupCreator).name;
+      // Fetch the group creator's name
+      final fetchedCreatorName = fetchedGroup.members.firstWhere((member) => member.id == fetchedGroup.groupCreator).name;
 
-    // Check if the current user is a member and/or the creator of the group
-    final fetchedIsMember = fetchedGroup.members.any((member) => member.id == userId);  // Check membership using member.id
-    final fetchedIsCreator = fetchedGroup.groupCreator == userId;
+      // Check if the current user is a member and/or the creator of the group
+      final fetchedIsMember = fetchedGroup.members.any((member) => member.id == userId);
+      final fetchedIsCreator = fetchedGroup.groupCreator == userId;
 
-    setState(() {
-      group = fetchedGroup;
-      creatorName = fetchedCreatorName;
-      isMember = fetchedIsMember;
-      isCreator = fetchedIsCreator;
-    });
+      setState(() {
+        group = fetchedGroup;
+        creatorName = fetchedCreatorName;
+        isMember = fetchedIsMember;
+        isCreator = fetchedIsCreator;
+      });
     } catch (e) {
       print('Error fetching group details: $e');
-      showSnackBar( context, 'Failed to load group details. Please try again.');
+      showSnackBar(context, 'Failed to load group details. Please try again.');
     }
   }
 
   void _fetchGroupGoals() {
-      // Use GoalProvider to fetch group goals
-      final goalProvider = Provider.of<GoalProvider>(context, listen: false);
-      goalProvider.fetchGroupGoals(widget.group.groupId);
+    final goalProvider = Provider.of<GoalProvider>(context, listen: false);
+    goalProvider.fetchGroupGoals(widget.group.groupId);
+  }
+
+  Future<void> _handleGroupAction(bool isJoin) async {
+    final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    try {
+      if (isJoin) {
+        await groupProvider.joinGroup(group!.groupId, userProvider.user!.uid);
+        showSnackBar(context, 'Joined group successfully!');
+      } else {
+        await groupProvider.leaveGroup(group!.groupId, userProvider.user!.uid);
+        showSnackBar(context, 'Left the group successfully');
+      }
+      setState(() {});
+    } catch (e) {
+      showSnackBar(context, 'Error during group action: $e', isError: true);
     }
+  }
 
     void _onNavItemTapped(int index) {
       // Navigate to the appropriate screen based on the index
@@ -153,60 +170,60 @@ void initState() {
                   children: [
                     // Banner below AppBar
                     Container(
-  width: double.infinity,
-  padding: EdgeInsets.all(8.0),
-  decoration: BoxDecoration(
-    gradient: LinearGradient(
-      colors: [
-        Color.fromRGBO(134, 41, 137, 1.0), // Start color
-        Color.fromRGBO(46, 197, 187, 1.0), // End color
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
-    borderRadius: BorderRadius.only(
-      bottomLeft: Radius.circular(30.0),
-      bottomRight: Radius.circular(30.0),
-    ),
-    border: Border.all(
-      color: Colors.transparent, // No background color for the border itself
-      width: 1.0, // Set the thickness of the border
-    ),
-  ),
-  child: Container(
-    // This inner container provides the transparent background effect
-    decoration: BoxDecoration(
-      color: Colors.transparent, // Outer container transparent
-      borderRadius: BorderRadius.only(
-        bottomLeft: Radius.circular(30.0),
-        bottomRight: Radius.circular(30.0),
-      ),
-    ),
-    child: GroupInfoSection(
-      group: group!,
-      creatorName: creatorName,
-      isCreator: isCreator,
-      onMemberRemoved: (memberId) {
-        // Handle member removal here
-      },
-      onEditGroupInfo: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CreateGroupScreen(
-              groupToEdit: group,
-              onGroupUpdated: () {
-                setState(() {
-                  // Update UI
-                });
-              },
-            ),
-          ),
-        );
-      },
-    ),
-  ),
-),
+                      width: double.infinity,
+                      padding: EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color.fromRGBO(134, 41, 137, 1.0), // Start color
+                            Color.fromRGBO(46, 197, 187, 1.0), // End color
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(30.0),
+                          bottomRight: Radius.circular(30.0),
+                        ),
+                        border: Border.all(
+                          color: Colors.transparent, // No background color for the border itself
+                          width: 1.0, // Set the thickness of the border
+                        ),
+                      ),
+                      child: Container(
+                        // This inner container provides the transparent background effect
+                        decoration: BoxDecoration(
+                          color: Colors.transparent, // Outer container transparent
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(30.0),
+                            bottomRight: Radius.circular(30.0),
+                          ),
+                        ),
+                        child: GroupInfoSection(
+                          group: group!,
+                          creatorName: creatorName,
+                          isCreator: isCreator,
+                          onMemberRemoved: (memberId) {
+                            // Handle member removal here
+                          },
+                          onEditGroupInfo: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateGroupScreen(
+                                  groupToEdit: group,
+                                  onGroupUpdated: () {
+                                    setState(() {
+                                      // Update UI
+                                    });
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                
                     Expanded(
                       child: Padding(
@@ -219,7 +236,7 @@ void initState() {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                   ElevatedButton(
+                                  ElevatedButton(
                                     onPressed: () async {
                                       // Check if group is null before proceeding
                                       if (group == null) {
@@ -262,7 +279,7 @@ void initState() {
                                 ],
                               ),
                               if (isMember && !isCreator) ...[
-                                 ElevatedButton(
+                                ElevatedButton(
                                   onPressed: () async {
                                     if (group == null) {
                                       showSnackBar(context, 'Group is not available', isError: true);
@@ -304,8 +321,7 @@ void initState() {
                                     }
                                   },
                                   child: const Text('Join Group'),
-                                )
-
+                                ),
                               ],
                               Container(
                                 decoration: BoxDecoration(
@@ -366,20 +382,21 @@ void initState() {
                                 ),
                               ),
                               if (_selectedIndex == 0) ...[
-                              SizedBox(height: 16.0),
-                              Text('Group Goals:', style: TextStyle(fontWeight: FontWeight.bold)),
-                              GroupGoalList(groupId: group!.groupId),
-                            ],
-                            if (_selectedIndex == 1) ...[
-                              SizedBox(height: 16.0),
-                              Text('Group Habits:', style: TextStyle(fontWeight: FontWeight.bold)),
-                              GroupHabitList(groupId: group!.groupId),
-                            ],                          
+                                SizedBox(height: 16.0),
+                                Text('Group Goals:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                GroupGoalList(groupId: group!.groupId),
+                              ],
+                              if (_selectedIndex == 1) ...[
+                                SizedBox(height: 16.0),
+                                Text('Group Habits:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                GroupHabitList(groupId: group!.groupId),
+                              ],                          
                             ],
                           ),
                         ),
                       ),
                     ),
+         
                   ],
                 )
               : Center(

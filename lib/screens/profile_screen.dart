@@ -176,36 +176,19 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
-        toolbarHeight: 80,
-        title: Row(
-          children: [
-            Container(
-              width: 40, // Adjust width as needed
-              height: 40, // Adjust height as needed
-              decoration: BoxDecoration(
-                color: Colors.white, // Background color for logo
-                borderRadius: BorderRadius.circular(8), // Optional: rounded corners
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0), // Optional: padding around the logo
-                child: Image.asset('assets/images/logo.png'),
-              ),
-            ),
-            const SizedBox(width: 8), // Space between logo and title
-            Expanded(
-              child: Text(
+        toolbarHeight: 100,
+        titleSpacing: 0, // Set titleSpacing to 0 to close the gap
+        title: Text(
                 'Profile',
                 style: Theme.of(context).appBarTheme.titleTextStyle,
               ),
-            ),
-          ],
-        ),
+          
         centerTitle: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(50),
             ),
             gradient: LinearGradient(
               colors: appBarGradientColors,
@@ -215,8 +198,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(50),
             ),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
@@ -236,7 +219,8 @@ class _ProfilePageState extends State<ProfilePage> {
             },
           ),
         ],
-      ), 
+      ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(

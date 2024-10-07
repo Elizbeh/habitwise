@@ -28,19 +28,19 @@ class HabitWiseGroup {
   });
 
   factory HabitWiseGroup.fromMap(Map<String, dynamic> map) {
-    return HabitWiseGroup(
-      groupId: map['groupId'] as String,
-      groupName: map['groupName'] as String,
-      members: List<Member>.from(map['members']?.map((m) => Member.fromMap(m)) ?? []),
-      habits: List<String>.from(map['habits'] ?? []),
-      groupType: map['groupType'] as String,
-      groupPictureUrl: map['groupPictureUrl'] as String?,
-      groupCreator: map['groupCreator'] as String,
-      creationDate: (map['creationDate'] as Timestamp).toDate(),
-      description: map['description'] as String,
-      groupCode: map['groupCode'] as String,
-    );
-  }
+  return HabitWiseGroup(
+    groupId: map['groupId'] as String,
+    groupName: map['groupName'] as String,
+    members: List<Member>.from(map['members']?.map((m) => Member.fromMap(m)) ?? []),
+    habits: List<String>.from(map['habits'] ?? []),
+    groupType: map['groupType'] as String,
+    groupPictureUrl: map['groupPictureUrl'] as String?,
+    groupCreator: map['groupCreator'] as String,
+    creationDate: (map['creationDate'] as Timestamp).toDate(),
+    description: map['description'] as String,
+    groupCode: map['groupCode'] as String,
+  );
+}
 
   Map<String, dynamic> toMap() {
     return {
@@ -88,7 +88,7 @@ class HabitWiseGroup {
     return userId == groupCreator;
   }
 
-  // Optionally, a method to get the role of a user in the group
+  //  a method to get the role of a user in the group
   String getUserRole(String userId, Map<String, String> groupRoles) {
     return groupRoles[userId] ?? 'member'; // Default role is 'member'
   }

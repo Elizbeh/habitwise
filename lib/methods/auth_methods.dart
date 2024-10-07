@@ -115,28 +115,23 @@ class AuthMethod {
     }
   }
 
-  Future<void> sendEmailVerification() async {
+  Future<void> sendEmailVerification(BuildContext context) async {
   try {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null && !user.emailVerified) {
       await user.sendEmailVerification();
-      print('Verification email sent.');
+      scaffoldMessengerKey.currentState?.showSnackBar(
+        SnackBar(content: Text('Verification email sent successfully.')),
+      );
     }
   } on FirebaseAuthException catch (e) {
     if (e.code == 'too-many-requests') {
-      print('Too many requests. Please try again later.');
-      // Show an appropriate message to the user
       scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text('Too many requests. Please try again later.'),
-        ),
+        SnackBar(content: Text('Too many requests. Please try again later.')),
       );
     } else {
-      print('Error sending email verification: $e');
       scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text('Error sending email verification. Please try again.'),
-        ),
+        SnackBar(content: Text('Error sending email verification.')),
       );
     }
   }

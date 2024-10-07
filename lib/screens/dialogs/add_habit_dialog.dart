@@ -68,7 +68,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Color.fromRGBO(230, 230, 250, 1.0),
+      backgroundColor: Colors.white,
       title: Container(
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(

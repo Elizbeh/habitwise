@@ -18,7 +18,6 @@ import 'package:habitwise/screens/group/group_details_screen.dart';
 import 'package:habitwise/screens/landing_page.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:habitwise/screens/setting_screen.dart';
-import 'package:habitwise/screens/launch_background.dart';
 import 'package:habitwise/services/goals_db_service.dart';
 import 'package:habitwise/services/group_db_service.dart';
 import 'package:habitwise/services/habit_db_service.dart';
@@ -32,17 +31,14 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<Scaffol
 final ValueNotifier<ThemeMode> appThemeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
 
 void main() async {
-  //debugPaintSizeEnabled = true;
   WidgetsFlutterBinding.ensureInitialized();
   
   // Initialize Firebase
   await Firebase.initializeApp(
-   options: firebaseOptions
+    options: firebaseOptions
   );
 
-  
   runApp(
-    
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
@@ -62,7 +58,7 @@ void main() async {
         Provider(create: (_) => GoalDBService()),
         Provider(create: (_) => HabitDBService()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -76,7 +72,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: appThemeNotifier,
       builder: (context, themeMode, child) {
@@ -87,15 +82,14 @@ class MyApp extends StatelessWidget {
           navigatorObservers: <NavigatorObserver>[observer],
           theme: lightTheme(context),
           darkTheme: darkTheme(context),
-          themeMode: themeMode,
+          themeMode: ThemeMode.system,
           initialRoute: '/',
           routes: {
-            // Splash screen as the initial route
             '/': (context) => FutureBuilder<HabitWiseUser?>(
                   future: Provider.of<UserProvider>(context, listen: false).getUserDetails(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Scaffold(body: Center(child: CircularProgressIndicator()));
+                      return const Scaffold(body: Center(child: CircularProgressIndicator()));
                     } else if (snapshot.hasData && snapshot.data != null) {
                       final user = snapshot.data!;
                       if (user.emailVerified) {
@@ -113,7 +107,7 @@ class MyApp extends StatelessWidget {
                             );
                           },
                           themeNotifier: appThemeNotifier,
-                        ); // Prompt user to verify email
+                        );
                       }
                     } else {
                       return LandingPage(
@@ -125,7 +119,7 @@ class MyApp extends StatelessWidget {
                           );
                         },
                         themeNotifier: appThemeNotifier,
-                      ); // User is not logged in
+                      );
                     }
                   },
                 ),
@@ -139,12 +133,8 @@ class MyApp extends StatelessWidget {
               },
               themeNotifier: appThemeNotifier,
             ),
-            // Verify email screen
             '/verifyEmail': (context) => VerifyEmailScreen(),
-            
-            // Login screen with additional logic for successful login
             '/login': (context) => LoginScreen(
-
               onLoginSuccess: (String username) async {
                 UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -153,7 +143,6 @@ class MyApp extends StatelessWidget {
 
                   if (user != null) {
                     if (user.emailVerified) {
-                      // Navigate to dashboard if email is verified
                       Navigator.of(context).pushReplacement(
                         MaterialPageRoute(
                           builder: (context) => DashboardScreen(
@@ -163,10 +152,9 @@ class MyApp extends StatelessWidget {
                         ),
                       );
                     } else {
-                      // Show snackbar to verify email
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         scaffoldMessengerKey.currentState?.showSnackBar(
-                          SnackBar(
+                          const SnackBar(
                             content: Text(
                               'Please verify your email address.',
                               style: TextStyle(color: Colors.red),
@@ -176,10 +164,9 @@ class MyApp extends StatelessWidget {
                       });
                     }
                   } else {
-                    // Show snackbar if user data not found
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       scaffoldMessengerKey.currentState?.showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text(
                             'User data not found. Please try again.',
                             style: TextStyle(color: Colors.red),
@@ -189,13 +176,12 @@ class MyApp extends StatelessWidget {
                     });
                   }
                 } catch (error) {
-                  // Show snackbar for error during user details retrieval
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     scaffoldMessengerKey.currentState?.showSnackBar(
                       SnackBar(
                         content: Text(
                           'Error retrieving user details: $error',
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
                     );
@@ -203,8 +189,6 @@ class MyApp extends StatelessWidget {
                 }
               },
             ),
-            
-            // Signup screen with logic to navigate to login after successful signup
             '/signup': (context) => SignUpScreen(
               emailController: TextEditingController(),
               usernameController: TextEditingController(),
@@ -224,12 +208,12 @@ class MyApp extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text('Please verify your email to access the app.', style: TextStyle(color: Colors.green)),
+                                const Text('Please verify your email to access the app.', style: TextStyle(color: Colors.green)),
                                 ElevatedButton(
                                   onPressed: () {
                                     Navigator.of(context).pushReplacementNamed('/login');
                                   },
-                                  child: Text('Go to Login'),
+                                  child: const Text('Go to Login'),
                                 ),
                               ],
                             ),
@@ -238,10 +222,9 @@ class MyApp extends StatelessWidget {
                       ),
                     );
                   } else {
-                    // Show snackbar if user data not found after signup
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       scaffoldMessengerKey.currentState?.showSnackBar(
-                        SnackBar(
+                        const SnackBar(
                           content: Text(
                             'User data not found after signup. Please try again.',
                             style: TextStyle(color: Colors.red),
@@ -251,13 +234,12 @@ class MyApp extends StatelessWidget {
                     });
                   }
                 } catch (error) {
-                  // Show snackbar for error during user details retrieval after signup
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     scaffoldMessengerKey.currentState?.showSnackBar(
                       SnackBar(
                         content: Text(
                           'Error retrieving user details after signup: $error',
-                          style: TextStyle(color: Colors.red),
+                          style: const TextStyle(color: Colors.red),
                         ),
                       ),
                     );
@@ -265,16 +247,14 @@ class MyApp extends StatelessWidget {
                 }
               },
             ),
-            
-            // Dashboard screen
             '/dashboard': (context) => Consumer<UserProvider>(
               builder: (context, userProvider, _) {
                 if (userProvider.user == null) {
                   return FutureBuilder<HabitWiseUser?>(
                     future: userProvider.getUserDetails(),
-                    builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
+                    builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Scaffold(
+                        return const Scaffold(
                           body: Center(child: CircularProgressIndicator()),
                         );
                       } else if (snapshot.hasData && snapshot.data != null) {
@@ -287,7 +267,7 @@ class MyApp extends StatelessWidget {
                           body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
                         );
                       } else {
-                        return Scaffold(
+                        return const Scaffold(
                           body: Center(child: Text('User data not found')),
                         );
                       }
@@ -301,19 +281,13 @@ class MyApp extends StatelessWidget {
                 }
               },
             ),
-            
-            // Create group screen
             '/createGroup': (context) => CreateGroupScreen(),
-            
-            // Group details screen
             '/groupDetails': (context) {
               final HabitWiseGroup group = ModalRoute.of(context)!.settings.arguments as HabitWiseGroup;
               final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).user!;
               
               return GroupDetailsScreen(group: group, user: user);
             },
-            
-            // Habit screen
             '/habit': (context) => Consumer<UserProvider>(
               builder: (context, userProvider, _) {
                 if (userProvider.user == null) {

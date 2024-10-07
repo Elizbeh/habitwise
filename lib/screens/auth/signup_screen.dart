@@ -75,8 +75,8 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                 ),
                 Image.asset(
                   'assets/images/logo.png',
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 60,
                 ),
                 const SizedBox(height: 8),
                 
@@ -86,7 +86,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                     textAlign: TextAlign.center,
                     text: TextSpan(
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -99,7 +99,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               return Text(
                                 'Sign up',
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 26,
                                   fontWeight: FontWeight.bold,
                                   color: _colorAnimation.value,
                                 ),
@@ -124,7 +124,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Email',
-                          hintStyle: const TextStyle(fontSize: 16),
+                          hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
                           fillColor: Colors.grey[300],
                           border: OutlineInputBorder(
@@ -140,7 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           hintText: 'Username',
-                          hintStyle: const TextStyle(fontSize: 16),
+                          hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
                           fillColor: Colors.grey[300],
                           border: OutlineInputBorder(
@@ -156,7 +156,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Password',
-                          hintStyle: const TextStyle(fontSize: 16),
+                          hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
                           fillColor: Colors.grey[300],
                           border: OutlineInputBorder(
@@ -182,7 +182,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                         obscureText: !_isConfirmPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Confirm Password',
-                          hintStyle: const TextStyle(fontSize: 16),
+                          hintStyle: const TextStyle(fontSize: 18),
                           filled: true,
                           fillColor: Colors.grey[200],
                           border: OutlineInputBorder(
@@ -201,7 +201,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 40),
                       // Sign Up Button
                       Container(
                         width: double.infinity,
@@ -268,16 +268,15 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                             ),
                           ),
                           child: const Text(
-                            'Sign Up',
+                            'Sign up',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 22,
+                              fontSize: 24,
                             ),
                           ),
                         ),
                       ),
-                      
                       // Display error or success message
                       Text(
                         _message,
@@ -287,14 +286,14 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      
                       // Navigation to login screen
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           const Text(
                             'Already have an account?',
-                            style: TextStyle(fontSize: 18),
+                            style: TextStyle(fontSize: 20),
                           ),
                           TextButton(
                             onPressed: () {
@@ -305,7 +304,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Color.fromRGBO(46, 197, 187, 1.0),
-                                fontSize: 20,
+                                fontSize: 22,
                               ),
                             ),
                           ),

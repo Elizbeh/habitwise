@@ -17,7 +17,8 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final AuthMethod _authMethod = AuthMethod(); // Private instance of AuthMethod
   late TextEditingController _emailController; // Initialize email controller
   late TextEditingController _passwordController; // Initialize password controller
@@ -27,17 +28,30 @@ class _LoginScreenState extends State<LoginScreen> {
   String _message = ''; // Variable to hold 
   Color _messageColor = Colors.transparent;
 
+  late AnimationController _animationController; // Animation controller
+  late Animation<double> _opacityAnimation; // Opacity animation
+
   @override
   void initState() {
     super.initState();
     _emailController = TextEditingController(); // Instantiate email controller
     _passwordController = TextEditingController(); // Instantiate password controller
+
+    // Initialize animation controller
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    _opacityAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+
+    // Start the animation
+    _animationController.forward();
   }
 
   @override
   void dispose() {
     _emailController.dispose(); // Dispose controllers to avoid memory leaks
     _passwordController.dispose();
+    _animationController.dispose(); // Dispose the animation controller
     super.dispose();
   }
 
@@ -56,21 +70,24 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     color: Color.fromRGBO(134, 41, 137, 1.0),
                     fontWeight: FontWeight.bold,
-                    fontSize: 34,
+                    fontSize: 32,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Image.asset(
                   'assets/images/logo.png',
-                  width: 50,
-                  height: 50,
+                  width: 60,
+                  height: 60,
                 ),
-                const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Text(
-                    'Build habits, reach goals. Log in to begin.',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                    textAlign: TextAlign.center,
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: FadeTransition(
+                    opacity: _opacityAnimation,
+                    child: const Text(
+                      'Build habits, reach goals. Log in to begin.',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ),
                 Padding(
@@ -85,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _message,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: 18,
                             ),
                           ),
                         ),
@@ -98,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                             hintText: 'Email',
                             hintStyle: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                             ),
                             filled: true,
                             fillColor: Colors.grey[300],
@@ -118,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                             hintText: 'Password',
                             hintStyle: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                             ),
                             filled: true,
                             fillColor: Colors.grey[300],
@@ -200,7 +217,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Forgot your login details? "),
+            const Text("Forgot your login details?", style: TextStyle(fontSize: 16),),
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/forgot_password');
@@ -209,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'Get help logging in',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 16,
                   color: Color.fromRGBO(46, 197, 187, 1.0),
                 ),
               ),
@@ -220,7 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Don't have an account? "),
+            const Text("Don't have an account?", style: TextStyle(fontSize: 18),),
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/signup');
@@ -229,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'Sign up',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 22,
                   color: Color.fromRGBO(134, 41, 137, 1.0),
                 ),
               ),
@@ -279,46 +296,19 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       } else {
         setState(() {
-          _message = 'Please verify your email address.';
+          _message = 'Please verify your email to log in';
           _messageColor = Colors.red;
         });
       }
     } else {
       setState(() {
-        _message = _getErrorMessage(loginResult);
+        _message = 'Login failed. Please try again.';
         _messageColor = Colors.red;
       });
     }
 
     setState(() {
-      _isLoading = false;
+      _isLoading = false; // Reset loading state
     });
-  }
-
-  String _getErrorMessage(AuthResult result) {
-    switch (result) {
-      case AuthResult.invalidInput:
-        return 'Invalid email or password. Please try again.';
-      case AuthResult.userNotFound:
-        return 'User not found. Please check your credentials or sign up.';
-      case AuthResult.wrongPassword:
-        return 'Incorrect password. Please try again.';
-      case AuthResult.userDisabled:
-        return 'This account has been disabled. Please contact support.';
-      case AuthResult.operationNotAllowed:
-        return 'This operation is not allowed. Please contact support.';
-      case AuthResult.tooManyRequests:
-        return 'Too many login attempts. Please try again later.';
-      case AuthResult.emailInUse:
-        return 'This email is already in use. Please try a different one.';
-      case AuthResult.weakPassword:
-        return 'The password is too weak. Please try a stronger password.';
-      case AuthResult.networkError:
-        return 'A network error occurred. Please try again later.';
-      case AuthResult.emailNotVerified:
-        return 'Your email is not verified. Please verify it and try again.';
-      default:
-        return 'An unknown error occurred. Please try again.';
-    }
   }
 }

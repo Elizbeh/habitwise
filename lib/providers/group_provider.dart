@@ -14,19 +14,27 @@ class GroupProvider extends ChangeNotifier {
   List<HabitWiseGroup> get groups => _groups;
   List<Member> get members => _members;
 
-   // New getter to retrieve user-specific groups
+  String? _userId;
+
+  // New getter to retrieve user-specific groups
   List<HabitWiseGroup> get userGroups {
     return _groups.where((group) => group.members.any((member) => member.id == _userId)).toList();
   }
 
-  String? _userId; // You might want to set this from the UserProvider or wherever you're managing user state
-
+  // Refactored fetchGroups method to query Firestore directly
   Future<void> fetchGroups(String userId) async {
-    _userId = userId; // Store the userId for reference
+    _userId = userId;
     try {
-      print('Fetching groups for userId: $userId'); // Debugging
-      List<HabitWiseGroup> fetchedGroups = await _groupDBService.getAllGroups(userId);
-      print('Fetched groups: $fetchedGroups'); // Debugging
+      // Query to fetch groups where the user is a member
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('groups')
+          .where('members', arrayContains: userId)
+          .get();
+
+      List<HabitWiseGroup> fetchedGroups = querySnapshot.docs.map((doc) {
+        return HabitWiseGroup.fromMap(doc as Map<String, dynamic>);
+      }).toList();
+
       _groups = fetchedGroups;
       notifyListeners();
     } catch (e) {
@@ -34,10 +42,10 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> addGoalToGroup(String groupId, String goal, String userId) async {
+  Future<void> addGoalToGroup(String groupId, String goalId, String userId) async {
     try {
-      await _groupDBService.addGoalToGroup(groupId, goal);
-      await fetchGroups(userId); // Refreshes groups
+      await _groupDBService.addGoalToGroup(groupId, goalId);
+      await fetchGroups(userId);
     } catch (e) {
       print('Error adding goal: $e');
     }
@@ -52,29 +60,46 @@ class GroupProvider extends ChangeNotifier {
       return groupId;
     } catch (e) {
       print('Error creating group: $e');
-      rethrow; // Optional: propagate the exception if needed
+      rethrow;
     }
   }
 
-  Future<bool> joinGroup(String groupCode, String userId) async { // Pass userId as a parameter
-    try {
-      final groupDoc = await FirebaseFirestore.instance.collection('groups').doc(groupCode).get();
-      if (groupDoc.exists) {
-        // Add user to the group members
-        await FirebaseFirestore.instance.collection('groups').doc(groupCode).update({
-          'members': FieldValue.arrayUnion([userId]) // Use userId parameter
-        });
-        
-        // Refresh the list of groups
-        await fetchGroups(userId); // Call fetchGroups here to update the group list
+  Future<bool> joinGroup(String groupCode, String userId) async {
+  try {
+    // Query Firestore by the groupCode field, not doc ID
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('groups')
+        .where('groupCode', isEqualTo: groupCode)
+        .limit(1)
+        .get();
+    
+    if (querySnapshot.docs.isNotEmpty) {
+      final groupDoc = querySnapshot.docs.first;
+      
+      // Now check if the user exists
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        String name = userDoc['name'] ?? 'Unknown';
+        String email = userDoc['email'] ?? 'unknown@example.com';
+
+        // Create the new member
+        Member member = Member(id: userId, name: name, email: email);
+
+        // Use the groupId from the queried document
+        await _groupDBService.joinGroup(groupDoc.id, userId, member);
+        await fetchGroups(userId);
         return true;
+      } else {
+        return false; // User document doesn't exist
       }
-      return false;
-    } catch (e) {
-      print("Error joining group: $e");
-      return false;
+    } else {
+      return false; // Group with the given groupCode not found
     }
+  } catch (e) {
+    print("Error joining group: $e");
+    return false;
   }
+}
 
   Future<void> leaveGroup(String groupId, String userId) async {
     try {
@@ -120,91 +145,28 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  // New method to check if the user is the admin of the group
   bool isAdmin(String groupId, String userId) {
     final group = _groups.firstWhere((g) => g.groupId == groupId);
-    return group.groupCreator == userId; // Returns true if the user is the creator
+    return group.groupCreator == userId;
   }
 
-    // Define this method to fetch groups again
-  Future<void> _fetchGroups(String userId) async {
-    await fetchGroups(userId); // Refreshes the groups based on user ID
-  }
-
-  Future<HabitWiseGroup?> getGroupByCode(String groupCode) async {
-    try {
-      return await _groupDBService.getGroupByCode(groupCode);
-    } catch (e) {
-      print('Error fetching group by code: $e');
-      return null;
-    }
-  }
-
-
-  // Update join group to use group code
-  Future<bool> joinGroupByCode(String groupCode, String userId) async {
-  try {
-    HabitWiseGroup? group = await getGroupByCode(groupCode);
-    if (group != null) {
-      await joinGroup(group.groupId, userId);
-      await fetchGroups(userId); // Refresh user's groups
-      return true;
-    } else {
-      print("Group not found with code: $groupCode");
-      return false; // Group not found
-    }
-  } catch (e) {
-    print("Error joining group: $e");
-    return false; // Ensure false is returned on error
-  }
-}
-
- // Method to add a new member and update state
-  Future<void> addMember(String groupId, Member newMember) async {
-    await _groupDBService.addMemberToGroup(groupId, newMember);
-    _members.add(newMember); // Add to local list
-    notifyListeners();       // Notify listeners to update the UI
-  }
-
-   // Fetch group members from Firestore and update _members list
   Future<void> fetchMembers(String groupId) async {
     try {
-      // Reference to the group document in Firestore
-      final groupRef = FirebaseFirestore.instance.collection('groups').doc(groupId);
-
-      // Get the group document snapshot
-      final groupSnapshot = await groupRef.get();
-
-      if (groupSnapshot.exists) {
-        // Get the members field from the document
-        List<dynamic> membersData = groupSnapshot.data()?['members'] ?? [];
-
-        // Clear the current members list
-        _members.clear();
-
-        // Convert each member map to a Member object and add to the _members list
-        _members = membersData.map((memberData) => Member.fromMap(memberData)).toList();
-
-        // Notify listeners to update the UI
-        notifyListeners();
-      } else {
-        // Handle case when group does not exist
-        print('Group not found');
-      }
+      List<Member> membersList = await _groupDBService.getGroupMembers(groupId);
+      _members = membersList;
+      notifyListeners();
     } catch (e) {
       print('Error fetching group members: $e');
     }
   }
 
   void clearUserGroups() {
-  _groups.clear(); // Clear the groups list
-  notifyListeners(); // Notify listeners to update the UI
-}
+    _groups.clear();
+    notifyListeners();
+  }
 
-void clearMembers() {
-  _members.clear(); // Clear the members list
-  notifyListeners(); // Notify listeners to update the UI
-}
-
-
+  void clearMembers() {
+    _members.clear();
+    notifyListeners();
+  }
 }

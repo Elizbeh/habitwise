@@ -157,7 +157,7 @@ class UserProvider extends ChangeNotifier {
 
       if (result == AuthResult.success) {
         _errorMessage = 'Please verify your email address.';
-        await _authMethod.sendEmailVerification();
+        await _authMethod.sendEmailVerification(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => VerifyEmailScreen()),

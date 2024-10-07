@@ -1,5 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:habitwise/themes/theme.dart';  // Adjust the path if needed
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/group.dart';
@@ -81,30 +83,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        iconTheme: const IconThemeData(color: Colors.white),
-        elevation: 0,
-        toolbarHeight: 80,
-        title: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white, 
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Image.asset('assets/images/logo.png'),
-              ),
+         automaticallyImplyLeading: false,
+  iconTheme: const IconThemeData(color: Colors.white),
+  elevation: 0,
+  toolbarHeight: 220, // Increased height for a more prominent effect
+  title: Row(
+    crossAxisAlignment: CrossAxisAlignment.center, // Align items to the center
+    children: [
+      Container(
+        width: 60,
+        height: 60, // Slightly larger logo
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle, // Circular logo container
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10,
+              spreadRadius: 2,
             ),
-            const SizedBox(width: 8), // Space between logo and title
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('assets/images/logo.png'),
+        ),
+      ),
+      const SizedBox(width: 16), // Increased spacing for balance
             Expanded(
               child: Text(
                 'HabitWize',
-                style: Theme.of(context).appBarTheme.titleTextStyle,
+                style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(fontSize: 30), // Custom font size for this widget
               ),
+
             ),
           ],
         ),
@@ -112,8 +123,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         flexibleSpace: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(110),
             ),
             gradient: LinearGradient(
               colors: appBarGradientColors,
@@ -123,8 +134,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(110),
             ),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
@@ -166,12 +177,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               _isFirstLogin
                                 ? 'Welcome, ${widget.user.username}!'
                                 : 'Good to see you again, ${widget.user.username}!',
-                              style: TextStyle(
-                                fontSize: 20,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
                               textAlign: TextAlign.center,
                             ),
+                           
                             Positioned(
                               top: 0,
                               right: 0,
@@ -235,10 +247,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildGroupSection(BuildContext context) {
+  Widget _buildGroupSection(BuildContext context) { 
   return Consumer<GroupProvider>(
     builder: (context, groupProvider, child) {
       List<HabitWiseGroup> joinedGroups = groupProvider.groups;
+      String userId = "yourUserId";  // Replace this with how you fetch the current user ID
 
       return Container(
         padding: EdgeInsets.all(10.0),
@@ -289,7 +302,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    _showJoinGroupDialog(context, groupProvider);
+                    _showJoinGroupDialog(context, groupProvider, userId);  // Pass userId here
                   },
                   child: Text('Join a group'),
                   style: ElevatedButton.styleFrom(
@@ -305,56 +318,60 @@ class _DashboardScreenState extends State<DashboardScreen> {
   );
 }
 
-  void _showJoinGroupDialog(BuildContext context, GroupProvider groupProvider) {
-    final TextEditingController groupCodeController = TextEditingController();
+  void _showJoinGroupDialog(BuildContext context, GroupProvider groupProvider, String userId) {
+  final TextEditingController groupCodeController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Join a Group'),
-          content: TextField(
-            controller: groupCodeController,
-            decoration: InputDecoration(hintText: "Enter Group Code"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                String groupCode = groupCodeController.text.trim();
-                if (groupCode.isEmpty) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: Text('Join a Group'),
+        content: TextField(
+          controller: groupCodeController,
+          decoration: InputDecoration(hintText: "Enter Group Code"),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              String groupCode = groupCodeController.text.trim();
+              if (groupCode.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Please enter a group code.')),
+                );
+                return;
+              }
+
+              // Call the join group method
+              groupProvider.joinGroup(groupCode, userId).then((success) {
+                if (success) {
+                  Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Please enter a group code.')),
+                    SnackBar(content: Text('Joined group successfully!')),
                   );
-                  return;
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to join group. Please check the group code and try again.')),
+                  );
                 }
-
-                // Call the join group method
-                groupProvider.joinGroup(groupCode, widget.user.uid).then((success) {
-                  if (success) {
-                    Navigator.of(context).pop();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Joined group successfully!')),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed to join group.')),
-                    );
-                  }
-                });
-              },
-              child: Text('Join'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              }).catchError((error) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $error')),
+                );
+              });
+            },
+            child: Text('Join'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Cancel'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   Widget _buildGroupCard(
     BuildContext context, HabitWiseGroup group, GroupProvider groupProvider) {
