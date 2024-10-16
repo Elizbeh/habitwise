@@ -68,24 +68,26 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.white,
-      title: Container(
-        padding: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: primaryColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          'New Habit',
-          style: Theme.of(context).appBarTheme.titleTextStyle,
-          textAlign: TextAlign.center,
-        ),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: Theme.of(context).primaryColor, width: 3.0),
+        borderRadius: BorderRadius.circular(12.0),
       ),
+      backgroundColor: Theme.of(context).dialogBackgroundColor,
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            AppBar(
+              centerTitle: true,
+              title: Text(
+                'Add Habit',
+                style: Theme.of(context).appBarTheme.titleTextStyle,
+              ),
+              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.7),
+              elevation: 0,
+            ),
+            SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: selectedCategory,
               items: categoryIcons.keys.map<DropdownMenuItem<String>>((String category) {
@@ -116,12 +118,12 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 border: OutlineInputBorder(),
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 10),
             TextFormField(
               controller: titleController,
               decoration: InputDecoration(
                 labelText: 'Habit Title',
-                border: OutlineInputBorder(),
+                labelStyle: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
             SizedBox(height: 8),
@@ -129,19 +131,19 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
               controller: descriptionController,
               decoration: InputDecoration(
                 labelText: 'Habit Description',
-                border: OutlineInputBorder(),
+                labelStyle: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 10),
             TextFormField(
               controller: frequencyController,
               decoration: InputDecoration(
                 labelText: 'Frequency per Day',
-                border: OutlineInputBorder(),
+                labelStyle: Theme.of(context).textTheme.bodyMedium,
               ),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -156,7 +158,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                     onTap: () => _selectDate(context, true),
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
                     readOnly: true,
@@ -171,7 +173,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 10),
             if (selectedCategory != null &&
                 selectedCategory!.isNotEmpty &&
                 habitTemplates.containsKey(selectedCategory))
@@ -194,7 +196,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 decoration: InputDecoration(
                   labelText: 'Choose Template',
                   hintText: 'Select template',
-                  border: OutlineInputBorder(),
+                  labelStyle: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
           ],
@@ -203,7 +205,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
       actions: [
         TextButton(
           style: TextButton.styleFrom(
-            backgroundColor: secondaryColor
+            backgroundColor: Theme.of(context).colorScheme.secondary,
           ),
           onPressed: () => Navigator.pop(context),
           child: Text(
@@ -213,13 +215,12 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color.fromRGBO(134, 41, 137, 1.0),
+            backgroundColor: Theme.of(context).primaryColor,
           ),
           onPressed: () async {
             if (selectedCategory != null &&
                 titleController.text.isNotEmpty &&
                 frequencyController.text.isNotEmpty) {
-              
               if (_startDate != null && (_endDate == null || _endDate!.isAfter(_startDate!))) {
                 final newHabit = Habit(
                   id: '',
@@ -237,14 +238,11 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                 // Add habit using Firebase-generated ID
                 if (widget.isGroupHabit && widget.groupId != null) {
                   await Provider.of<HabitProvider>(context, listen: false)
-                      .addHabit(newHabit, groupId: widget.groupId!); // Use addGroupHabit here
+                      .addHabit(newHabit, groupId: widget.groupId!);
                 } else {
-                  final userId = Provider.of<UserProvider>(context, listen: false)
-                      .user
-                      ?.uid;
+                  final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
                   if (userId != null) {
-                    await Provider.of<HabitProvider>(context, listen: false)
-                        .addHabit(newHabit); // Use addHabitToUser here
+                    await Provider.of<HabitProvider>(context, listen: false).addHabit(newHabit);
                   }
                 }
 
@@ -266,7 +264,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
           },
           child: Text(
             'Add Habit',
-            style: TextStyle(color: Colors.white), // Text color of add button
+            style: TextStyle(color: Colors.white),
           ),
         ),
       ],

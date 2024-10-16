@@ -98,10 +98,10 @@ class _GoalScreenState extends State<GoalScreen> {
                   'Personal Goal Board',
                   style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
                 ),
-                const Spacer(), // Use Spacer to push the vertical menu icon to the right
-                const SizedBox(width: 20), // Space between DropdownButton and the right-side button
+                const Spacer(), 
+                const SizedBox(width: 20),
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: Colors.white), // 3-dotted icon in white
+                  icon: Icon(Icons.more_vert, color: Colors.white),
                   onSelected: (String result) {
                     setState(() {
                       sortingCriteria = result;

@@ -175,14 +175,14 @@ class _EditGoalDialogState extends State<EditGoalDialog> {
             ),
           ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end, // Align buttons to the right
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(
-                onPressed: () => Navigator.pop(context), // Close the dialog on cancel
+                onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: secondaryColor,
                 ),
-                child: Text('Cancel', style: TextStyle(color: Colors.white)), // Cancel button
+                child: Text('Cancel', style: TextStyle(color: Colors.white)),
               ),
               SizedBox(width: 20.0),
               ElevatedButton(
@@ -235,7 +235,8 @@ class _EditGoalDialogState extends State<EditGoalDialog> {
                 ),
                 child: Text(widget.goal != null ? 'Save' : 'Add', style: TextStyle(color: Colors.white)), // Save or Add button
               ),
-                        ],
+            
+            ],
           ),
         ],
       ),

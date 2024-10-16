@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/member.dart';
-import 'package:habitwise/themes/theme.dart';
+import 'package:habitwise/providers/goal_provider.dart';
+import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
+import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
+import 'package:habitwise/screens/group/group_details_screen.dart';
+import 'package:habitwise/themes/theme.dart'; // Assuming your custom theme is here
+import 'package:percent_indicator/percent_indicator.dart';
 import 'package:intl/intl.dart';
 import 'package:habitwise/models/group.dart';
+import 'package:habitwise/services/goals_db_service.dart';
+import 'package:provider/provider.dart';
 
 class GroupInfoSection extends StatefulWidget {
   final HabitWiseGroup group;
@@ -24,9 +32,6 @@ class GroupInfoSection extends StatefulWidget {
 }
 
 class _GroupInfoSectionState extends State<GroupInfoSection> {
-  bool _descriptionExpanded = false;
-
-  // Confirm member removal dialog
   void _confirmMemberRemoval(String memberId) {
     showDialog(
       context: context,
@@ -36,7 +41,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
           content: Text('Are you sure you want to remove this member?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel'),
+              child: Text('Cancel', style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color)),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
@@ -52,7 +57,6 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
     );
   }
 
-  // Show member details in a dialog
   void _showMemberDetails(Member member) {
     showDialog(
       context: context,
@@ -62,7 +66,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15.0),
           ),
-          title: Text(member.name ?? 'Member Details', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(member.name ?? 'Member Details', style: Theme.of(context).textTheme.headline6),
           content: SizedBox(
             width: 300,
             child: Column(
@@ -75,16 +79,19 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
                   radius: 60,
                 ),
                 SizedBox(height: 16.0),
-                Text('Email: ${member.email ?? 'N/A'}'),
+                Text('Email: ${member.email ?? 'N/A'}', style: Theme.of(context).textTheme.bodyText1),
                 SizedBox(height: 8.0),
-                Text('Joined on: ${DateFormat('yyyy-MM-dd').format(member.joinedDate ?? DateTime.now())}'),
+                Text(
+                  'Joined on: ${DateFormat('yyyy-MM-dd').format(member.joinedDate ?? DateTime.now())}',
+                  style: Theme.of(context).textTheme.bodyText2,
+                ),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Close'),
+              child: Text('Close', style: TextStyle(color: Theme.of(context).primaryColor)),
             ),
             if (widget.isCreator)
               TextButton(
@@ -100,77 +107,62 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
     );
   }
 
-  // Show the members list
   void _showMembersList() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Color.fromRGBO(246, 246, 246, 1), // Light background color
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Text(
             'Members (${widget.group.members.length})',
-            style: TextStyle(
-              color: Color.fromRGBO(134, 41, 137, 1.0), // Match your theme color
+            style: Theme.of(context).textTheme.headline6?.copyWith(
+              color: Theme.of(context).primaryColor,
               fontWeight: FontWeight.bold,
             ),
           ),
           content: Container(
-            width: 300, // Set a specific width for the dialog
-            height: 400, // Set a specific height to limit the dialog size
+            width: 300,
+            height: 400,
             child: ListView.builder(
               itemCount: widget.group.members.length,
               itemBuilder: (context, index) {
                 final member = widget.group.members[index];
                 return Container(
-                  margin: EdgeInsets.symmetric(vertical: 4.0), // Add vertical margin between tiles
+                  margin: EdgeInsets.symmetric(vertical: 4.0),
                   decoration: BoxDecoration(
-                    color: Colors.white, // Tile background color
-                    borderRadius: BorderRadius.circular(10.0), // Rounded corners
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(10.0),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2), // Light shadow
+                        color: Colors.grey.withOpacity(0.2),
                         spreadRadius: 1,
                         blurRadius: 5,
-                        offset: Offset(0, 2), // Shadow position
+                        offset: Offset(0, 2),
                       ),
                     ],
                   ),
                   child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0), // Adjust padding
+                    contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
                     leading: CircleAvatar(
-                      radius: 39, // Set radius for the avatar
+                      radius: 39,
                       backgroundImage: member.profilePictureUrl != null
                           ? NetworkImage(member.profilePictureUrl!)
                           : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
                     ),
                     title: Text(
                       member.name ?? 'No Name',
-                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.w500), // Slightly lighter font weight
+                      style: Theme.of(context).textTheme.bodyText1,
                     ),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _showMemberDetails(member);
-                    },
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.visibility, color: Color.fromRGBO(46, 197, 187, 1.0)), // Match your theme color
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            _showMemberDetails(member);
-                          },
-                        ),
-                        if (widget.isCreator)
-                          IconButton(
-                            icon: Icon(Icons.delete, color: Colors.grey),
+                    onTap: () => _showMemberDetails(member),
+                    trailing: widget.isCreator
+                        ? IconButton(
+                            icon: Icon(Icons.delete, color: Theme.of(context).iconTheme.color),
                             onPressed: () {
                               Navigator.of(context).pop();
                               _confirmMemberRemoval(member.id);
                             },
-                          ),
-                      ],
-                    ),
+                          )
+                        : null,
                   ),
                 );
               },
@@ -179,7 +171,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Close', style: TextStyle(color: Color.fromRGBO(134, 41, 137, 1.0))), // Match your theme color
+              child: Text('Close', style: TextStyle(color: Theme.of(context).primaryColor)),
             ),
           ],
         );
@@ -187,126 +179,212 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
     );
   }
 
+  Stream<List<Goal>> _fetchGoals() {
+    return GoalDBService().getGroupGoalsStream(widget.group.groupId);
+  }
+
   @override
   Widget build(BuildContext context) {
     final group = widget.group;
 
     return Container(
-      padding: EdgeInsets.all(20.0),
+      padding: EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95), // Slightly higher opacity for better contrast
+        color: Theme.of(context).cardColor.withOpacity(0.95),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black26, // Darker shadow for better depth
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 5))],
       ),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          // Group Info Section
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 60,
+                backgroundImage: group.groupPictureUrl != null && group.groupPictureUrl!.isNotEmpty
+                    ? NetworkImage(group.groupPictureUrl!)
+                    : const AssetImage('assets/images/default_profilePic.png') as ImageProvider,
+              ),
+              SizedBox(width: 16.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircleAvatar(
-                      radius: 50,
-                      backgroundImage: group.groupPictureUrl != null && group.groupPictureUrl!.isNotEmpty
-                          ? NetworkImage(group.groupPictureUrl!) as ImageProvider<Object>
-                          : const AssetImage('assets/images/default_profilePic.png'),
-                    ),
-                    SizedBox(width: 16.0),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${group.groupType ?? 'Group Type'}',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromRGBO(46, 197, 187, 1.0),
-                            ),
+                    Text(
+                      '${group.groupType ?? 'Group Type'}',
+                      style: Theme.of(context).textTheme.headline6?.copyWith(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
                           ),
-                          SizedBox(height: 4.0),
-                          Text(
-                            'Created by ${widget.creatorName} on ${DateFormat('yyyy-MM-dd').format(group.creationDate ?? DateTime.now())}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700], // Slightly darker for readability
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
-                    if (widget.isCreator)
-                      IconButton(
-                        icon: Icon(Icons.edit, color: Color.fromRGBO(181, 58, 185, 1)),
-                        onPressed: widget.onEditGroupInfo,
-                      ),
+                    SizedBox(height: 4.0),
+                    Text(
+                      'Created by ${widget.creatorName} on ${DateFormat('yyyy-MM-dd').format(group.creationDate ?? DateTime.now())}',
+                      style: Theme.of(context).textTheme.bodyText2,
+                    ),
                   ],
                 ),
-                SizedBox(height: 16.0),
-                Text(
-                  'Group Code: ${group.groupCode ?? 'N/A'}',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromRGBO(181, 58, 185, 1),
-                  ),
+              ),
+              if (widget.isCreator)
+                IconButton(
+                  icon: Icon(Icons.edit, color: Theme.of(context).iconTheme.color),
+                  onPressed: widget.onEditGroupInfo,
                 ),
-                SizedBox(height: 8.0),
-                Text(
-                  'Description:',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromRGBO(46, 197, 187, 1.0)),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _descriptionExpanded = !_descriptionExpanded;
-                    });
-                  },
-                  child: AnimatedCrossFade(
-                    firstChild: Container(
-                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
-                      child: Text(
-                        group.description ?? 'No description provided.',
-                        maxLines: 2,
-                        style: TextStyle(color: Colors.grey[700]), // Slightly darker for readability
-                      ),
-                    ),
-                                        secondChild: Container(
-                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 100),
-                      child: Text(
-                        group.description ?? 'No description provided.',
-                        style: TextStyle(color: Colors.grey[700]), // Slightly darker for readability
-                      ),
-                    ),
-                    crossFadeState: _descriptionExpanded
-                        ? CrossFadeState.showSecond
-                        : CrossFadeState.showFirst,
-                    duration: Duration(milliseconds: 200),
-                  ),
-                ),
-                SizedBox(height: 10.0),
-                TextButton(
-                  onPressed: _showMembersList,
-                  child: Text(
-                    'View Members (${group.members.length})',
-                    style: TextStyle(
-                      color: Color.fromRGBO(46, 197, 187, 1.0), // Match your theme color
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
+          // Goals Section
+        StreamBuilder<List<Goal>>(
+          stream: _fetchGoals(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.track_changes,
+                    size: 50,
+                    color: Color.fromRGBO(46, 197, 187, 1.0),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No goals yet! Start setting up some goals and track your progress here.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Track your group’s success and stay motivated!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+
+            } else {
+              final goals = snapshot.data!;
+              final completedGoals = goals.where((goal) => goal.isCompleted).length;
+              final totalGoals = goals.length;
+              final completionPercentage = totalGoals > 0 ? completedGoals / totalGoals : 0.0;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          Text('Total Goals', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('$totalGoals', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: CircularPercentIndicator(
+                          radius: 60.0, // Smaller size for a compact layout
+                          lineWidth: 10.0,
+                          percent: completionPercentage,
+                          center: Text(
+                            '${(completionPercentage * 100).toStringAsFixed(1)}%',
+                            style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                          ),
+                          progressColor: Color.fromRGBO(46, 197, 187, 1.0),
+                          backgroundColor: Colors.grey[300]!,
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          Text('In Progress', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('${goals.length - completedGoals}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            }
+          },
+        ),
+        SizedBox(height: 8.0),
+        // Add Goal and Habit Buttons (always visible)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Add Goal Button
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: secondaryColor,
+                minimumSize: Size(120, 40),
+                padding: EdgeInsets.symmetric(horizontal: 8),
+              ),
+              icon: Icon(Icons.add, size: 20, color: Colors.white),
+              label: Text('Goal', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AddGoalDialog(
+                      addGoalToGroup: (Goal goal) async {
+                        final goalProvider = Provider.of<GoalProvider>(context, listen: false);
+                        try {
+                          await goalProvider.addGoalToGroup(goal, group!.groupId);
+                          showSnackBar(context, 'Goal added to group successfully!');
+                        } catch (e) {
+                          showSnackBar(context, 'Error adding goal: $e', isError: true);
+                        }
+                      },
+                      groupId: group!.groupId,
+                    );
+                  },
+                );
+              },
+            ),
+            SizedBox(width: 16),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                minimumSize: Size(120, 40),
+                padding: EdgeInsets.symmetric(horizontal: 8),
+              ),
+              icon: Icon(Icons.visibility, size: 20, color: Colors.white),
+              label: Text('Members', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              onPressed: _showMembersList,
+            ),
+            SizedBox(width: 16),
+            // Add Habit Button
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: secondaryColor,
+                minimumSize: Size(120, 40),
+                padding: EdgeInsets.symmetric(horizontal: 8),
+              ),
+              icon: Icon(Icons.add, size: 20, color: Colors.white),
+              label: Text('Habit', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AddHabitDialog(isGroupHabit: true, groupId: group!.groupId);
+                  },
+                );
+              },
+            ),
+          ],
+        ),
         ],
       ),
     );

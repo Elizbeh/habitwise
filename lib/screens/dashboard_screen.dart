@@ -83,66 +83,110 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-         automaticallyImplyLeading: false,
-  iconTheme: const IconThemeData(color: Colors.white),
-  elevation: 0,
-  toolbarHeight: 220, // Increased height for a more prominent effect
-  title: Row(
-    crossAxisAlignment: CrossAxisAlignment.center, // Align items to the center
-    children: [
-      Container(
-        width: 60,
-        height: 60, // Slightly larger logo
-        decoration: BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle, // Circular logo container
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 10,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Image.asset('assets/images/logo.png'),
-        ),
-      ),
-      const SizedBox(width: 16), // Increased spacing for balance
-            Expanded(
-              child: Text(
-                'HabitWize',
-                style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(fontSize: 30), // Custom font size for this widget
-              ),
-
-            ),
-          ],
-        ),
+        automaticallyImplyLeading: false,
+        iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
+        toolbarHeight: 300, // Increased height for a more prominent effect
         centerTitle: false,
         flexibleSpace: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(0),
-              bottomRight: Radius.circular(110),
-            ),
-            gradient: LinearGradient(
-              colors: appBarGradientColors,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(0),
-              bottomRight: Radius.circular(110),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-              child: Container(
-                color: Colors.transparent,
+           height: 300, 
+          child: Stack(
+            children: [
+              // Gradient overlay
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(0),
+                    bottomRight: Radius.circular(80),
+                  ),
+                  gradient: LinearGradient(
+                    colors: appBarGradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
-            ),
+              // Blurred effect
+              ClipRRect(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(0),
+                  bottomRight: Radius.circular(80),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                  child: Container(
+                    color: Colors.transparent,
+                  ),
+                ),
+              ),
+              // Background image
+              Positioned.fill(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: Container(
+                    width: 210,
+                    height: 180,
+                    child: Image.asset(
+                      'assets/images/app_img.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
+              // Logo
+              Positioned(
+                top: 150,
+                left: 20,
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset('assets/images/logo.png'),
+                  ),
+                ),
+              ),
+              // App Title
+              Positioned(
+                top: 160, // Lower than the logo to avoid overlap
+                left: 80, // Position the title next to the logo
+                child: Text(
+                  'HabitWize',
+                  style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
+                    fontSize: 28,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              // Welcome text
+              Positioned(
+                top: 220, // Adjust this position based on your layout
+                left: 20,
+                right: 20,
+                child: Text(
+                  _isFirstLogin
+                    ? 'Welcome, ${widget.user.username}!'
+                    : 'Welcome Back, ${widget.user.username}!',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: const Color.fromARGB(255, 250, 229, 41), // Adjust the text color for visibility
+                  ),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+            ],
           ),
         ),
         actions: [
@@ -156,72 +200,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      
-      body: Stack(
-        children: [
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 2.0, vertical: 16.0),
-              child: Consumer2<HabitProvider, GoalProvider>(
-                builder: (context, habitProvider, goalProvider, child) {
-                  final List<Habit> habits = habitProvider.personalHabits;
-                  final List<Goal> goals = goalProvider.goals;
+      body: SafeArea(
+  child: Padding(
+    padding: EdgeInsets.symmetric(horizontal: 2.0),
+    child: Consumer2<HabitProvider, GoalProvider>(
+      builder: (context, habitProvider, goalProvider, child) {
+        final List<Habit> habits = habitProvider.personalHabits;
+        final List<Goal> goals = goalProvider.goals;
 
-                  return SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Stack(
-                          children: [
-                            Text(
-                              _isFirstLogin
-                                ? 'Welcome, ${widget.user.username}!'
-                                : 'Good to see you again, ${widget.user.username}!',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                           
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: ConfettiWidget(
-                                confettiController: _confettiController,
-                                blastDirection: 3.14, // Confetti will go to the left
-                                emissionFrequency: 0.05,
-                                numberOfParticles: 10,
-                                gravity: 0.1,
-                                colors: [
-                                Color.fromRGBO(134, 41, 137, 1.0),
-                                Color.fromRGBO(181, 58, 185, 1),
-                                Color.fromRGBO(46, 197, 187, 1.0),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20.0),
-                        _buildQuoteSection(),
-                        SizedBox(height: 20.0),
-                        _buildGroupSection(context),
-                        SizedBox(height: 20.0),
-                        if (habits.isNotEmpty || goals.isNotEmpty) ...[
-                           _buildOverview(habits, goals),
-                        ] else ...[
-                          PlaceholderWidget(),
-                        ],
-                      ],
-                    ),
-                  
-                  );
-                },
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Confetti Widget
+              Align(
+                alignment: Alignment.topRight,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirection: 3.14, // Confetti to the left
+                  emissionFrequency: 0.05,
+                  numberOfParticles: 10,
+                  gravity: 0.1,
+                  colors: [
+                    Color.fromRGBO(134, 41, 137, 1.0),
+                    Color.fromRGBO(181, 58, 185, 1),
+                    Color.fromRGBO(46, 197, 187, 1.0),
+                  ],
+                ),
               ),
-            ),
+              // Quote Section
+              _buildQuoteSection(),
+              SizedBox(height: 20.0),
+
+              // Group Section
+              _buildGroupSection(context),
+              SizedBox(height: 20.0),
+
+              // Overview Section for Habits and Goals
+              if (habits.isNotEmpty || goals.isNotEmpty) 
+                _buildOverview(habits, goals)
+              else 
+                PlaceholderWidget(),
+            ],
           ),
-        ],
-      ),
+        );
+      },
+    ),
+  ),
+),
+
       bottomNavigationBar: BottomNavigationBarWidget(
         currentIndex: 0, // DashboardScreen is at index 0
         onTap: (index) {
@@ -251,7 +278,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   return Consumer<GroupProvider>(
     builder: (context, groupProvider, child) {
       List<HabitWiseGroup> joinedGroups = groupProvider.groups;
-      String userId = "yourUserId";  // Replace this with how you fetch the current user ID
+       String userId = Provider.of<UserProvider>(context).user!.uid;
 
       return Container(
         padding: EdgeInsets.all(10.0),
@@ -263,7 +290,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                
               ),
             ),
             SizedBox(height: 10),
@@ -292,7 +319,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => CreateGroupScreen()),
+                      MaterialPageRoute(builder: (context) => CreateGroupScreen(user: widget.user)),
                     );
                   },
                   child: Text('Create a group'),
@@ -372,9 +399,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     },
   );
 }
-
-  Widget _buildGroupCard(
+Widget _buildGroupCard(
     BuildContext context, HabitWiseGroup group, GroupProvider groupProvider) {
+  final theme = Theme.of(context);
+
   return Stack(
     children: [
       InkWell(
@@ -383,7 +411,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             '/groupDetails',
             arguments: {
               'groupId': group.groupId,
-              'user': Provider.of<UserProvider>(context, listen: false).user, // Directly get user
+              'user': Provider.of<UserProvider>(context, listen: false).user,
             },
           );
         },
@@ -391,11 +419,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           width: 250.0,
           padding: EdgeInsets.all(10.0),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: theme.colorScheme.background, // Use background color from theme
             borderRadius: BorderRadius.circular(10.0),
             border: Border.all(
-              color: Color.fromRGBO(46, 197, 187, 1.0), // Border color
-              width: 2.0, // Border width
+              color: theme.colorScheme.secondary, // Use secondary color from theme
+              width: 2.0,
             ),
             boxShadow: [
               BoxShadow(
@@ -410,10 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             children: [
               Text(
                 group.groupName,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: theme.textTheme.titleMedium, // Use titleMedium from theme
               ),
               SizedBox(height: 10.0),
               CircleAvatar(
@@ -432,7 +457,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   SizedBox(width: 5.0),
                   Text(
                     'Members: ${group.members.length}',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: theme.textTheme.bodyMedium
                   ),
                 ],
               ),
@@ -447,7 +472,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                   child: Text('View Details'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(46, 197, 187, 1.0),
+                    backgroundColor: theme.colorScheme.secondary, // Use secondary color from theme
                   ),
                 ),
               ),
@@ -476,7 +501,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   );
 }
 
-  Widget _buildOverview(List<Habit> habits, List<Goal> goals) {
+Widget _buildOverview(List<Habit> habits, List<Goal> goals) {
   return Container(
     height: 400,
     padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -496,7 +521,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 SizedBox(height: 26.0),
@@ -518,7 +542,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 SizedBox(height: 20.0),
@@ -537,53 +560,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
 }
 
 Widget _buildQuoteSection() {
-    return Consumer<QuoteProvider>(
-      builder: (context, quoteProvider, child) {
-        return GeometricBorderContainer(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'Quote of the Day',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueGrey[800],
-                ),
+  return Consumer<QuoteProvider>(
+    builder: (context, quoteProvider, child) {
+      // Accessing the current theme's colors
+      final theme = Theme.of(context);
+      
+      return GeometricBorderContainer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Quote of the Day',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onBackground, // Use theme color for text
+              ) ?? TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey[800], // Fallback color
               ),
-              SizedBox(height: 10.0),
-              Text(
-                quoteProvider.quote,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.blueGrey[700],
-                ),
+            ),
+            SizedBox(height: 10.0),
+            Text(
+              quoteProvider.quote,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontStyle: FontStyle.italic,
+                color: theme.colorScheme.onBackground.withOpacity(0.7), // Use theme color for text
+              ) ?? TextStyle(
+                fontSize: 16,
+                fontStyle: FontStyle.italic,
+                color: Colors.blueGrey[700], // Fallback color
               ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
 
 class PlaceholderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // Accessing the current theme
+
     return Column(
       children: [
         Text(
           'Your progress and statistics will be displayed here.',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: theme.textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ) ?? TextStyle(
+            fontSize: 16, // Fallback font size
+            fontWeight: FontWeight.bold,
+          ),
         ),
         ClipRRect(
           borderRadius: BorderRadius.circular(10.0),
           child: Container(
             height: 200,
-            width: double.infinity, 
+            width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(40.0),
               image: DecorationImage(
@@ -592,24 +631,28 @@ class PlaceholderWidget extends StatelessWidget {
               ),
             ),
           ),
-        
         ),
         SizedBox(height: 20.0),
         Text(
           'No habits or goals to display.',
-          style: TextStyle(
-            fontSize: 18,
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: Colors.grey,
+            color: theme.colorScheme.onBackground.withOpacity(0.7), // Use theme color
+          ) ?? TextStyle(
+            fontSize: 18, // Fallback font size
+            fontWeight: FontWeight.bold,
+            color: Colors.grey, // Fallback color
           ),
         ),
         SizedBox(height: 10.0),
         Text(
           'Start creating your habits and goals to see your progress here.',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onBackground.withOpacity(0.6), // Use theme color
+          ) ?? TextStyle(
+            fontSize: 16, // Fallback font size
+            color: Colors.grey, // Fallback color
           ),
         ),
       ],

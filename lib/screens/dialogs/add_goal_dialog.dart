@@ -128,14 +128,15 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
     }
   }
 
+  
   @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: primaryColor, width: 3.0),
-        borderRadius: BorderRadius.circular(12.0), // Rounded dialog corners
+Widget build(BuildContext context) {
+  return Dialog(
+    shape: RoundedRectangleBorder(
+      side: BorderSide(color: Theme.of(context).primaryColor, width: 3.0),
+      borderRadius: BorderRadius.circular(12.0), // Rounded dialog corners
       ),
-      backgroundColor: Colors.white, // Light background color
+      backgroundColor: Theme.of(context).dialogBackgroundColor, // Use dialog background from theme
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -143,11 +144,12 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
             centerTitle: true,
             title: Text(
               'Add Goal',
-              style: Theme.of(context).appBarTheme.titleTextStyle, // Custom app bar text style
+              style: Theme.of(context).appBarTheme.titleTextStyle, // Use app bar title style from theme
             ),
-            backgroundColor: primaryColor.withOpacity(0.7), // App bar color
+            backgroundColor: Theme.of(context).primaryColor.withOpacity(0.7), // Use primary color from theme
             elevation: 0,
           ),
+          
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: SingleChildScrollView(
@@ -164,9 +166,9 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                         value: category,
                         child: Row(
                           children: [
-                            Icon(GoalHelper.categoryIcons[category], color: secondaryColor),
+                            Icon(GoalHelper.categoryIcons[category], color: Theme.of(context).colorScheme.secondary),
                             SizedBox(width: 8),
-                            Text(category, style: TextStyle(fontSize: 14)),
+                            Text(category, style: Theme.of(context).textTheme.bodyText1),
                           ],
                         ),
                       );
@@ -178,25 +180,37 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                         });
                       }
                     },
-                    decoration: InputDecoration(labelText: 'Category'), // Input decoration for dropdown
+                    decoration: InputDecoration(
+                      labelText: 'Category',
+                      labelStyle: Theme.of(context).textTheme.bodyText2, // Use label style from theme
+                    ),
                   ),
                   SizedBox(height: 10),
                   // Text field for goal title
                   TextFormField(
                     controller: _titleController,
-                    decoration: InputDecoration(labelText: 'Title'), // Input decoration for title
+                    decoration: InputDecoration(
+                      labelText: 'Title',
+                      labelStyle: Theme.of(context).textTheme.bodyMedium, // Use label style from theme
+                    ),
                   ),
                   SizedBox(height: 10),
                   // Text field for goal description
                   TextFormField(
                     controller: _descriptionController,
-                    decoration: InputDecoration(labelText: 'Description'), // Input decoration for description
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      labelStyle: Theme.of(context).textTheme.bodyMedium, // Use label style from theme
+                    ),
                   ),
                   SizedBox(height: 10),
                   // Text field for goal target
                   TextFormField(
                     controller: _targetController,
-                    decoration: InputDecoration(labelText: 'Target'), // Input decoration for target
+                    decoration: InputDecoration(
+                      labelText: 'Target',
+                      labelStyle: Theme.of(context).textTheme.bodyMedium, // Use label style from theme
+                    ),
                     keyboardType: TextInputType.number, // Numeric input for target
                   ),
                   SizedBox(height: 10),
@@ -210,6 +224,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                             labelText: _selectedDate == null
                                 ? 'Select date'
                                 : DateFormat.yMMMd().format(_selectedDate!), // Display selected date
+                            labelStyle: Theme.of(context).textTheme.bodyMedium,
                           ),
                           onTap: () => _selectDate(context), // On tap, open date picker
                         ),
@@ -222,6 +237,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                             labelText: _selectedTime == null
                                 ? 'Select time'
                                 : _selectedTime!.format(context), // Display selected time
+                            labelStyle: Theme.of(context).textTheme.bodyMedium,
                           ),
                           onTap: () => _selectTime(context), // On tap, open time picker
                         ),
@@ -235,7 +251,7 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                     items: GoalHelper.goalTemplates.map((template) {
                       return DropdownMenuItem<GoalTemplate>(
                         value: template,
-                        child: Text(template.title), // Display template title
+                        child: Text(template.title, style: Theme.of(context).textTheme.bodySmall), // Display template title with theme text style
                       );
                     }).toList(),
                     onChanged: (template) {
@@ -250,7 +266,10 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
                         _selectedTime = TimeOfDay.fromDateTime(template.endDate);
                       });
                     },
-                    decoration: InputDecoration(labelText: 'Choose Template'), // Input decoration for template dropdown
+                    decoration: InputDecoration(
+                      labelText: 'Choose Template',
+                      labelStyle: Theme.of(context).textTheme.bodyMedium, // Use label style from theme
+                    ),
                   ),
                 ],
               ),
@@ -262,16 +281,16 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
             children: [
               TextButton(
                 onPressed: () => Navigator.pop(context), // Close dialog
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: secondaryColor, // Button color
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.secondary, // Use secondary color for button
                 ),
                 child: Text('Cancel', style: TextStyle(color: Colors.white)), // Cancel button
               ),
               SizedBox(width: 20.0),
               ElevatedButton(
-                                onPressed: () => _addGoal(context), // Add goal on button press
+                onPressed: () => _addGoal(context), // Add goal on button press
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor, // Button color
+                  backgroundColor: Theme.of(context).primaryColor, // Use primary color for button
                 ),
                 child: Text('Add Goal', style: TextStyle(color: Colors.white)), // Add goal button
               ),
@@ -281,4 +300,5 @@ class _AddGoalDialogState extends State<AddGoalDialog> {
       ),
     );
   }
+
 }

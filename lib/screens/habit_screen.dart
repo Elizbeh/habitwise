@@ -238,7 +238,6 @@ class _HabitScreenState extends State<HabitScreen> {
               ],
             ),
           ),
-          backgroundColor: isDarkMode ? Colors.black : Colors.white,
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               showDialog(

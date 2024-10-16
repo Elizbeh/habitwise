@@ -11,7 +11,7 @@ class HabitWiseUser {
   final List<String> groupIds;
   final Map<String, String> groupRoles;
   String? profilePictureUrl;
-  bool canCreateGroup;
+  final bool canCreateGroup;
   bool canJoinGroups;
   bool emailVerified;
   
@@ -27,7 +27,7 @@ class HabitWiseUser {
     required this.groupIds,
     required this.groupRoles,
     this.profilePictureUrl,
-    this.canCreateGroup = true,
+    required this.canCreateGroup,
     required this.canJoinGroups,
     required this.emailVerified,
   
@@ -45,7 +45,7 @@ class HabitWiseUser {
       groupIds: List<String>.from(data['groupIds'] ?? []),
       groupRoles: Map<String, String>.from(data['groupRoles'] ?? {}),
       profilePictureUrl: data['profilePictureUrl'],
-      canCreateGroup: data['canCreateGroup'] ?? true,
+      canCreateGroup: data['canCreateGroup'] ?? false,
       canJoinGroups: data['canJoinGroups'] ?? false,
       emailVerified: data['emailVerified'] ?? false,
     );
@@ -110,4 +110,5 @@ class HabitWiseUser {
       
     );
   }
+  
 }

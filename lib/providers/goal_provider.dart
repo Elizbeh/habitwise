@@ -14,15 +14,12 @@ class GoalProvider with ChangeNotifier {
 
   // Constructor that initializes fetching goals based on groupId
   GoalProvider({required this.userId, this.groupId}) {
-    Future.microtask(() {
-      if (groupId != null && groupId!.isNotEmpty) {
-        fetchGroupGoals(groupId!); // Fetch group-specific goals if groupId is provided
-      } else {
-        fetchGoals(); // Fetch individual goals
-      }
-    });
+    if (groupId != null && groupId!.isNotEmpty) {
+      fetchGroupGoals(groupId!);
+    } else {
+      fetchGoals();
+    }
   }
-
     // Getter to expose the list of goals depending on context (group or individual)
   List<Goal> get goals => groupId != null && groupId!.isNotEmpty ? _groupGoals : _individualGoals;
   // Dispose method to cancel the subscription when the provider is disposed
@@ -39,7 +36,7 @@ class GoalProvider with ChangeNotifier {
       // Call the GoalDBService to add the goal
       await _dbService.addGoal(userId, goal); // Assuming your GoalDBService has this method
 
-      _individualGoals.add(goal); // Update the local list with the new goal
+      //_individualGoals.add(goal); // Update the local list with the new goal
       notifyListeners(); // Notify listeners to update the UI
     } catch (error) {
       // Handle any errors that may occur
@@ -64,7 +61,7 @@ class GoalProvider with ChangeNotifier {
     try {
       _goalSubscription?.cancel(); // Cancel any existing subscriptions
       _goalSubscription = _dbService.getUserGoalsStream(userId).listen((List<Goal> data) {
-        //_goals = data; // Update the local list with fetched goals
+        _individualGoals = data; // Update the local list with fetched goals
         notifyListeners(); // Notify listeners to update the UI
       });
     } catch (error) {
@@ -87,42 +84,58 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  // Remove an individual goal from the database
-  Future<void> removeGoal(String goalId) async {
-    try {
-      if (groupId != null && groupId!.isNotEmpty) {
-        await _dbService.removeGroupGoal(groupId!, goalId);
-      } else {
-        await _dbService.removeGoal(userId, goalId); // Include userId for individual goal
-      }
-      _individualGoals.removeWhere((goal) => goal.id == goalId); // Remove the goal from the local list
-      notifyListeners(); // Notify listeners to update the UI
-    } catch (error) {
-      print("Error removing goal: $error");
-      throw error; // Rethrow the error to handle it upstream
+// Remove an individual goal from the database
+Future<void> removeGoal(String goalId) async {
+  try {
+    if (groupId != null && groupId!.isNotEmpty) {
+      // For group goals
+      await _dbService.removeGroupGoal(groupId!, goalId);
+      _groupGoals.removeWhere((goal) => goal.id == goalId); // Update group goals
+    } else {
+      // For individual goals
+      await _dbService.removeGoal(userId, goalId);
+      _individualGoals.removeWhere((goal) => goal.id == goalId); // Update individual goals
     }
+    notifyListeners(); // Notify listeners to update the UI
+  } catch (error) {
+    print("Error removing goal: $error");
+    throw error; // Re-throw the error to handle it upstream
   }
+}
 
-  // Update an individual or group goal in the database
-  Future<void> updateGoal(Goal updatedGoal) async {
-    try {
-      if (groupId != null && groupId!.isNotEmpty) {
-        await _dbService.updateGroupGoal(groupId!, updatedGoal);
-      } else {
-        await _dbService.updateGoal(userId, updatedGoal); // Ensure updatedGoal includes userId if needed
+Future<void> removeGroupGoal(String groupId, String goalId) async {
+  await GoalDBService().removeGroupGoal(groupId, goalId);
+}
+
+
+ // Update an individual or group goal in the database
+Future<void> updateGoal(Goal updatedGoal) async {
+  try {
+    if (groupId != null && groupId!.isNotEmpty) {
+      await _dbService.updateGroupGoal(groupId!, updatedGoal); // For group goals
+    } else {
+      await _dbService.updateGoal(userId, updatedGoal); // For individual goals
+    }
+    // Update local goal list for group or individual context
+    if (groupId != null && groupId!.isNotEmpty) {
+      final index = _groupGoals.indexWhere((goal) => goal.id == updatedGoal.id);
+      if (index != -1) {
+        _groupGoals[index] = updatedGoal; // Update group goal list locally
       }
+    } else {
       final index = _individualGoals.indexWhere((goal) => goal.id == updatedGoal.id);
       if (index != -1) {
-        _individualGoals[index] = updatedGoal; // Update the goal in the local list
-        notifyListeners(); // Notify listeners to update the UI
+        _individualGoals[index] = updatedGoal; // Update individual goal list locally
       }
-    } catch (error) {
-      print("Error updating goal: $error");
-      throw error; // Rethrow the error to handle it upstream
     }
+    notifyListeners(); // Notify listeners to update the UI
+  } catch (error) {
+    print("Error updating goal: $error");
+    throw error; // Rethrow the error to handle it upstream
   }
+}
 
-  // Mark a goal as completed (works for both individual and group goals)
+    // Mark an individual goal as completed
   Future<void> markGoalAsCompleted(String goalId) async {
     try {
       final index = _individualGoals.indexWhere((goal) => goal.id == goalId);
@@ -137,7 +150,18 @@ class GoalProvider with ChangeNotifier {
     }
   }
 
-  // Get achievement level based on the number of completed goals
+    // Method to mark a group goal as completed
+  Future<void> markGroupGoalAsCompleted(String groupId, String goalId) async {
+    try {
+      await _dbService.markGroupGoalAsCompleted(groupId, goalId);
+      notifyListeners(); // Notify listeners that the goal has been marked as completed
+    } catch (error) {
+      print("Error marking group goal as completed: $error");
+      throw error;
+    }
+  }
+
+  // Get achievement level based on the number of completed individual goals
   String getAchievementLevel() {
     final completedGoals = _individualGoals.where((goal) => goal.isCompleted).length; // Count completed goals
 
@@ -152,4 +176,65 @@ class GoalProvider with ChangeNotifier {
       return 'No Achievements'; // No completed goals
     }
   }
+
+  // Method to update group goal progress via the DB service
+Future<void> updateGroupGoalProgress(Goal goal, int updatedProgress, {required String groupId}) async {
+  try {
+    // Call the DB service to update the group goal's progress
+    await _dbService.updateGroupGoalProgress(goal, updatedProgress, groupId: groupId);
+    
+    // Optionally, update the local state or UI after a successful progress update
+    notifyListeners();
+  } catch (error) {
+    print("Error updating group goal progress: $error");
+    // Handle the error appropriately, such as showing an error message to the user
+  }
+}
+
+Future<void> updateGroupGoal(Goal updatedGoal, String groupId) async {
+  try {
+    await _dbService.updateGroupGoal(groupId, updatedGoal);
+    final index = _groupGoals.indexWhere((g) => g.id == updatedGoal.id);
+    if (index != -1) {
+      _groupGoals[index] = updatedGoal; // Update locally
+      notifyListeners(); // Notify UI to update
+    }
+  } catch (error) {
+    print("Error updating group goal: $error");
+    throw error;
+  }
+}
+
+Future<void> completeGroupGoal(String goalId, String groupId) async {
+  try {
+    Goal? existingGoal = await _dbService.getGroupGoal(groupId, goalId);
+
+    if (existingGoal != null) {
+      await _dbService.updateGroupGoalProgress(
+        Goal(
+          id: existingGoal.id,
+          title: existingGoal.title,
+          description: existingGoal.description,
+          category: existingGoal.category,
+          priority: existingGoal.priority,
+          progress: 100, // Mark as fully completed
+          target: existingGoal.target,
+          targetDate: existingGoal.targetDate,
+          endDate: existingGoal.endDate,
+          isCompleted: true,
+        ),
+        100, // Full progress
+        groupId: groupId,
+      );
+    } else {
+      print("Goal not found.");
+    }
+  } catch (error) {
+    print("Error completing group goal: $error");
+    throw error;
+  }
+}
+
+
+
 }

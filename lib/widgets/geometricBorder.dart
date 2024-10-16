@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class GeometricBorderContainer extends StatelessWidget {
   final Widget child;
@@ -10,16 +11,20 @@ class GeometricBorderContainer extends StatelessWidget {
     // Getting the full width of the screen
     double screenWidth = MediaQuery.of(context).size.width;
 
+    // Accessing the current theme's colors
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+    final secondaryColor = theme.colorScheme.secondary;
+
     return Container(
-      // Set width to full screen width
       width: screenWidth,
-      padding: EdgeInsets.all(16.0), // Padding around the container
+      padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color.fromRGBO(134, 41, 137, 1.0),
-            Color.fromRGBO(181, 58, 185, 1),
-            Color.fromRGBO(46, 197, 187, 1.0),
+            primaryColor, // Using primary color from theme
+            secondaryColor, // Using secondary color from theme
+            Color.fromRGBO(46, 197, 187, 1.0), // Use a custom color or define it in your theme
           ],
           begin: Alignment.centerRight,
           end: Alignment.bottomLeft,
@@ -29,12 +34,13 @@ class GeometricBorderContainer extends StatelessWidget {
       child: ClipPath(
         clipper: GeometricClipper(),
         child: Container(
-          color: Colors.white,
-          padding: EdgeInsets.all(20.0), // Padding inside the geometric shape
+          color: theme.colorScheme.background, // Dynamically use theme background color
+          padding: EdgeInsets.all(20.0),
           child: child,
         ),
       ),
     );
+
   }
 }
 

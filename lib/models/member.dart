@@ -14,14 +14,17 @@ class Member {
   });
 
   factory Member.fromMap(Map<String, dynamic> data) {
-    return Member(
-      id: data['id'] ?? '',
-      name: data['name'] ?? '',
-      email: data['email'] ?? '',
-      profilePictureUrl: data['profilePictureUrl'],
-      joinedDate: data['joinedDate'] != null ? DateTime.parse(data['joinDate']) : null, // Parse joinDate
-    );
-  }
+  return Member(
+    id: data['id'] ?? '',
+    name: data['name'] ?? '',
+    email: data['email'] ?? '',
+    profilePictureUrl: data['profilePictureUrl'],
+    joinedDate: data['joinedDate'] != null 
+        ? DateTime.parse(data['joinedDate']) 
+        : null,
+  );
+}
+
 
   Map<String, dynamic> toMap() {
     return {

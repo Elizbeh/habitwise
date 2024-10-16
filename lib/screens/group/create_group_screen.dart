@@ -1,18 +1,23 @@
-import 'dart:io'; // Required for working with File 
+import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:habitwise/themes/theme.dart'; // Custom theme
-import 'package:habitwise/models/user.dart'; // User model
-import 'package:habitwise/providers/user_provider.dart'; // User state management
-import 'package:habitwise/widgets/bottom_navigation_bar.dart'; // Custom Bottom Nav Bar
-import 'package:image_picker/image_picker.dart'; // For picking images
-import 'package:habitwise/providers/group_provider.dart'; // Group state management
-import 'package:habitwise/models/group.dart'; // Group model
-import 'package:habitwise/models/member.dart'; // Member model
-import 'package:habitwise/services/storage_service.dart'; // Storage service for uploads
-import 'package:provider/provider.dart'; // Provider for state management
+import 'package:habitwise/main.dart';
+import 'package:habitwise/models/user.dart';
+import 'package:habitwise/providers/user_provider.dart';
+import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/goals_screen.dart';
+import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/profile_screen.dart';
+import 'package:habitwise/screens/setting_screen.dart';
+import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:habitwise/providers/group_provider.dart';
+import 'package:habitwise/models/group.dart';
+import 'package:habitwise/models/member.dart';
+import 'package:habitwise/services/storage_service.dart';
+import 'package:provider/provider.dart';
 
-// Gradient colors for the app bar
 const List<Color> appBarGradientColors = [
   Color.fromRGBO(134, 41, 137, 1.0),
   Color.fromRGBO(134, 41, 137, 1.0),
@@ -20,34 +25,66 @@ const List<Color> appBarGradientColors = [
   Color.fromRGBO(46, 197, 187, 1.0),
 ];
 
-// StatefulWidget for creating or editing a group
 class CreateGroupScreen extends StatefulWidget {
-  final HabitWiseGroup? groupToEdit; // Optional group to edit
-  final VoidCallback? onGroupUpdated; // Callback after group update
+  final HabitWiseGroup? groupToEdit;
+  final VoidCallback? onGroupUpdated;
+  final HabitWiseUser user;
+  final String? groupId;
 
-  CreateGroupScreen({this.groupToEdit, this.onGroupUpdated});
+  CreateGroupScreen({this.groupToEdit, this.onGroupUpdated, required this.user, this.groupId});
 
   @override
   _CreateGroupScreenState createState() => _CreateGroupScreenState();
 }
 
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
-  final TextEditingController _groupNameController = TextEditingController(); // Group name input
-  final TextEditingController _groupTypeController = TextEditingController(); // Group type input
-  final TextEditingController _descriptionController = TextEditingController(); // Group description input
-  File? _groupPhoto; // Selected group photo file
-  final StorageService _storageService = StorageService(); // Handles photo uploads
-  int _currentIndex = 0; // Current bottom navigation index
-  late HabitWiseGroup _group; // Current group data
-  bool _isUploading = false; // Uploading state indicator
+  final TextEditingController _groupNameController = TextEditingController();
+  final TextEditingController _groupTypeController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  File? _groupPhoto;
+  final ImagePicker _picker = ImagePicker();
+
+  final StorageService _storageService = StorageService();
+  bool _isUploading = false;
+
+  int _currentIndex = 0;
+  late HabitWiseGroup _group;
+
+  // Function to handle the bottom navigation taps
+  void _onTap(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    // You can handle the navigation here based on the tab
+    switch (index) {
+      case 0:
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => DashboardScreen(  user: widget.user, groupId: widget.groupId ?? '', )));
+        break;
+      case 1:
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => GoalScreen(user: widget.user, groupId: widget.groupId ?? '', )));
+        break;
+      case 2:
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => HabitScreen( user: widget.user, groupId: widget.groupId ?? '', )));
+        break;
+      case 3:
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage(user: widget.user)));
+        break;
+      case 4:
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SettingsPage(themeNotifier: appThemeNotifier,)));
+        break;
+      default:
+        break;
+    }
+  }
 
   @override
-  void initState() {
-    super.initState();
+void initState() {
+  super.initState();
+   super.initState();
     _initializeGroup();
   }
 
-  // Initializes the group data if editing an existing group or creates a new one
+
   void _initializeGroup() {
     if (widget.groupToEdit != null) {
       _group = widget.groupToEdit!;
@@ -71,34 +108,71 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     }
   }
 
-  // Loads the group photo from a URL if editing an existing group
   Future<void> _loadGroupPhoto() async {
-    if (_group.groupPictureUrl?.isNotEmpty ?? false) {
-      final file = await _storageService.getImageFileFromUrl(_group.groupPictureUrl!);
+    if (widget.groupToEdit?.groupPictureUrl?.isNotEmpty ?? false) {
+      final file = await _storageService.getImageFileFromUrl(widget.groupToEdit!.groupPictureUrl!);
       setState(() {
         _groupPhoto = file;
+        
       });
     }
   }
 
-  // Opens image picker for selecting a group photo
+   // Method to select the group photo
   Future<void> _selectGroupPhoto() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+  final selectedOption = await showDialog<int>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Choose an option'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Camera'),
+            onPressed: () {
+              Navigator.pop(context, 0); // 0 for camera
+            },
+          ),
+          TextButton(
+            child: Text('Gallery'),
+            onPressed: () {
+              Navigator.pop(context, 1); // 1 for gallery
+            },
+          ),
+        ],
+      );
+    },
+  );
+
+  if (selectedOption != null) {
+    XFile? pickedImage;
+    if (selectedOption == 0) {
+      pickedImage = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+    } else if (selectedOption == 1) {
+      pickedImage = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+    }
+
+    if (pickedImage != null) {
       setState(() {
-        _groupPhoto = File(pickedFile.path);
+        _groupPhoto = File(pickedImage!.path);
       });
     }
   }
+}
 
-  // Uploads the selected group photo to cloud storage
+
   Future<String?> _uploadGroupPhoto() async {
     if (_groupPhoto != null) {
       try {
         setState(() {
           _isUploading = true;
         });
-        return await _storageService.uploadGroupPhoto(_groupPhoto!); // Upload photo
+        return await _storageService.uploadGroupPhoto(_groupPhoto!);
       } catch (e) {
         print('Error uploading group photo: $e');
       } finally {
@@ -107,16 +181,9 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         });
       }
     }
-    return null; // No photo uploaded
+    return null;
   }
 
- /* // Generates a unique group code
-  String _generateGroupCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    return List.generate(6, (index) => chars[(chars.length * Math.random()).floor()]).join();
-  }
-*/
-  // Saves the group data (either creates a new group or updates an existing one)
   Future<void> _saveGroup() async {
     String groupName = _groupNameController.text.trim();
     String groupType = _groupTypeController.text.trim();
@@ -181,191 +248,126 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     }
   }
 
-  // Displays a snackbar with a message
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  // Handles bottom navigation bar tap
-  void _onBottomNavBarTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
-    // Navigate to the selected screen based on index
-    switch (index) {
-      case 0:
-        Navigator.pushNamed(context, '/dashboard');
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/goals');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/habit');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/profile');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/settings');
-        break;
-    }
-  }
-
-  @override
-  void dispose() {
-    // Dispose of controllers to free up resources
-    _groupNameController.dispose();
-    _groupTypeController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
         flexibleSpace: Container(
           decoration: BoxDecoration(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(50),
+            ),
             gradient: LinearGradient(
               colors: appBarGradientColors,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(0),
+              bottomRight: Radius.circular(50),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+              child: Container(
+                color: Colors.transparent,
+              ),
+            ),
+          ),
         ),
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text(
-          widget.groupToEdit == null ? 'Create Group' : 'Edit Group',
-          style: Theme.of(context).appBarTheme.titleTextStyle,
-        ),
+        title: Text(widget.groupToEdit == null ? 'Create Group' : 'Edit Group'),
         elevation: 0,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          padding: const EdgeInsets.all(20.0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
-                                // Input fields for group details
-                _buildTextField(
-                  controller: _groupNameController,
-                  label: 'Group Name',
-                  icon: Icons.group,
-                ),
-                const SizedBox(height: 10),
-                _buildTextField(
-                  controller: _groupTypeController,
-                  label: 'Group Type',
-                  icon: Icons.category,
-                ),
-                const SizedBox(height: 10),
-                _buildTextField(
-                  controller: _descriptionController,
-                  label: 'Description',
-                  icon: Icons.description,
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 10),
-                // Group code section
-                _buildTextField(
-                  controller: TextEditingController(text: _createGroupCode()),
-                  label: 'Group Code',
-                  icon: Icons.vpn_key,
-                  enabled: false, // Disable editing to prevent user changes
-                ),
-                const SizedBox(height: 10),
-                // Group photo section
-                Text(
-                  'Group Photo',
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
+                _buildTextField(_groupNameController, 'Group Name', Icons.group),
+                const SizedBox(height: 8),
+                _buildTextField(_groupTypeController, 'Group Type', Icons.category),
+                const SizedBox(height: 8),
+                _buildTextField(_descriptionController, 'Description', Icons.description, maxLines: 3, maxLength: 300),
+                const SizedBox(height: 8),
+                _buildTextField(TextEditingController(text: _createGroupCode()), 'Group Code', Icons.vpn_key, enabled: false),
+                const SizedBox(height: 8),
+                Text('Group Photo', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
                 GestureDetector(
-                  onTap: _selectGroupPhoto,
-                  child: Container(
-                    width: double.infinity,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      image: _groupPhoto != null
-                          ? DecorationImage(
-                              image: FileImage(_groupPhoto!),
-                              fit: BoxFit.cover,
-                            )
-                          : const DecorationImage(
-                              image: AssetImage('assets/images/placeholder.png'), // Placeholder image
-                              fit: BoxFit.cover,
-                            ),
-                      border: Border.all(color: Colors.grey, width: 1),
-                    ),
-                    child: _groupPhoto == null
-                        ? Center(
-                            child: Text(
-                              'Tap to select a photo',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          )
-                        : null,
-                  ),
+              onTap: _selectGroupPhoto,
+              child: Container(
+                width: double.infinity,
+                height: 220,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  image: _groupPhoto != null
+                      ? DecorationImage(image: FileImage(_groupPhoto!), fit: BoxFit.cover)
+                      : const DecorationImage(image: AssetImage('assets/images/placeholder.png'), fit: BoxFit.cover),
+                  border: Border.all(color: Colors.grey, width: 2),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: Offset(0, 4)),
+                  ],
                 ),
-                const SizedBox(height: 20),
-                // Save button
+                child: _groupPhoto == null
+                    ? Center(
+                        child: Text(
+                          'Tap to select a photo',
+                          style: TextStyle(color: Colors.black, fontSize: 16),
+                        ),
+                      )
+                    : null,
+              ),
+            ), 
+                const SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: _isUploading ? null : _saveGroup,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 15), backgroundColor: Color.fromRGBO(46, 197, 187, 1.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
                   child: _isUploading
                       ? CircularProgressIndicator(color: Colors.white)
-                      : Text(widget.groupToEdit == null ? 'Create Group' : 'Update Group'),
+                      : Text(widget.groupToEdit == null ? 'Create Group' : 'Update Group', style: TextStyle(fontSize: 24)),
                 ),
               ],
             ),
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBarWidget(
         currentIndex: _currentIndex,
-        onTap: _onBottomNavBarTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.flag), label: 'Goals'),
-          BottomNavigationBarItem(icon: Icon(Icons.check), label: 'Habits'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
+        onTap: _onTap,
+        themeNotifier: ValueNotifier(ThemeMode.light), // Pass theme if needed
       ),
     );
   }
 
-  // Helper method to build text fields
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    int maxLines = 1,
-    bool enabled = true,
-  }) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {int maxLines = 1, bool enabled = true, int? maxLength}) {
     return TextField(
       controller: controller,
-      maxLines: maxLines,
+            maxLines: maxLines,
       enabled: enabled,
+      maxLength: maxLength,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey),
+          borderRadius: BorderRadius.circular(10.0),
         ),
       ),
     );
   }
+
+
 
 // Generates a unique and fun group code
 String _createGroupCode() {

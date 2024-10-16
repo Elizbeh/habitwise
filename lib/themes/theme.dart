@@ -5,13 +5,21 @@ const Color primaryColor = Color(0xFF862989); // First color for gradient
 const Color secondaryColor = Color(0xFF2EC5BB); // Second color for gradient
 const Color lightTextColor = Colors.white;
 const Color darkTextColor = Colors.black;
-const Color textInputColor = Color(0xFFD9D9D9); // Color for text input fields
+const Color lightTextInputColor = Colors.white;
+const Color darkTextInputColor = Color.fromARGB(255, 93, 93, 93); // Darkened for dark mode input fields
 
 ThemeData lightTheme(BuildContext context) {
   return ThemeData(
     brightness: Brightness.light,
     primaryColor: primaryColor,
-    hintColor: darkTextColor,
+    colorScheme: ColorScheme.light(
+      primary: primaryColor,
+      secondary: secondaryColor,
+      background: Color.fromARGB(255, 237, 234, 234),
+      onPrimary: lightTextColor,
+      onSecondary: darkTextColor,
+      onBackground: darkTextColor,
+    ),
     scaffoldBackgroundColor: Color.fromARGB(255, 237, 234, 234),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent, // Set to transparent to show gradient
@@ -27,7 +35,7 @@ ThemeData lightTheme(BuildContext context) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: textInputColor,
+      fillColor: lightTextInputColor, // Light mode input field color
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide.none,
@@ -59,7 +67,7 @@ ThemeData lightTheme(BuildContext context) {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         foregroundColor: lightTextColor,
-        backgroundColor: secondaryColor, // Button text color
+        backgroundColor: secondaryColor, // Button background color
         textStyle: GoogleFonts.roboto(
           fontSize: 20,
         ),
@@ -75,8 +83,15 @@ ThemeData darkTheme(BuildContext context) {
   return ThemeData(
     brightness: Brightness.dark,
     primaryColor: primaryColor,
-    hintColor: secondaryColor,
-    scaffoldBackgroundColor: Colors.black,
+    colorScheme: ColorScheme.dark(
+      primary: primaryColor,
+      secondary: secondaryColor,
+      background: Color.fromRGBO(28, 28, 36, 1.0),
+      onPrimary: lightTextColor,
+      onSecondary: lightTextColor,
+      onBackground: lightTextColor,
+    ),
+    scaffoldBackgroundColor: Color.fromRGBO(28, 28, 36, 1.0),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent, // Set to transparent to show gradient
       iconTheme: IconThemeData(color: lightTextColor),
@@ -91,7 +106,7 @@ ThemeData darkTheme(BuildContext context) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: textInputColor,
+      fillColor: darkTextInputColor, // Dark mode input field color
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8.0),
         borderSide: BorderSide.none,
@@ -123,7 +138,7 @@ ThemeData darkTheme(BuildContext context) {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         foregroundColor: lightTextColor,
-        backgroundColor: secondaryColor, // Button text color
+        backgroundColor: secondaryColor, // Button background color
         textStyle: GoogleFonts.roboto(
           fontSize: 22,
         ),

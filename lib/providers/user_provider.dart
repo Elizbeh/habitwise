@@ -4,7 +4,6 @@ import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/screens/auth/verify_email_screen.dart';
 import '../models/user.dart';
 import '../services/user_db_service.dart';
-import '../services/group_db_service.dart';
 import '../methods/auth_methods.dart';
 import '../models/group.dart';
 
@@ -12,7 +11,6 @@ import '../models/group.dart';
 class UserProvider extends ChangeNotifier {
   final AuthMethod _authMethod = AuthMethod();
   final UserDBService _userDBService = UserDBService();
-  final GroupDBService _groupDBService = GroupDBService();
   final GroupProvider _groupProvider = GroupProvider(); // Initialize GroupProvider
 
   HabitWiseUser? _user;
@@ -67,7 +65,9 @@ class UserProvider extends ChangeNotifier {
       final userDetails = await _userDBService.getUserDetailsById(currentUser.uid);
       if (userDetails != null) {
         _user = HabitWiseUser.fromMap(userDetails);
-        await _groupProvider.fetchGroups(currentUser.uid); // Fetch user groups from GroupProvider
+        
+        // Fetch user groups without expecting a return value
+        await _groupProvider.fetchGroups(currentUser.uid);
       } else {
         _errorMessage = 'User details not found.';
       }
@@ -80,6 +80,8 @@ class UserProvider extends ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+  return _user;
 }
 
    Future<void> fetchUserGroups() async {
@@ -100,6 +102,7 @@ class UserProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   Future<void> resendVerificationEmail() async {
     try {
       final User? currentUser = _authMethod.getCurrentUser();

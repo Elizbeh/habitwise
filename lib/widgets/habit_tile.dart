@@ -8,12 +8,18 @@ class HabitTile extends StatefulWidget {
   final String? groupId; // Make groupId nullable for individual habits
   final IconData leadingIcon;
   final VoidCallback? onCompleted; // Callback to handle completion
+  final Color backgroundColor; // Customizable background color
+  final Color shadowColor; // Customizable shadow color
+  final Color progressColor; // Customizable progress bar color
 
   const HabitTile({
     required this.habit,
     this.groupId, // Nullable for individual habits
     required this.leadingIcon,
     this.onCompleted,
+    this.backgroundColor = Colors.white, // Default to white
+    this.shadowColor = const Color.fromRGBO(126, 35, 191, 0.498), // Default shadow color
+    this.progressColor = const Color.fromRGBO(126, 35, 191, 0.498), // Default progress color
   });
 
   @override
@@ -36,13 +42,13 @@ class _HabitTileState extends State<HabitTile> {
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: widget.backgroundColor, // Use customizable background color
         borderRadius: BorderRadius.circular(10.0),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color.fromRGBO(126, 35, 191, 0.498),
+            color: widget.shadowColor, // Use customizable shadow color
             blurRadius: 4.0,
-            offset: Offset(2, 2),
+            offset: const Offset(2, 2),
           ),
         ],
       ),
@@ -71,8 +77,8 @@ class _HabitTileState extends State<HabitTile> {
                       child: LinearProgressIndicator(
                         value: progressRatio,
                         backgroundColor: Colors.grey[200],
-                        valueColor: const AlwaysStoppedAnimation<Color>(
-                            Color.fromRGBO(126, 35, 191, 0.498)),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            widget.progressColor), // Use customizable progress color
                       ),
                     ),
                   ),

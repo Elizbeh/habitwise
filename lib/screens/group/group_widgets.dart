@@ -3,7 +3,6 @@ import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 import 'package:habitwise/services/goals_db_service.dart';
-import 'package:habitwise/services/group_db_service.dart';
 import 'package:habitwise/services/habit_db_service.dart';
 import 'package:habitwise/widgets/goal_tile.dart';
 import 'package:habitwise/widgets/habit_tile.dart';
@@ -26,7 +25,7 @@ class GroupGoalList extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No goals found for this group.'));
+          return Center(child: Text('No group goals yet.'));
         } else {
           List<Goal> goals = snapshot.data ?? [];
           print('Fetched goals: ${goals.map((goal) => goal.toMap())}');

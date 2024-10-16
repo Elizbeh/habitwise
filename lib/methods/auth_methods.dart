@@ -87,7 +87,7 @@ class AuthMethod {
           soloStats: {},
           groupIds: [],
           groupRoles: {},
-          canCreateGroup: false,
+          canCreateGroup: true,
           canJoinGroups: true,
           emailVerified: false,
         );

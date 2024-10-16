@@ -1,46 +1,41 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/group.dart';
 import 'package:habitwise/models/member.dart';
-import '../services/group_db_service.dart';
-import '../services/member_db_service.dart';
+import 'package:habitwise/models/user.dart';
+import 'package:habitwise/services/group_db_service.dart';
 
 class GroupProvider extends ChangeNotifier {
   final GroupDBService _groupDBService = GroupDBService();
-  final MemberDBService _memberDBService = MemberDBService();
   List<HabitWiseGroup> _groups = [];
   List<Member> _members = [];
+  String? _userId;
+  HabitWiseUser? _user;
 
   List<HabitWiseGroup> get groups => _groups;
   List<Member> get members => _members;
-
-  String? _userId;
 
   // New getter to retrieve user-specific groups
   List<HabitWiseGroup> get userGroups {
     return _groups.where((group) => group.members.any((member) => member.id == _userId)).toList();
   }
 
-  // Refactored fetchGroups method to query Firestore directly
   Future<void> fetchGroups(String userId) async {
-    _userId = userId;
-    try {
-      // Query to fetch groups where the user is a member
-      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-          .collection('groups')
-          .where('members', arrayContains: userId)
-          .get();
+  _userId = userId; // Ensure you have a user ID if needed
+  try {
+    // Fetch groups from the database
+    List<HabitWiseGroup> fetchedGroups = await _groupDBService.getAllGroups(userId);
+    
+    // Assign the fetched groups to _groups
+    _groups = fetchedGroups;
 
-      List<HabitWiseGroup> fetchedGroups = querySnapshot.docs.map((doc) {
-        return HabitWiseGroup.fromMap(doc as Map<String, dynamic>);
-      }).toList();
-
-      _groups = fetchedGroups;
-      notifyListeners();
-    } catch (e) {
-      print('Error fetching groups: $e');
-    }
+    // Notify listeners that the groups have been updated
+    notifyListeners();
+  } catch (e) {
+    print('Error fetching groups: $e');
   }
+}
 
   Future<void> addGoalToGroup(String groupId, String goalId, String userId) async {
     try {
@@ -51,7 +46,7 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  Future<String> createGroup(HabitWiseGroup group) async {
+   Future<String> createGroup(HabitWiseGroup group) async {
     try {
       String groupId = await _groupDBService.createGroup(group);
       group = group.copyWith(groupId: groupId);
@@ -65,41 +60,36 @@ class GroupProvider extends ChangeNotifier {
   }
 
   Future<bool> joinGroup(String groupCode, String userId) async {
-  try {
-    // Query Firestore by the groupCode field, not doc ID
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('groups')
-        .where('groupCode', isEqualTo: groupCode)
-        .limit(1)
-        .get();
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('groups')
+          .where('groupCode', isEqualTo: groupCode)
+          .limit(1)
+          .get();
     
-    if (querySnapshot.docs.isNotEmpty) {
-      final groupDoc = querySnapshot.docs.first;
-      
-      // Now check if the user exists
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-      if (userDoc.exists) {
-        String name = userDoc['name'] ?? 'Unknown';
-        String email = userDoc['email'] ?? 'unknown@example.com';
+      if (querySnapshot.docs.isNotEmpty) {
+        final groupDoc = querySnapshot.docs.first;
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+        
+        if (userDoc.exists) {
+          String name = userDoc['name'] ?? 'Unknown';
+          String email = userDoc['email'] ?? 'unknown@example.com';
 
-        // Create the new member
-        Member member = Member(id: userId, name: name, email: email);
-
-        // Use the groupId from the queried document
-        await _groupDBService.joinGroup(groupDoc.id, userId, member);
-        await fetchGroups(userId);
-        return true;
+          Member member = Member(id: userId, name: name, email: email);
+          await _groupDBService.joinGroup(groupDoc.id, userId, member);
+          await fetchGroups(userId);
+          return true;
+        } else {
+          return false; // User document doesn't exist
+        }
       } else {
-        return false; // User document doesn't exist
+        return false; // Group not found
       }
-    } else {
-      return false; // Group with the given groupCode not found
+    } catch (e) {
+      print("Error joining group: $e");
+      return false;
     }
-  } catch (e) {
-    print("Error joining group: $e");
-    return false;
   }
-}
 
   Future<void> leaveGroup(String groupId, String userId) async {
     try {
@@ -130,6 +120,59 @@ class GroupProvider extends ChangeNotifier {
       print('Error fetching group goals: $e');
       throw e;
     }
+  }
+
+  Future<void> markGroupGoalAsCompleted(String groupId, String goalId) async {
+    try {
+      // First, mark the goal as completed using the GroupDBService
+      await _groupDBService.markGoalAsCompleted(groupId, goalId);
+
+      // Now, update the progress of the goal to 100%
+      await _groupDBService.updateGroupGoalProgress(goalId, 100, groupId: groupId);
+
+      // After updating the goal in the database, update the group's local goal data
+      HabitWiseGroup group = _groups.firstWhere((g) => g.groupId == groupId);
+
+      // Assuming your HabitWiseGroup now has a list of goals
+      int goalIndex = group.goals.indexWhere((g) => g.id == goalId);
+      if (goalIndex != -1) {
+        // Use copyWith to create a new Goal object with updated progress and isCompleted values
+        Goal updatedGoal = group.goals[goalIndex].copyWith(
+          progress: 100,  // Set progress to 100%
+          isCompleted: true,  // Mark as completed
+        );
+
+        // Replace the old goal with the updated one in the group
+        group.goals[goalIndex] = updatedGoal;
+
+        // Notify listeners to update the UI
+        notifyListeners();
+      }
+    } catch (error) {
+      print("Error marking group goal as completed: $error");
+      throw error;  // Rethrow to handle it upstream
+    }
+  }
+
+  // Method to celebrate achievement
+  void celebrateAchievement(String groupId) {
+    // Notify all group members of the achievement
+    for (var member in _members) {
+      showCelebrationNotification(member);
+    }
+    
+    // Optionally, show a celebration dialog or other feedback
+    showCelebrationDialog(groupId);
+  }
+
+  void showCelebrationNotification(Member member) {
+    // Implement your notification logic here
+    print('Celebrating achievement with ${member.name}');
+  }
+
+  void showCelebrationDialog(String groupId) {
+    // Implement a dialog or other UI feedback for celebration
+    print('Celebrating goal completion for group: $groupId');
   }
 
   Future<void> updateGroup(HabitWiseGroup group) async {

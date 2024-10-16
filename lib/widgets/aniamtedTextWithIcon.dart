@@ -4,16 +4,16 @@ class CustomAnimatedSubtitle extends StatefulWidget {
   final Duration animationDuration;
   final String text;
   final IconData icon;
-  final Color iconColor;
-  final TextStyle textStyle;
+  final Color? iconColor; // Made iconColor optional to adjust for theme
+  final TextStyle? textStyle; // Made textStyle optional to adjust for theme
   final double iconSize;
 
   CustomAnimatedSubtitle({
     required this.animationDuration,
     required this.text,
     required this.icon,
-    required this.iconColor,
-    required this.textStyle,
+    this.iconColor,
+    this.textStyle,
     required this.iconSize,
   });
 
@@ -52,17 +52,27 @@ class _CustomAnimatedSubtitleState extends State<CustomAnimatedSubtitle>
 
   @override
   Widget build(BuildContext context) {
+    // Use theme-based styles for text and icon colors
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final textStyle = widget.textStyle ?? Theme.of(context).textTheme.displaySmall!;
+    final iconColor = widget.iconColor ?? (isDarkMode ? Colors.white : Colors.black);
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return RichText(
           text: TextSpan(
-            style: widget.textStyle,
+            style: textStyle,
             children: [
               TextSpan(
                 text: widget.text,
-                style: widget.textStyle.copyWith(
-                  color: Color.lerp(Colors.white, Colors.amber, _textAnimation.value),
+                style: textStyle.copyWith(
+                  // Animate text color from white to amber, adapting for dark mode
+                  color: Color.lerp(
+                    isDarkMode ? Colors.grey[300] : Colors.black, 
+                    Colors.amber, 
+                    _textAnimation.value,
+                  ),
                 ),
               ),
               WidgetSpan(
@@ -70,7 +80,7 @@ class _CustomAnimatedSubtitleState extends State<CustomAnimatedSubtitle>
                   offset: Offset(0, -5 * _iconAnimation.value),
                   child: Icon(
                     widget.icon,
-                    color: widget.iconColor,
+                    color: iconColor, // Use theme-based icon color
                     size: widget.iconSize,
                   ),
                 ),

@@ -11,7 +11,7 @@ class Goal {
   final DateTime targetDate;
   late final DateTime? endDate;
   final bool isCompleted;
-
+  late final int groupProgress;
   String? userId;
 
   Goal({
@@ -25,6 +25,9 @@ class Goal {
     required this.targetDate,
     required this.endDate,
     required this.isCompleted,
+    this.groupProgress = 0,
+    this.userId
+    
   });
 
   Goal copyWith({
@@ -38,6 +41,8 @@ class Goal {
     DateTime? targetDate,
     DateTime? endDate,
     bool? isCompleted,
+    int? groupProgress,
+    String? userId
   }) {
     return Goal(
       id: id ?? this.id,
@@ -50,25 +55,29 @@ class Goal {
       targetDate: targetDate ?? this.targetDate,
       endDate: endDate ?? this.endDate,
       isCompleted: isCompleted ?? this.isCompleted,
+      groupProgress: groupProgress ?? this.groupProgress,
+      userId: userId ?? this.userId
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'category': category,
-      'priority': priority,
-      'progress': progress,
-      'target': target,
-      'targetDate': Timestamp.fromDate(targetDate),
-      'endDate': endDate != null ? Timestamp.fromDate(endDate!): null,
-      'isCompleted': isCompleted,
-    };
-  }
+  return {
+    'id': id,
+    'title': title,
+    'description': description,
+    'category': category,
+    'priority': priority,
+    'progress': progress,
+    'target': target,
+    'targetDate': Timestamp.fromDate(targetDate),
+    'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
+    'isCompleted': isCompleted,
+    'groupProgress': groupProgress,
+    'userId': userId, // Ensure this is included
+  };
+}
 
-  factory Goal.fromMap(Map<String, dynamic> map) {
+factory Goal.fromMap(Map<String, dynamic> map) {
   return Goal(
     id: map['id'],
     title: map['title'],
@@ -80,6 +89,8 @@ class Goal {
     targetDate: (map['targetDate'] as Timestamp).toDate(),
     endDate: map['endDate'] != null ? (map['endDate'] as Timestamp).toDate() : null,
     isCompleted: map['isCompleted'],
+    groupProgress: map['groupProgress'] ?? 0,
+    userId: map['userId']
   );
 }
 

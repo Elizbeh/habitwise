@@ -2,16 +2,14 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:habitwise/main.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
+import 'package:habitwise/screens/dialogs/edit_profile_dialogue.dart';
 import 'package:habitwise/screens/habit_screen.dart';
-import 'package:habitwise/services/storage_service.dart';
-import 'package:habitwise/services/user_db_service.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:habitwise/themes/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 
@@ -25,7 +23,7 @@ const List<Color> appBarGradientColors = [
 class ProfilePage extends StatefulWidget {
   final HabitWiseUser user;
 
-  ProfilePage({required this.user});
+  const ProfilePage({required this.user});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -33,15 +31,14 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   List<Map<String, dynamic>> achievements = [];
-  File? _imageFile;
-  final ImagePicker _picker = ImagePicker();
-  final StorageService _storageService = StorageService();
+  late HabitWiseUser _currentUser;
 
-  final ValueNotifier<ThemeMode> _themeNotifier = ValueNotifier<ThemeMode>(ThemeMode.light);
+
 
   @override
   void initState() {
     super.initState();
+    _currentUser = widget.user; // Initialize the current user with the passed user
     WidgetsBinding.instance.addPostFrameCallback((_) => _calculateAchievements());
   }
 
@@ -55,6 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
     goalProvider.addListener(_onDataChanged);
   }
 
+  
   @override
   void dispose() {
     final habitProvider = Provider.of<HabitProvider>(context, listen: false);
@@ -71,31 +69,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _uploadImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = File(pickedFile.path);
-      });
-
-      try {
-        String imageUrl = await _storageService.uploadFile(_imageFile!);
-        print('Uploaded Image URL: $imageUrl');
-
-        HabitWiseUser updatedUser = widget.user.copyWith(profilePictureUrl: imageUrl);
-        await UserDBService().updateUserProfile(updatedUser);
-
-        if (mounted) {
-          setState(() {
-            widget.user.profilePictureUrl = imageUrl;
-          });
-        }
-      } catch (e) {
-        print('Error uploading image: $e');
-      }
-    }
-  }
+  
 
   void _calculateAchievements() {
     print('Calculating achievements...');
@@ -267,35 +241,83 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileHeader(BuildContext context) {
-    final profilePictureUrl = widget.user.profilePictureUrl ?? '';
+    final profilePictureUrl = _currentUser.profilePictureUrl ?? '';
 
     return GestureDetector(
-      onTap: _uploadImage,
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 60,
-            backgroundImage: profilePictureUrl.isNotEmpty
-                ? CachedNetworkImageProvider(profilePictureUrl)
-                : const AssetImage('assets/images/default_profilePic.png') as ImageProvider,
-          ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.user.username,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+      onTap: () => _navigateToEditProfile(context), // Handle taps on the entire profile header
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 8.0,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: () => _navigateToEditProfile(context),
+              child: CircleAvatar(
+                radius: 60,
+                backgroundImage: profilePictureUrl.isNotEmpty
+                    ? NetworkImage(profilePictureUrl)
+                    : const AssetImage('assets/images/default_profilePic.png') as ImageProvider,
               ),
-              Text(
-                widget.user.email,
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _currentUser.username,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _currentUser.email,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: secondaryColor,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
+            ),
+            IconButton(
+              icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
+              onPressed: () => _navigateToEditProfile(context),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  void _navigateToEditProfile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfileScreen(user: _currentUser), // Pass user object to EditProfileScreen
+      ),
+    ).then((updatedUser) {
+      // If the user updates their profile, update the profile info
+      if (updatedUser != null && updatedUser is HabitWiseUser) {
+        setState(() {
+          _currentUser = updatedUser;
+        });
+      }
+    });
   }
 
   Widget _buildHabitStats(BuildContext context) {
@@ -402,7 +424,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'No achievements yet. Keep progressing!',
           style: TextStyle(
             fontSize: 18,
-            color: Color.fromRGBO(126, 35, 191, 0.498),
+            color: const Color.fromARGB(255, 186, 182, 182),
             fontWeight: FontWeight.bold,
           ),
         ),

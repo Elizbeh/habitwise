@@ -9,16 +9,17 @@ class GroupDBService {
 
   CollectionReference get groupsCollection => _firestore.collection('groups');
 
-  Future<String> createGroup(HabitWiseGroup group) async {
+   Future<String> createGroup(HabitWiseGroup group) async {
     try {
       DocumentReference docRef = await groupsCollection.add(group.toMap());
-      await docRef.update({'groupId': docRef.id});
+      await docRef.update({'groupId': docRef.id}); // Update groupId after creation
       return docRef.id;
     } catch (e) {
       print('Error creating group: $e');
       throw e;
     }
   }
+
 
   Future<List<HabitWiseGroup>> getAllGroups(String userId) async {
     try {
@@ -33,34 +34,40 @@ class GroupDBService {
       }
       return groups;
     } catch (e) {
-      throw Exception('Error fetching groups: $e');
+      print('Error fetching groups: $e');
+      throw e;
     }
   }
 
   Future<void> joinGroup(String groupId, String userId, Member newMember) async {
-  try {
-    await groupsCollection.doc(groupId).update({
-      'members': FieldValue.arrayUnion([newMember.toMap()]) // Add serialized Member object
-    });
-    await _memberDBService.addMemberToGroup(groupId, newMember);
-  } catch (e) {
-    print('Error joining group: $e');
-    throw e;
+    try {
+      await groupsCollection.doc(groupId).update({
+        'members': FieldValue.arrayUnion([newMember.toMap()]) // Add serialized Member object
+      });
+      await _memberDBService.addMemberToGroup(groupId, newMember);
+    } catch (e) {
+      print('Error joining group: $e');
+      throw e;
+    }
   }
-}
-
 
   Future<void> leaveGroup(String groupId, String userId) async {
-    await groupsCollection.doc(groupId).update({
-      'members': FieldValue.arrayRemove([userId])
-    });
+    try {
+      await groupsCollection.doc(groupId).update({
+        'members': FieldValue.arrayRemove([userId])
+      });
+    } catch (e) {
+      print('Error leaving group: $e');
+      throw e;
+    }
   }
 
   Future<void> deleteGroup(String groupId) async {
     try {
       await groupsCollection.doc(groupId).delete();
     } catch (e) {
-      throw Exception('Error deleting group: $e');
+      print('Error deleting group: $e');
+      throw e;
     }
   }
 
@@ -91,32 +98,61 @@ class GroupDBService {
   }
 
   Future<List<Member>> getGroupMembers(String groupId) async {
-  try {
-    DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
-    if (doc.exists) {
-      // Ensure doc.data() is cast to a Map<String, dynamic>
-      Map<String, dynamic> data = Map<String, dynamic>.from(doc.data() as Map);
-      
-      // Now safely extract 'members' as a list
-      List<dynamic> membersData = List.from(data['members'] ?? []);
-      return membersData
-          .map((memberData) => Member.fromMap(Map<String, dynamic>.from(memberData))) // Safely cast each member to Map<String, dynamic>
-          .toList();
-    } else {
-      throw Exception('Group not found');
-    }
-  } catch (e) {
-    print('Error fetching group members: $e');
-    throw e;
-  }
-}
-
-   Future<void> updateGroup(HabitWiseGroup group) async {
     try {
-      await _firestore.collection('groups').doc(group.groupId).update(group.toMap());
+      DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
+      if (doc.exists) {
+        Map<String, dynamic> data = Map<String, dynamic>.from(doc.data() as Map);
+        List<dynamic> membersData = List.from(data['members'] ?? []);
+        return membersData
+            .map((memberData) => Member.fromMap(Map<String, dynamic>.from(memberData)))
+            .toList();
+      } else {
+        throw Exception('Group not found');
+      }
+    } catch (e) {
+      print('Error fetching group members: $e');
+      throw e;
+    }
+  }
+
+  Future<void> updateGroup(HabitWiseGroup group) async {
+    try {
+      await groupsCollection.doc(group.groupId).update(group.toMap());
     } catch (e) {
       print("Error updating group: $e");
-      rethrow;
+      throw e;
+    }
+  }
+
+  Future<void> markGoalAsCompleted(String groupId, String goalId) async {
+    try {
+      await groupsCollection.doc(groupId).update({
+        'goals': FieldValue.arrayRemove([goalId]), // Remove the goal from active goals
+        'completedGoals': FieldValue.arrayUnion([goalId]), // Optionally keep track of completed goals
+      });
+    } catch (e) {
+      print('Error marking goal as completed: $e');
+      throw e;
+    }
+  }
+
+  // Method to update group goal progress in Firestore
+  Future<void> updateGroupGoalProgress(String goalId, int progress, {required String groupId}) async {
+    try {
+      // Reference to the specific group goal document in Firestore
+      DocumentReference goalRef = FirebaseFirestore.instance
+          .collection('groups')
+          .doc(groupId)
+          .collection('goals')
+          .doc(goalId);
+
+      // Update the progress field of the group goal
+      await goalRef.update({
+        'progress': progress,
+      });
+    } catch (error) {
+      print("Error updating group goal progress: $error");
+      throw error; // Rethrow the error for further handling if needed
     }
   }
 }

@@ -37,6 +37,7 @@ void main() async {
   await Firebase.initializeApp(
     options: firebaseOptions
   );
+  
 
   runApp(
     MultiProvider(
@@ -80,9 +81,9 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           title: 'HabitWise',
           navigatorObservers: <NavigatorObserver>[observer],
+          themeMode: themeMode,
           theme: lightTheme(context),
           darkTheme: darkTheme(context),
-          themeMode: ThemeMode.system,
           initialRoute: '/',
           routes: {
             '/': (context) => FutureBuilder<HabitWiseUser?>(
@@ -281,7 +282,10 @@ class MyApp extends StatelessWidget {
                 }
               },
             ),
-            '/createGroup': (context) => CreateGroupScreen(),
+            '/createGroup': (context) {
+               final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).user!;
+               return CreateGroupScreen(user: user);
+            },
             '/groupDetails': (context) {
               final HabitWiseGroup group = ModalRoute.of(context)!.settings.arguments as HabitWiseGroup;
               final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).user!;
