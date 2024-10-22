@@ -14,7 +14,7 @@ class CustomAnimatedSubtitle extends StatefulWidget {
     required this.icon,
     this.iconColor,
     this.textStyle,
-    required this.iconSize,
+    required this.iconSize, required MaterialColor lightbulbColor,
   });
 
   @override

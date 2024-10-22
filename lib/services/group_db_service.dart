@@ -18,7 +18,8 @@ class GroupDBService {
       print('Error creating group: $e');
       throw e;
     }
-  }
+}
+
 
 
   Future<List<HabitWiseGroup>> getAllGroups(String userId) async {
@@ -40,16 +41,26 @@ class GroupDBService {
   }
 
   Future<void> joinGroup(String groupId, String userId, Member newMember) async {
-    try {
-      await groupsCollection.doc(groupId).update({
-        'members': FieldValue.arrayUnion([newMember.toMap()]) // Add serialized Member object
-      });
-      await _memberDBService.addMemberToGroup(groupId, newMember);
-    } catch (e) {
-      print('Error joining group: $e');
-      throw e;
+  DocumentReference groupRef = groupsCollection.doc(groupId);
+  DocumentReference userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+
+  // Use Firestore transaction for atomicity
+  await _firestore.runTransaction((transaction) async {
+    // Get the group document
+    DocumentSnapshot groupDoc = await transaction.get(groupRef);
+    if (!groupDoc.exists) {
+      throw Exception('Group not found');
     }
-  }
+
+    // Add user to group members array
+    transaction.update(groupRef, {
+      'members': FieldValue.arrayUnion([newMember.toMap()])
+    });
+
+    // Add member to the member collection if needed
+    await _memberDBService.addMemberToGroup(groupId, newMember);
+  });
+}
 
   Future<void> leaveGroup(String groupId, String userId) async {
     try {
@@ -155,4 +166,6 @@ class GroupDBService {
       throw error; // Rethrow the error for further handling if needed
     }
   }
+
+  
 }

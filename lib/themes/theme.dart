@@ -8,6 +8,13 @@ const Color darkTextColor = Colors.black;
 const Color lightTextInputColor = Colors.white;
 const Color darkTextInputColor = Color.fromARGB(255, 93, 93, 93); // Darkened for dark mode input fields
 
+double getAdaptiveFontSize(BuildContext context, double size) {
+  // Calculate font size based on screen width
+  double baseWidth = 375; // Base width (for design reference)
+  double scaleFactor = MediaQuery.of(context).size.width / baseWidth;
+  return size * scaleFactor;
+}
+
 ThemeData lightTheme(BuildContext context) {
   return ThemeData(
     brightness: Brightness.light,
@@ -27,7 +34,7 @@ ThemeData lightTheme(BuildContext context) {
       titleTextStyle: GoogleFonts.roboto(
         textStyle: TextStyle(
           color: lightTextColor,
-          fontSize: 24, // Title font size
+          fontSize: getAdaptiveFontSize(context, 26), // Title font size
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -50,18 +57,18 @@ ThemeData lightTheme(BuildContext context) {
       ),
       hintStyle: TextStyle(color: secondaryColor),
     ),
-    textTheme: GoogleFonts.goldmanTextTheme(
+    textTheme: GoogleFonts.robotoTextTheme(
       Theme.of(context).textTheme.apply(
         bodyColor: darkTextColor,
         displayColor: darkTextColor,
       ).copyWith(
-        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold), // Main title
-        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // Secondary title
-        displaySmall: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), // Tertiary title
-        bodyLarge: TextStyle(fontSize: 18), // Body text
-        bodyMedium: TextStyle(fontSize: 16), // Smaller body text
-        bodySmall: TextStyle(fontSize: 14), // Captions
-        titleMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600), // Subtitles
+        displayLarge: TextStyle(fontSize: getAdaptiveFontSize(context, 30), fontWeight: FontWeight.bold), // Main title
+        displayMedium: TextStyle(fontSize: getAdaptiveFontSize(context, 26), fontWeight: FontWeight.bold), // Secondary title
+        displaySmall: TextStyle(fontSize: getAdaptiveFontSize(context, 22), fontWeight: FontWeight.bold), // Tertiary title
+        bodyLarge: TextStyle(fontSize: getAdaptiveFontSize(context, 16)), // Body text
+        bodyMedium: TextStyle(fontSize: getAdaptiveFontSize(context, 15)), // Smaller body text
+        bodySmall: TextStyle(fontSize: getAdaptiveFontSize(context, 13)), // Captions
+        titleMedium: TextStyle(fontSize: getAdaptiveFontSize(context, 20), fontWeight: FontWeight.w600), // Subtitles
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -69,7 +76,7 @@ ThemeData lightTheme(BuildContext context) {
         foregroundColor: lightTextColor,
         backgroundColor: secondaryColor, // Button background color
         textStyle: GoogleFonts.roboto(
-          fontSize: 20,
+          fontSize: getAdaptiveFontSize(context, 20),
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -98,7 +105,7 @@ ThemeData darkTheme(BuildContext context) {
       titleTextStyle: GoogleFonts.roboto(
         textStyle: TextStyle(
           color: lightTextColor,
-          fontSize: 24, // Title font size
+          fontSize: getAdaptiveFontSize(context, 26), // Title font size
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -126,13 +133,13 @@ ThemeData darkTheme(BuildContext context) {
         bodyColor: lightTextColor,
         displayColor: lightTextColor,
       ).copyWith(
-        displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold), // Main title
-        displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // Secondary title
-        displaySmall: TextStyle(fontSize: 26, fontWeight: FontWeight.bold), // Tertiary title
-        bodyLarge: TextStyle(fontSize: 20), // Body text
-        bodyMedium: TextStyle(fontSize: 18), // Smaller body text
-        bodySmall: TextStyle(fontSize: 14), // Captions
-        titleMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w600), // Subtitles
+        displayLarge: TextStyle(fontSize: getAdaptiveFontSize(context, 30), fontWeight: FontWeight.bold), // Main title
+        displayMedium: TextStyle(fontSize: getAdaptiveFontSize(context, 26), fontWeight: FontWeight.bold), // Secondary title
+        displaySmall: TextStyle(fontSize: getAdaptiveFontSize(context, 22), fontWeight: FontWeight.bold), // Tertiary title
+        bodyLarge: TextStyle(fontSize: getAdaptiveFontSize(context, 18)), // Body text
+        bodyMedium: TextStyle(fontSize: getAdaptiveFontSize(context, 16)), // Smaller body text
+        bodySmall: TextStyle(fontSize: getAdaptiveFontSize(context, 14)), // Captions
+        titleMedium: TextStyle(fontSize: getAdaptiveFontSize(context, 20), fontWeight: FontWeight.w600), // Subtitles
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -140,7 +147,7 @@ ThemeData darkTheme(BuildContext context) {
         foregroundColor: lightTextColor,
         backgroundColor: secondaryColor, // Button background color
         textStyle: GoogleFonts.roboto(
-          fontSize: 22,
+          fontSize: getAdaptiveFontSize(context, 22),
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),

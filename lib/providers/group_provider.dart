@@ -59,37 +59,48 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> joinGroup(String groupCode, String userId) async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('groups')
-          .where('groupCode', isEqualTo: groupCode)
-          .limit(1)
-          .get();
-    
-      if (querySnapshot.docs.isNotEmpty) {
-        final groupDoc = querySnapshot.docs.first;
-        final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
-        
-        if (userDoc.exists) {
-          String name = userDoc['name'] ?? 'Unknown';
-          String email = userDoc['email'] ?? 'unknown@example.com';
+ Future<bool> joinGroup(String groupCode, String userId) async {
+  try {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('groups')
+        .where('groupCode', isEqualTo: groupCode)
+        .limit(1)
+        .get();
 
-          Member member = Member(id: userId, name: name, email: email);
-          await _groupDBService.joinGroup(groupDoc.id, userId, member);
-          await fetchGroups(userId);
-          return true;
-        } else {
-          return false; // User document doesn't exist
-        }
+    if (querySnapshot.docs.isNotEmpty) {
+      final groupDoc = querySnapshot.docs.first;
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+
+      if (userDoc.exists) {
+        String name = userDoc['name'] ?? 'Unknown';
+        String email = userDoc['email'] ?? 'unknown@example.com';
+
+         // Assuming a default role for all new members
+        MemberRole role = MemberRole.member;  
+
+        // Create a Member object with role
+        Member member = Member(
+          id: userId,
+          name: name,
+          role: role,
+          email: email,
+        );
+
+        // Join the group and update the database
+        await _groupDBService.joinGroup(groupDoc.id, userId, member);
+        await fetchGroups(userId);
+        return true;
       } else {
-        return false; // Group not found
+        return false; // User document doesn't exist
       }
-    } catch (e) {
-      print("Error joining group: $e");
-      return false;
+    } else {
+      return false; // Group not found
     }
+  } catch (e) {
+    print("Error joining group: $e");
+    return false;
   }
+}
 
   Future<void> leaveGroup(String groupId, String userId) async {
     try {
@@ -188,10 +199,7 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  bool isAdmin(String groupId, String userId) {
-    final group = _groups.firstWhere((g) => g.groupId == groupId);
-    return group.groupCreator == userId;
-  }
+ 
 
   Future<void> fetchMembers(String groupId) async {
     try {

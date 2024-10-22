@@ -15,14 +15,15 @@ import 'package:provider/provider.dart';
 class GroupInfoSection extends StatefulWidget {
   final HabitWiseGroup group;
   final String creatorName;
-  final bool isCreator;
+  final bool isAdmin;
+  
   final void Function(String) onMemberRemoved;
   final void Function() onEditGroupInfo;
 
   GroupInfoSection({
     required this.group,
     required this.creatorName,
-    required this.isCreator,
+    required this.isAdmin,
     required this.onMemberRemoved,
     required this.onEditGroupInfo,
   });
@@ -93,7 +94,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
               onPressed: () => Navigator.of(context).pop(),
               child: Text('Close', style: TextStyle(color: Theme.of(context).primaryColor)),
             ),
-            if (widget.isCreator)
+            if (widget.isAdmin)
               TextButton(
                 onPressed: () {
                   _confirmMemberRemoval(member.id);
@@ -115,7 +116,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           title: Text(
             'Members (${widget.group.members.length})',
-            style: Theme.of(context).textTheme.headline6?.copyWith(
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               color: Theme.of(context).primaryColor,
               fontWeight: FontWeight.bold,
             ),
@@ -154,7 +155,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
                       style: Theme.of(context).textTheme.bodyText1,
                     ),
                     onTap: () => _showMemberDetails(member),
-                    trailing: widget.isCreator
+                    trailing: widget.isAdmin
                         ? IconButton(
                             icon: Icon(Icons.delete, color: Theme.of(context).iconTheme.color),
                             onPressed: () {
@@ -226,7 +227,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
                   ],
                 ),
               ),
-              if (widget.isCreator)
+              if (widget.isAdmin)
                 IconButton(
                   icon: Icon(Icons.edit, color: Theme.of(context).iconTheme.color),
                   onPressed: widget.onEditGroupInfo,
@@ -328,7 +329,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: secondaryColor,
-                minimumSize: Size(120, 40),
+                minimumSize: Size(110, 40),
                 padding: EdgeInsets.symmetric(horizontal: 8),
               ),
               icon: Icon(Icons.add, size: 20, color: Colors.white),
@@ -353,23 +354,23 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
                 );
               },
             ),
-            SizedBox(width: 16),
+            SizedBox(width: 8.0),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
-                minimumSize: Size(120, 40),
+                minimumSize: Size(110, 40),
                 padding: EdgeInsets.symmetric(horizontal: 8),
               ),
               icon: Icon(Icons.visibility, size: 20, color: Colors.white),
               label: Text('Members', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               onPressed: _showMembersList,
             ),
-            SizedBox(width: 16),
+            SizedBox(width: 8.0),
             // Add Habit Button
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: secondaryColor,
-                minimumSize: Size(120, 40),
+                minimumSize: Size(110, 40),
                 padding: EdgeInsets.symmetric(horizontal: 8),
               ),
               icon: Icon(Icons.add, size: 20, color: Colors.white),

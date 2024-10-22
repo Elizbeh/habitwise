@@ -399,6 +399,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     },
   );
 }
+
 Widget _buildGroupCard(
     BuildContext context, HabitWiseGroup group, GroupProvider groupProvider) {
   final theme = Theme.of(context);
@@ -419,10 +420,10 @@ Widget _buildGroupCard(
           width: 250.0,
           padding: EdgeInsets.all(10.0),
           decoration: BoxDecoration(
-            color: theme.colorScheme.background, // Use background color from theme
+            color: theme.colorScheme.background,
             borderRadius: BorderRadius.circular(10.0),
             border: Border.all(
-              color: theme.colorScheme.secondary, // Use secondary color from theme
+              color: theme.colorScheme.secondary,
               width: 2.0,
             ),
             boxShadow: [
@@ -438,27 +439,22 @@ Widget _buildGroupCard(
             children: [
               Text(
                 group.groupName,
-                style: theme.textTheme.titleMedium, // Use titleMedium from theme
+                style: theme.textTheme.titleMedium,
               ),
               SizedBox(height: 10.0),
               CircleAvatar(
                 radius: 40,
                 backgroundImage: group.groupPictureUrl != null
                     ? NetworkImage(group.groupPictureUrl!)
-                    : AssetImage('assets/images/default_profilePic.png')
-                        as ImageProvider,
+                    : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
               ),
               SizedBox(height: 10.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.group_rounded,
-                      color: Colors.grey),
+                  Icon(Icons.group_rounded, color: Colors.grey),
                   SizedBox(width: 5.0),
-                  Text(
-                    'Members: ${group.members.length}',
-                    style: theme.textTheme.bodyMedium
-                  ),
+                  Text('Members: ${group.members.length}', style: theme.textTheme.bodyMedium),
                 ],
               ),
               SizedBox(height: 10.0),
@@ -472,7 +468,7 @@ Widget _buildGroupCard(
                   },
                   child: Text('View Details'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.secondary, // Use secondary color from theme
+                    backgroundColor: theme.colorScheme.secondary,
                   ),
                 ),
               ),
@@ -487,13 +483,8 @@ Widget _buildGroupCard(
           icon: Icon(Icons.close, color: Color.fromARGB(255, 236, 132, 124)),
           onPressed: () {
             final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
-            if (group.groupCreator == userId) {
-              // If user is the creator, delete the group
-              groupProvider.deleteGroup(group.groupId);
-            } else {
-              // If user is not the creator, leave the group
-              groupProvider.leaveGroup(group.groupId, userId!);
-            }
+            // Removing the logic that checks if the user is the creator
+            groupProvider.leaveGroup(group.groupId, userId!);
           },
         ),
       ),

@@ -85,6 +85,7 @@ class MyApp extends StatelessWidget {
           theme: lightTheme(context),
           darkTheme: darkTheme(context),
           initialRoute: '/',
+         
           routes: {
             '/': (context) => FutureBuilder<HabitWiseUser?>(
                   future: Provider.of<UserProvider>(context, listen: false).getUserDetails(),
@@ -124,6 +125,7 @@ class MyApp extends StatelessWidget {
                     }
                   },
                 ),
+            
             '/landing': (context) => LandingPage(
               onThemeChanged: () {
                 Navigator.of(context).push(
@@ -191,10 +193,6 @@ class MyApp extends StatelessWidget {
               },
             ),
             '/signup': (context) => SignUpScreen(
-              emailController: TextEditingController(),
-              usernameController: TextEditingController(),
-              passwordController: TextEditingController(),
-              passwordConfirmController: TextEditingController(),
               onSignupSuccess: (String username) async {
                 UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -248,43 +246,64 @@ class MyApp extends StatelessWidget {
                 }
               },
             ),
+
             '/dashboard': (context) => Consumer<UserProvider>(
               builder: (context, userProvider, _) {
-                if (userProvider.user == null) {
-                  return FutureBuilder<HabitWiseUser?>(
-                    future: userProvider.getUserDetails(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Scaffold(
-                          body: Center(child: CircularProgressIndicator()),
-                        );
-                      } else if (snapshot.hasData && snapshot.data != null) {
-                        return DashboardScreen(
-                          user: snapshot.data!,
-                          groupId: '',
-                        );
-                      } else if (snapshot.hasError) {
-                        return Scaffold(
-                          body: Center(child: Text('Error fetching user data: ${snapshot.error}')),
-                        );
-                      } else {
-                        return const Scaffold(
-                          body: Center(child: Text('User data not found')),
-                        );
-                      }
-                    },
-                  );
-                } else {
+                // Check if user data is already available
+                if (userProvider.user != null) {
                   return DashboardScreen(
                     user: userProvider.user!,
-                    groupId: '',
+                    groupId: userProvider.user!.groupIds.isNotEmpty ? userProvider.user!.groupIds[0] : '',
                   );
                 }
+
+                // If user data is not available, fetch it
+                return FutureBuilder<HabitWiseUser?>(
+                  future: userProvider.getUserDetails(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    } else if (snapshot.hasError) {
+                      return Scaffold(
+                        body: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Error fetching user data: ${snapshot.error}'),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  // Optionally, you can retry fetching user data here
+                                  userProvider.getUserDetails();
+                                },
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    } else if (snapshot.hasData && snapshot.data != null) {
+                      return DashboardScreen(
+                        user: snapshot.data!,
+                        groupId: snapshot.data!.groupIds.isNotEmpty ? snapshot.data!.groupIds[0] : '',
+                      );
+                    }
+
+                    // If no data is found
+                    return const Scaffold(
+                      body: Center(child: Text('User data not found')),
+                    );
+                  },
+                );
               },
             ),
+
             '/createGroup': (context) {
                final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).user!;
                return CreateGroupScreen(user: user);
+           
             },
             '/groupDetails': (context) {
               final HabitWiseGroup group = ModalRoute.of(context)!.settings.arguments as HabitWiseGroup;

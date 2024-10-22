@@ -16,6 +16,9 @@ class _LandingPageState extends State<LandingPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
+    // Define a base font size for scaling
+    double baseFontSize = 16; // Base font size in logical pixels
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -23,11 +26,11 @@ class _LandingPageState extends State<LandingPage> {
           // Background Image
           Image.asset(
             'assets/images/background_image.png',
-            fit: BoxFit.cover, // Cover the whole screen
+            fit: BoxFit.cover,
           ),
           // Black Overlay
           Container(
-            color: Colors.black.withOpacity(0.6), // Black overlay with 80% opacity
+            color: Colors.black.withOpacity(0.6),
           ),
           // Content
           Column(
@@ -36,83 +39,80 @@ class _LandingPageState extends State<LandingPage> {
               // Static Title
               Text(
                 'Welcome to HabitWise',
-                style: TextStyle(
-                  color: Colors.white, // Change text color to white for better visibility
-                  fontSize: screenWidth * 0.1, // Larger font size
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      color: Colors.white,
+                      fontSize: baseFontSize * 2.0, // Adjusted size (32)
+                      fontWeight: FontWeight.bold,
+                    ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: screenHeight * 0.02), // Responsive height
+              SizedBox(height: screenHeight * 0.02),
               // Logo App Name
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white, // White background for the logo
+                  color: Colors.white,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: Colors.white.withOpacity(0.5),
-                    width: 4, // Outline width
+                    width: 4,
                   ),
                 ),
                 child: ClipOval(
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0), // Padding inside the circle
+                    padding: const EdgeInsets.all(8.0),
                     child: Image.asset(
                       'assets/images/logo.png',
-                      width: screenWidth * 0.1, // Responsive width
-                      height: screenWidth * 0.1, // Responsive height
+                      width: screenWidth * 0.07,
+                      height: screenWidth * 0.07,
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.02), // Responsive height
+              SizedBox(height: screenHeight * 0.02),
               // Centered Typing Animated Subtitle with Lightbulb
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: CustomAnimatedSubtitle(
                     animationDuration: Duration(seconds: 4),
-                    text: 'HabitWise helps you build daily routines and achieve long-term goals. Track your progress, stay motivated, and collaborate on group goals and habits. Make every day count!',
-                    lightbulbColor: Colors.amber, // Gold color for the lightbulb
-                    textStyle: TextStyle(
-                      color: Colors.white,
-                      //fontWeight: FontWeight.bold,
-                      fontSize: screenWidth * 0.05, // Text size
-                    ),
+                    text:
+                        'HabitWise helps you build daily routines and achieve long-term goals. Track your progress, stay motivated, and collaborate on group goals and habits. Make every day count!',
+                    lightbulbColor: Colors.amber,
+                    textStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: Colors.white,
+                          fontSize: baseFontSize * 1.25, // Adjusted size (20)
+                        ),
                   ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.1), // Responsive height
+              SizedBox(height: screenHeight * 0.1),
               // Call-to-Action Button
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/signup');
                 },
                 style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, // Text color
-                  backgroundColor: Color.fromRGBO(126, 35, 191, 0.498), // Button background color
-                  elevation: 4, // Increased elevation
+                  foregroundColor: Colors.white,
+                  backgroundColor: Color.fromRGBO(126, 35, 191, 0.498),
+                  elevation: 4,
                   padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.24, // Wider button
-                    vertical: screenHeight * 0.02, // Responsive height
+                    horizontal: screenWidth * 0.24,
+                    vertical: screenHeight * 0.02,
                   ),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(.0),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
                 child: Text(
                   'Get Started',
-                  style: TextStyle(
-                    fontSize: screenWidth * 0.05, // Responsive font size
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        fontSize: baseFontSize * 1.25, // Adjusted size (20)
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white
+                      ),
                 ),
               ),
-              SizedBox(height: screenHeight * 0.05),
-              // New Sections
-              //_buildHeroSection(),
-              //_buildFeaturesSection(),
-              SizedBox(height: screenHeight * 0.05),
+              SizedBox(height: screenHeight * 0.12),
             ],
           ),
           // Bottom Section
@@ -123,17 +123,20 @@ class _LandingPageState extends State<LandingPage> {
               margin: EdgeInsets.symmetric(horizontal: 16.0),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color.fromRGBO(126, 35, 191, 0.8), Color.fromRGBO(126, 35, 191, 0.6)],
+                  colors: [
+                    Color.fromRGBO(126, 35, 191, 0.8),
+                    Color.fromRGBO(126, 35, 191, 0.6)
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30.0)), // Rounded top corners
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30.0)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.5),
                     spreadRadius: 1,
                     blurRadius: 10,
-                    offset: Offset(0, -3), // Shadow position
+                    offset: Offset(0, -3),
                   ),
                 ],
               ),
@@ -142,21 +145,19 @@ class _LandingPageState extends State<LandingPage> {
                 children: [
                   Text(
                     '© 2024 HabitWise. All Rights Reserved.',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 210, 208, 208),
-                      fontSize: 16, // Adjust font size as needed
-                      
-                    ),
+                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                          color: Color.fromARGB(255, 210, 208, 208),
+                          fontSize: baseFontSize, // Adjusted size (16)
+                        ),
                   ),
                   SizedBox(height: 8.0),
                   Text(
                     'Contact Us',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16, // Adjust font size as needed
-                      fontWeight: FontWeight.bold,
-                      
-                    ),
+                    style: Theme.of(context).textTheme.bodyText2?.copyWith(
+                          color: Colors.white,
+                          fontSize: baseFontSize, // Adjusted size (16)
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ],
               ),
@@ -166,50 +167,20 @@ class _LandingPageState extends State<LandingPage> {
       ),
     );
   }
+}
 
-  /*Widget _buildHeroSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          'Discover Amazing Features',
-          style: TextStyle(
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.white, // Change text color to white for better visibility
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeaturesSection() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.0), // Padding for responsiveness
-      child: Column(
-        children: [
-          //_buildFeatureItem('Track Your Habits', 'Easily track your daily habits and progress.'),
-          //_buildFeatureItem('Set Achievable Goals', 'Set and achieve your personal goals.'),
-         // _buildFeatureItem('Analyze Your Progress', 'Get insights into your habit patterns.'),
-        ],
-      ),
-    );
-  }*/
-
-  Widget _buildFeatureItem(String title, String description) {
-    return ListTile(
-      leading: Icon(Icons.star, color: Colors.white), // Icon color
-      title: Text(
-        title,
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // Change text color to white
-      ),
-      subtitle: Text(
-        description,
-        style: TextStyle(color: Colors.white), // Change text color to white
-      ),
-    );
-  }
+Widget _buildFeatureItem(String title, String description) {
+  return ListTile(
+    leading: Icon(Icons.star, color: Colors.white), // Icon color
+    title: Text(
+      title,
+      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // Change text color to white
+    ),
+    subtitle: Text(
+      description,
+      style: TextStyle(color: Colors.white), // Change text color to white
+    ),
+  );
 }
 
 class CustomAnimatedSubtitle extends StatefulWidget {
@@ -229,7 +200,8 @@ class CustomAnimatedSubtitle extends StatefulWidget {
   _CustomAnimatedSubtitleState createState() => _CustomAnimatedSubtitleState();
 }
 
-class _CustomAnimatedSubtitleState extends State<CustomAnimatedSubtitle> with SingleTickerProviderStateMixin {
+class _CustomAnimatedSubtitleState extends State<CustomAnimatedSubtitle>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 

@@ -1,3 +1,5 @@
+import 'dart:js';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:habitwise/models/group.dart';
@@ -60,7 +62,10 @@ class MockUserProvider extends Mock implements UserProvider {
     required String username,
     required String confirmPassword,
     required BuildContext context,
-  }) async {}
+  }) async {
+    // Simulate successful signup for testing
+    return Future.value();
+  }
 
   @override
   Future<void> updateUserProfile(HabitWiseUser user) async {}
@@ -96,12 +101,21 @@ void main() {
         value: mockUserProvider,
         child: MaterialApp(
           home: SignUpScreen(
-            emailController: emailController,
-            usernameController: usernameController,
-            passwordController: passwordController,
-            passwordConfirmController: passwordConfirmController,
-            onSignupSuccess: (username) {
-              return Future.value();
+            onSignupSuccess: (String username) async {
+              // Logic here should be similar to what you added in your main app
+              UserProvider userProvider = Provider.of<UserProvider>(context as BuildContext, listen: false);
+              
+              HabitWiseUser? user = await userProvider.getUserDetails();
+              if (user != null) {
+                // Push replacement to the next screen
+                Navigator.of(context as BuildContext).pushReplacement(MaterialPageRoute(
+                  builder: (context) => Scaffold(
+                    body: Center(
+                      child: Text('Please verify your email to access the app.'),
+                    ),
+                  ),
+                ));
+              }
             },
           ),
         ),

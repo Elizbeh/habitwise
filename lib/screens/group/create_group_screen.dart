@@ -101,9 +101,9 @@ void initState() {
         habits: [],
         groupType: '',
         groupPictureUrl: '',
-        groupCreator: '',
         creationDate: DateTime.now(),
         groupCode: '',
+        groupRoles: {}
       );
     }
   }
@@ -185,68 +185,80 @@ void initState() {
   }
 
   Future<void> _saveGroup() async {
-    String groupName = _groupNameController.text.trim();
-    String groupType = _groupTypeController.text.trim();
-    String description = _descriptionController.text.trim();
+  String groupName = _groupNameController.text.trim();
+  String groupType = _groupTypeController.text.trim();
+  String description = _descriptionController.text.trim();
 
-    HabitWiseUser? user = Provider.of<UserProvider>(context, listen: false).user;
+  HabitWiseUser? user = Provider.of<UserProvider>(context, listen: false).user;
 
-    if (user == null) {
-      _showSnackBar('User not found. Please log in again.');
-      return;
-    }
+  if (user == null) {
+    _showSnackBar('User not found. Please log in again.');
+    return;
+  }
 
-    if (groupName.isNotEmpty && groupType.isNotEmpty && description.isNotEmpty) {
-      try {
-        setState(() {
-          _isUploading = true;
-        });
-        String? groupPhotoUrl = await _uploadGroupPhoto(); // Upload and get photo URL
+  if (groupName.isNotEmpty && groupType.isNotEmpty && description.isNotEmpty) {
+    try {
+      setState(() {
+        _isUploading = true;
+      });
+      String? groupPhotoUrl = await _uploadGroupPhoto(); // Upload and get photo URL
 
-        Member currentUser = Member(
-          id: user.uid,
-          name: user.username,
-          email: user.email,
-          profilePictureUrl: user.profilePictureUrl,
-        );
+      // Create the current user as an Admin if creating a new group
+      Member currentUser = Member(
+        id: user.uid,
+        name: user.username,
+        role: MemberRole.admin,  // Default to admin for group creator
+        email: user.email,
+        profilePictureUrl: user.profilePictureUrl,
+      );
 
-        // Update group data
-        HabitWiseGroup updatedGroup = _group.copyWith(
-          groupName: groupName,
-          description: description,
-          groupType: groupType,
-          groupPictureUrl: groupPhotoUrl ?? _group.groupPictureUrl,
-          members: _group.members.isEmpty ? [currentUser] : _group.members,
-          groupCreator: _group.groupCreator.isEmpty ? user.uid : _group.groupCreator,
-          creationDate: _group.creationDate,
-          groupCode: _createGroupCode(),
-        );
+      // Create or update group data
+      HabitWiseGroup updatedGroup = _group.copyWith(
+        groupName: groupName,
+        description: description,
+        groupType: groupType,
+        groupPictureUrl: groupPhotoUrl ?? _group.groupPictureUrl,
+        members: _group.members.isEmpty ? [currentUser] : _group.members,
+        groupRoles: _group.groupRoles.isEmpty
+          ? {user.uid: MemberRole.admin.toString()} // Assign admin role for the creator
+          : {..._group.groupRoles, user.uid: MemberRole.admin.toString()},
+        creationDate: _group.creationDate,
+        groupCode: _createGroupCode(),
+      );
 
-        // Create or update group based on context
-        if (widget.groupToEdit == null) {
-          String groupId = await Provider.of<GroupProvider>(context, listen: false).createGroup(updatedGroup);
-          updatedGroup = updatedGroup.copyWith(groupId: groupId);
-          _showSnackBar('Group created successfully!');
-          Navigator.pushReplacementNamed(context, '/groupDetails', arguments: updatedGroup);
-        } else {
+      // Create or update group based on context
+      if (widget.groupToEdit == null) {
+        // Creating a new group
+        String groupId = await Provider.of<GroupProvider>(context, listen: false).createGroup(updatedGroup);
+        updatedGroup = updatedGroup.copyWith(groupId: groupId);
+        _showSnackBar('Group created successfully!');
+        Navigator.pushReplacementNamed(context, '/groupDetails', arguments: updatedGroup);
+      } else {
+        // Editing an existing group
+        if (_group.groupRoles[user.uid] == MemberRole.admin.toString()) {
+          // User is admin, allow editing
           await Provider.of<GroupProvider>(context, listen: false).updateGroup(updatedGroup);
           _showSnackBar('Group updated successfully!');
           Navigator.pushReplacementNamed(context, '/groupDetails', arguments: updatedGroup);
+        } else {
+          // User is not an admin, prevent editing
+          _showSnackBar('Only admins can edit this group.');
         }
-
-        // Trigger the callback if provided
-        widget.onGroupUpdated?.call();
-      } catch (e) {
-        _showSnackBar('Error saving group: $e');
-      } finally {
-        setState(() {
-          _isUploading = false;
-        });
       }
-    } else {
-      _showSnackBar('Please fill in all fields.');
+
+      // Trigger the callback if provided
+      widget.onGroupUpdated?.call();
+    } catch (e) {
+      _showSnackBar('Error saving group: $e');
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
     }
+  } else {
+    _showSnackBar('Please fill in all fields.');
   }
+}
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));

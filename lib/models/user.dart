@@ -99,16 +99,15 @@ class HabitWiseUser {
       emailVerified: emailVerified ?? this.emailVerified,
     );
   }
-
-  // Convert HabitWiseUser to Member
-  Member toMember() {
+  //Convert HabitWiseUser to Member
+  Member toMember({MemberRole role = MemberRole.member}) {
     return Member(
       id: uid,
       name: username,
+      role: role,  // Now passing a MemberRole instead of String
       email: email,
       profilePictureUrl: profilePictureUrl,
-      
+      joinedDate: DateTime.now(),  // Assuming the user just joined
     );
   }
-  
 }

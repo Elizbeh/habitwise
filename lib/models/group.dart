@@ -10,13 +10,14 @@ class HabitWiseGroup {
   final List<String> habits;
   final String groupType;
   final String? groupPictureUrl;
-  final String groupCreator;
   final DateTime creationDate;
   final String description;
   final String groupCode;
   int completedGoals;
   List<String> completedGoalIds;
-  List<Goal> goals;  // Add this to store goals
+  List<Goal> goals;
+  final Map<String, String> groupRoles;
+  
 
   HabitWiseGroup({
     required this.groupId,
@@ -25,13 +26,13 @@ class HabitWiseGroup {
     required this.habits,
     required this.groupType,
     this.groupPictureUrl,
-    required this.groupCreator,
     required this.creationDate,
     required this.description,
     required this.groupCode,
     this.completedGoals = 0,
     this.completedGoalIds = const [],
-    this.goals = const [], // Initialize goals as an empty list
+    this.goals = const [],
+    required this.groupRoles,
   });
 
   factory HabitWiseGroup.fromMap(Map<String, dynamic> map) {
@@ -42,13 +43,15 @@ class HabitWiseGroup {
       habits: List<String>.from(map['habits'] ?? []),
       groupType: map['groupType'] as String,
       groupPictureUrl: map['groupPictureUrl'] as String?,
-      groupCreator: map['groupCreator'] as String,
       creationDate: (map['creationDate'] as Timestamp).toDate(),
       description: map['description'] as String,
       groupCode: map['groupCode'] as String,
       completedGoals: map['completedGoals'] ?? 0,
       completedGoalIds: List<String>.from(map['completedGoalIds'] ?? []),
-      goals: List<Goal>.from(map['goals']?.map((g) => Goal.fromMap(g)) ?? []), // Fetch goals from map
+      goals: List<Goal>.from(map['goals']?.map((g) => Goal.fromMap(g)) ?? []),
+      groupRoles: Map<String, String>.from(map['groupRoles'] ?? {}).map(
+        (key, value) => MapEntry(key, value), // Ensure this is a string
+      ),
     );
   }
 
@@ -60,20 +63,19 @@ class HabitWiseGroup {
       'habits': habits,
       'groupType': groupType,
       'groupPictureUrl': groupPictureUrl,
-      'groupCreator': groupCreator,
       'creationDate': Timestamp.fromDate(creationDate),
       'description': description,
       'groupCode': groupCode,
       'completedGoals': completedGoals,
       'completedGoalIds': completedGoalIds,
-      'goals': goals.map((goal) => goal.toMap()).toList(),  // Convert goals to map
+      'goals': goals.map((goal) => goal.toMap()).toList(),
+      'groupRoles': groupRoles,
     };
   }
 
   HabitWiseGroup copyWith({
     String? groupId,
     String? groupName,
-    String? groupCreator,
     DateTime? creationDate,
     String? description,
     List<Member>? members,
@@ -83,7 +85,8 @@ class HabitWiseGroup {
     String? groupCode,
     int? completedGoals,
     List<String>? completedGoalsCount,
-    List<Goal>? goals,  // Add goals to copyWith
+    List<Goal>? goals,
+    Map<String, String>? groupRoles
   }) {
     return HabitWiseGroup(
       groupId: groupId ?? this.groupId,
@@ -92,13 +95,13 @@ class HabitWiseGroup {
       habits: habits ?? this.habits,
       groupType: groupType ?? this.groupType,
       groupPictureUrl: groupPictureUrl ?? this.groupPictureUrl,
-      groupCreator: groupCreator ?? this.groupCreator,
       creationDate: creationDate ?? this.creationDate,
       description: description ?? this.description,
       groupCode: groupCode ?? this.groupCode,
       completedGoals: completedGoals ?? this.completedGoals,
       completedGoalIds: completedGoalsCount ?? this.completedGoalIds,
-      goals: goals ?? this.goals,  // Copy the goals
+      goals: goals ?? this.goals,
+      groupRoles: groupRoles ?? this.groupRoles
     );
   }
 
@@ -112,10 +115,7 @@ class HabitWiseGroup {
     completedGoalIds.add(goalId);
   }
 
-   // Method to check if a member is an admin
-  bool isUserAdmin(String userId) {
-    return userId == groupCreator;
-  }
+
 
   //  a method to get the role of a user in the group
   String getUserRole(String userId, Map<String, String> groupRoles) {

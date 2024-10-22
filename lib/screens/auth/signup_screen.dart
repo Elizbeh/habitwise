@@ -3,24 +3,14 @@ import 'package:habitwise/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 class SignUpScreen extends StatefulWidget {
-  // Instances of controllers and callbacks required for sign-up
-  final Future<void> Function(String username) onSignupSuccess;
-  final TextEditingController emailController;
-  final TextEditingController usernameController;
-  final TextEditingController passwordController;
-  final TextEditingController passwordConfirmController;
+ final Function(String) onSignupSuccess;
 
   SignUpScreen({
     Key? key,
-    required this.emailController,
-    required this.usernameController,
-    required this.passwordController,
-    required this.passwordConfirmController,
     required this.onSignupSuccess,
   }) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _SignUpScreenState createState() => _SignUpScreenState();
 }
 
@@ -33,10 +23,18 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
 
   late AnimationController _animationController;
   late Animation<Color?> _colorAnimation;
+   late TextEditingController emailController;
+  late TextEditingController usernameController;
+  late TextEditingController passwordController;
+  late TextEditingController passwordConfirmController;
 
   @override
   void initState() {
     super.initState();
+    emailController = TextEditingController();
+    usernameController = TextEditingController();
+    passwordController = TextEditingController();
+    passwordConfirmController = TextEditingController();
     _animationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -51,12 +49,16 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
   @override
   void dispose() {
     _animationController.dispose();
+    emailController.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    passwordConfirmController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-     final userProvider = Provider.of<UserProvider>(context);
+    final userProvider = Provider.of<UserProvider>(context);
     return Scaffold(
       body: Stack(
         children: [
@@ -79,7 +81,6 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                   height: 60,
                 ),
                 const SizedBox(height: 8),
-                
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: RichText(
@@ -120,7 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                     children: [
                       // Email input field
                       TextField(
-                        controller: widget.emailController,
+                        controller: emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           hintText: 'Email',
@@ -133,10 +134,11 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
+                      
                       const SizedBox(height: 16),
                       // Username input field
                       TextField(
-                        controller: widget.usernameController,
+                        controller: usernameController,
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           hintText: 'Username',
@@ -152,7 +154,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                       const SizedBox(height: 16),
                       // Password input field
                       TextField(
-                        controller: widget.passwordController,
+                        controller: passwordController,
                         obscureText: !_isPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Password',
@@ -178,7 +180,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                       const SizedBox(height: 16),
                       // Confirm Password input field
                       TextField(
-                        controller: widget.passwordConfirmController,
+                        controller: passwordConfirmController,
                         obscureText: !_isConfirmPasswordVisible,
                         decoration: InputDecoration(
                           hintText: 'Confirm Password',
@@ -206,12 +208,12 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                       Container(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _isLoading ? null : () async {
-                            // Retrieve user input
-                            String email = widget.emailController.text.trim();
-                            String username = widget.usernameController.text.trim();
-                            String password = widget.passwordController.text.trim();
-                            String confirmPassword = widget.passwordConfirmController.text.trim();
+                          onPressed: () async {
+                           // Validate input fields
+                            String email = emailController.text.trim();
+                            String username = usernameController.text.trim();
+                            String password =passwordController.text.trim();
+                            String confirmPassword = passwordConfirmController.text.trim();
 
                             // Basic validation checks
                             if (email.isEmpty || username.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
@@ -244,7 +246,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                               context: context,
                             );
 
-                            // Handle success and error messages
+                            // Handle success and error messages directly after the await
                             setState(() {
                               _isLoading = false;
                               if (userProvider.errorMessage.isNotEmpty) {

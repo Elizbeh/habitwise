@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:habitwise/main.dart';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/group.dart';
+import 'package:habitwise/models/member.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/group_provider.dart';
@@ -36,7 +37,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   HabitWiseGroup? group;
   String creatorName = '';
   bool isMember = false;
-  bool isCreator = false;
+  bool isAdmin = false;
   bool isMembersExpanded = false;
   int _selectedIndex = 0; // switch between habits and goals
   //final int _currentIndex = 0;
@@ -83,30 +84,40 @@ void initState() {
   });
 }
 
-  Future<void> _fetchGroupDetails() async {
+
+   Future<void> _fetchGroupDetails() async {
     try {
       final fetchedGroup = widget.group;
       final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
 
-      // Fetch the group creator's name
-      final fetchedCreatorName = fetchedGroup.members.firstWhere((member) => member.id == fetchedGroup.groupCreator).name;
+      // Fetch the creator's name by checking the members
+      final fetchedCreator = fetchedGroup.members.firstWhere(
+        (member) => member.role == MemberRole.admin, // Check for admin role
+        orElse: () => Member(id: '', name: 'Unknown', role: MemberRole.member, email: ''),
+      );
+      final fetchedCreatorName = fetchedCreator.name;
 
-      // Check if the current user is a member and/or the creator of the group
-      final fetchedIsMember = fetchedGroup.members.any((member) => member.id == userId);
-      final fetchedIsCreator = fetchedGroup.groupCreator == userId;
+      // Check if the current user is a member and their role
+      final fetchedMember = fetchedGroup.members.firstWhere(
+        (member) => member.id == userId,
+        orElse: () => Member(id: '', name: '', role: MemberRole.member, email: ''),
+      );
+
+      // Check if the user is an admin
+      final userRole = fetchedMember.role;
+      final isAdminUser = userRole == MemberRole.admin; // Determine if the user is an admin
 
       setState(() {
         group = fetchedGroup;
         creatorName = fetchedCreatorName;
-        isMember = fetchedIsMember;
-        isCreator = fetchedIsCreator;
+        isMember = fetchedMember.id.isNotEmpty;
+        isAdmin = isAdminUser; // Set isAdmin based on the member role
       });
     } catch (e) {
       print('Error fetching group details: $e');
       showSnackBar(context, 'Failed to load group details. Please try again.');
     }
   }
-
   void _fetchGroupGoals() {
     final goalProvider = Provider.of<GoalProvider>(context, listen: false);
     goalProvider.fetchGroupGoals(widget.group.groupId);
@@ -251,7 +262,7 @@ void initState() {
                               child: GroupInfoSection(
                                 group: group!,
                                 creatorName: creatorName,
-                                isCreator: isCreator,
+                                isAdmin: isAdmin,
                                 onMemberRemoved: (memberId) {
                                   // Handle member removal here
                                 },
@@ -271,6 +282,7 @@ void initState() {
                                   );
                                 },
                               ),
+                           
                             ),
                           ),
                     
@@ -281,7 +293,7 @@ void initState() {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
-                                    if (isMember && !isCreator) ...[
+                                    if (isMember && !isAdmin) ...[
                                       ElevatedButton(
                                         onPressed: () async {
                                           if (group == null) {
@@ -302,7 +314,7 @@ void initState() {
                                         child: const Text('Leave Group'),
                                       ),
                                     ],
-                                    if (!isMember && !isCreator) ...[
+                                    if (!isMember && !isAdmin) ...[
                                       ElevatedButton(
                                         onPressed: () async {
                                           if (group == null) {

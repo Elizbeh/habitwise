@@ -24,8 +24,7 @@ class _LoginScreenState extends State<LoginScreen>
   late TextEditingController _passwordController; // Initialize password controller
   bool obscureText = true; // Initial state for password field
   bool _isLoading = false; // Initial state for loading indicator
-  bool _isHovering = false; // Initial state for hover
-  String _message = ''; // Variable to hold 
+  String _message = ''; // Variable to hold messages
   Color _messageColor = Colors.transparent;
 
   late AnimationController _animationController; // Animation controller
@@ -85,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen>
                     opacity: _opacityAnimation,
                     child: const Text(
                       'Build habits, reach goals. Log in to begin.',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -184,26 +183,20 @@ class _LoginScreenState extends State<LoginScreen>
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovering = true),
-        onExit: (_) => setState(() => _isHovering = false),
-        child: InkWell(
-          onTap: _isLoading ? null : () => _handleLogin(context),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            decoration: BoxDecoration(
-              color: _isHovering
-                  ? Color.fromRGBO(46, 197, 187, 1.0)
-                  : Color.fromRGBO(134, 41, 137, 1.0),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: const Center(
-              child: Text(
-                'Log in',
-                style: TextStyle(color: Colors.white, fontSize: 24),
-              ),
+      child: InkWell(
+        onTap: _isLoading ? null : () => _handleLogin(context),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          decoration: BoxDecoration(
+            color: Color.fromRGBO(134, 41, 137, 1.0), // Main button color
+            borderRadius: BorderRadius.circular(15),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: const Center(
+            child: Text(
+              'Log in',
+              style: TextStyle(color: Colors.white, fontSize: 24),
             ),
           ),
         ),
@@ -217,7 +210,10 @@ class _LoginScreenState extends State<LoginScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Forgot your login details?", style: TextStyle(fontSize: 16),),
+            const Text(
+              "Forgot your login details?",
+              style: TextStyle(fontSize: 14),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/forgot_password');
@@ -226,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen>
                 'Get help logging in',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Color.fromRGBO(46, 197, 187, 1.0),
                 ),
               ),
@@ -237,7 +233,10 @@ class _LoginScreenState extends State<LoginScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("Don't have an account?", style: TextStyle(fontSize: 18),),
+            const Text(
+              "Don't have an account?",
+              style: TextStyle(fontSize: 18),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/signup');
