@@ -16,7 +16,7 @@ class GroupInfoSection extends StatefulWidget {
   final HabitWiseGroup group;
   final String creatorName;
   final bool isAdmin;
-  
+
   final void Function(String) onMemberRemoved;
   final void Function() onEditGroupInfo;
 
@@ -34,151 +34,139 @@ class GroupInfoSection extends StatefulWidget {
 
 class _GroupInfoSectionState extends State<GroupInfoSection> {
   void _confirmMemberRemoval(String memberId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirm Removal'),
-          content: Text('Are you sure you want to remove this member?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Cancel', style: TextStyle(color: Theme.of(context).textTheme.bodyText1?.color)),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            TextButton(
-              child: Text('Remove', style: TextStyle(color: Colors.red)),
-              onPressed: () {
-                widget.onMemberRemoved(memberId);
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
+    // confirmation dialog code...
   }
 
   void _showMemberDetails(Member member) {
+  _showDetailDialog(
+    title: '${member.name ?? 'Member Details'}${member.id == widget.group.creatorId ? " (Admin)" : ""}',
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          backgroundImage: member.profilePictureUrl != null
+              ? NetworkImage(member.profilePictureUrl!)
+              : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
+          radius: 60,
+        ),
+        SizedBox(height: 16.0),
+        Text('Username: ${member.name}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,),), // Add this line
+        SizedBox(height: 8.0),
+        Text('Email: ${member.email}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,),
+        ),
+        SizedBox(height: 8.0),
+        Text(
+          'Joined on: ${DateFormat('yyyy-MM-dd').format(member.joinedDate ?? DateTime.now())}',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text('Close', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,),),
+      ),
+      if (widget.isAdmin && member.id != widget.group.creatorId)
+        TextButton(
+          onPressed: () {
+            _confirmMemberRemoval(member.id);
+            Navigator.of(context).pop();
+          },
+          child: Text('Remove', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,),),
+        ),
+    ],
+  );
+}
+  void _showDetailDialog({
+    required String title,
+    required Widget content,
+    List<Widget>? actions,
+  }) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          contentPadding: EdgeInsets.all(16.0),
+          backgroundColor: primaryColor,
+          contentPadding: EdgeInsets.all(8.0),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
+            borderRadius: BorderRadius.circular(20.0),
           ),
-          title: Text(member.name ?? 'Member Details', style: Theme.of(context).textTheme.headline6),
-          content: SizedBox(
-            width: 300,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircleAvatar(
-                  backgroundImage: member.profilePictureUrl != null
-                      ? NetworkImage(member.profilePictureUrl!)
-                      : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
-                  radius: 60,
-                ),
-                SizedBox(height: 16.0),
-                Text('Email: ${member.email ?? 'N/A'}', style: Theme.of(context).textTheme.bodyText1),
-                SizedBox(height: 8.0),
-                Text(
-                  'Joined on: ${DateFormat('yyyy-MM-dd').format(member.joinedDate ?? DateTime.now())}',
-                  style: Theme.of(context).textTheme.bodyText2,
-                ),
-              ],
+          title: Text(
+            title,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
             ),
           ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Close', style: TextStyle(color: Theme.of(context).primaryColor)),
-            ),
-            if (widget.isAdmin)
-              TextButton(
-                onPressed: () {
-                  _confirmMemberRemoval(member.id);
-                  Navigator.of(context).pop();
-                },
-                child: Text('Remove', style: TextStyle(color: Colors.red)),
-              ),
-          ],
+          content: SizedBox(width: 300, child: content),
+          actions: actions,
         );
       },
     );
   }
 
   void _showMembersList() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          title: Text(
-            'Members (${widget.group.members.length})',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: Theme.of(context).primaryColor,
-              fontWeight: FontWeight.bold,
+  _showDetailDialog(
+    title: 'Members (${widget.group.members.length})',
+    content: Container(
+      width: 300,
+      height: 400,
+      child: ListView.builder(
+        itemCount: widget.group.members.length,
+        itemBuilder: (context, index) {
+          final member = widget.group.members[index];
+          return Container(
+            margin: EdgeInsets.symmetric(vertical: 4.0),
+            decoration: BoxDecoration(
+              color: primaryColor,
+              borderRadius: BorderRadius.circular(12.0),
             ),
-          ),
-          content: Container(
-            width: 300,
-            height: 400,
-            child: ListView.builder(
-              itemCount: widget.group.members.length,
-              itemBuilder: (context, index) {
-                final member = widget.group.members[index];
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: 4.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(10.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.2),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: Offset(0, 2),
+            child: ListTile(
+              leading: CircleAvatar(
+                radius: 24,
+                backgroundImage: member.profilePictureUrl != null
+                    ? NetworkImage(member.profilePictureUrl!)
+                    : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
+              ),
+              title: Text(
+                '${member.name ?? 'No Name'}${member.id == widget.group.creatorId ? " (Admin)" : "(Member)"}',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,),
+              ),
+              onTap: () => _showMemberDetails(member),
+              trailing: widget.isAdmin && member.id != widget.group.creatorId
+                  ? Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800], // Background color for contrast
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
-                    ],
-                  ),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
-                    leading: CircleAvatar(
-                      radius: 39,
-                      backgroundImage: member.profilePictureUrl != null
-                          ? NetworkImage(member.profilePictureUrl!)
-                          : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
-                    ),
-                    title: Text(
-                      member.name ?? 'No Name',
-                      style: Theme.of(context).textTheme.bodyText1,
-                    ),
-                    onTap: () => _showMemberDetails(member),
-                    trailing: widget.isAdmin
-                        ? IconButton(
-                            icon: Icon(Icons.delete, color: Theme.of(context).iconTheme.color),
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              _confirmMemberRemoval(member.id);
-                            },
-                          )
-                        : null,
-                  ),
-                );
-              },
+                      child: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.white, size: 28),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          _confirmMemberRemoval(member.id);
+                        },
+                      ),
+                    )
+                  : null,
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Close', style: TextStyle(color: Theme.of(context).primaryColor)),
-            ),
-          ],
-        );
-      },
-    );
-  }
+          );
+        },
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text('Close', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,),),
+      ),
+    ],
+  );
+}
 
   Stream<List<Goal>> _fetchGoals() {
     return GoalDBService().getGroupGoalsStream(widget.group.groupId);
@@ -198,7 +186,6 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Group Info Section
           Row(
             children: [
               CircleAvatar(
@@ -235,32 +222,33 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
             ],
           ),
           // Goals Section
-        StreamBuilder<List<Goal>>(
-          stream: _fetchGoals(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.track_changes,
-                    size: 50,
-                    color: Color.fromRGBO(46, 197, 187, 1.0),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'No goals yet! Start setting up some goals and track your progress here.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
-                    ),
-                    textAlign: TextAlign.center,
+          StreamBuilder<List<Goal>>(
+            stream: _fetchGoals(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.track_changes,
+                        size: 50,
+                        color: Color.fromRGBO(46, 197, 187, 1.0),
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'No goals yet! Start setting up some goals and track your progress here.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[700],
+                        ),
+                        textAlign: TextAlign.center,
+                     
                   ),
                   SizedBox(height: 8),
                   Text(

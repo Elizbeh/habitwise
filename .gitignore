@@ -10,6 +10,8 @@
 .svn/
 migrate_working_dir/
 package:habitwise/methods/FirebaseOptions.dart
+functions
+
 
 # IntelliJ related
 *.iml

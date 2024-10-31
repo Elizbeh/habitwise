@@ -26,6 +26,8 @@ class AuthMethod {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final UserDBService _userDBService = UserDBService();
 
+  
+
   Future<AuthResult> login({required String email, required String password}) async {
   try {
     UserCredential authResult = await _auth.signInWithEmailAndPassword(
@@ -90,6 +92,7 @@ class AuthMethod {
           canCreateGroup: true,
           canJoinGroups: true,
           emailVerified: false,
+
         );
         await _userDBService.createUser(habitWiseUser);
 
@@ -160,6 +163,8 @@ class AuthMethod {
   User? getCurrentUser() {
     return _auth.currentUser;
   }
+
+  
 
   AuthResult _handleFirebaseAuthError(FirebaseAuthException e) {
     switch (e.code) {

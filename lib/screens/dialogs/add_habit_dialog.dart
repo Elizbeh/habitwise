@@ -240,7 +240,7 @@ class _AddHabitDialogState extends State<AddHabitDialog> {
                   await Provider.of<HabitProvider>(context, listen: false)
                       .addHabit(newHabit, groupId: widget.groupId!);
                 } else {
-                  final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
+                  final userId = Provider.of<UserProvider>(context, listen: false).currentUser?.uid;
                   if (userId != null) {
                     await Provider.of<HabitProvider>(context, listen: false).addHabit(newHabit);
                   }

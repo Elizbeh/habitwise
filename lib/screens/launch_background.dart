@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         context,
         MaterialPageRoute(
           builder: (context) {
-            final user = userProvider.user; // HabitWiseUser?
+            final user = userProvider.currentUser; // HabitWiseUser?
             final groupId = userProvider.groupId; // Ensure this getter is defined
 
             if (user != null) {

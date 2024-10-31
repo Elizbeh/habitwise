@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/widgets.dart';
 import 'package:habitwise/main.dart';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/group.dart';
@@ -88,7 +87,7 @@ void initState() {
    Future<void> _fetchGroupDetails() async {
     try {
       final fetchedGroup = widget.group;
-      final userId = Provider.of<UserProvider>(context, listen: false).user?.uid ?? '';
+      final userId = Provider.of<UserProvider>(context, listen: false).currentUser?.uid ?? '';
 
       // Fetch the creator's name by checking the members
       final fetchedCreator = fetchedGroup.members.firstWhere(
@@ -130,10 +129,10 @@ void initState() {
 
     try {
       if (isJoin) {
-        await groupProvider.joinGroup(group!.groupId, userProvider.user!.uid);
+        await groupProvider.joinGroup(group!.groupCode, userProvider.currentUser!.uid, context);
         showSnackBar(context, 'Joined group successfully!');
       } else {
-        await groupProvider.leaveGroup(group!.groupId, userProvider.user!.uid);
+        await groupProvider.leaveGroup(group!.groupId, userProvider.currentUser!.uid);
         showSnackBar(context, 'Left the group successfully');
       }
       setState(() {});
@@ -223,203 +222,183 @@ void initState() {
                       ),  
                   ],
                 ),
-
-              body: SafeArea(
-                child: group != null
-                    ? Column(
-                        children: [
-                          // Banner below AppBar
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Color.fromRGBO(134, 41, 137, 1.0), // Start color
-                                  Color.fromRGBO(46, 197, 187, 1.0), // End color
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(30.0),
-                                bottomRight: Radius.circular(30.0),
-                              ),
-                              border: Border.all(
-                                color: Colors.transparent, // No background color for the border itself
-                                width: 1.0, // Set the thickness of the border
-                              ),
-                            ),
-                            child: Container(
-                              // This inner container provides the transparent background effect
+                body: SafeArea(
+                  child: group != null
+                      ? Column(
+                          children: [
+                            // Banner below AppBar
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(8.0),
                               decoration: BoxDecoration(
-                                color: Colors.transparent, // Outer container transparent
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color.fromRGBO(134, 41, 137, 1.0), // Start color
+                                    Color.fromRGBO(46, 197, 187, 1.0), // End color
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
                                 borderRadius: BorderRadius.only(
                                   bottomLeft: Radius.circular(30.0),
                                   bottomRight: Radius.circular(30.0),
                                 ),
-                              ),
-                              child: GroupInfoSection(
-                                group: group!,
-                                creatorName: creatorName,
-                                isAdmin: isAdmin,
-                                onMemberRemoved: (memberId) {
-                                  // Handle member removal here
-                                },
-                                onEditGroupInfo: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CreateGroupScreen(
-                                        groupToEdit: group,
-                                        onGroupUpdated: () {
-                                          setState(() {
-                                            // Update UI
-                                          });
-                                        }, user: widget.user,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                           
-                            ),
-                          ),
-                    
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    if (isMember && !isAdmin) ...[
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          if (group == null) {
-                                            showSnackBar(context, 'Group is not available', isError: true);
-                                            return;
-                                          }
-
-                                          final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-                                          try {
-                                            await groupProvider.leaveGroup(group!.groupId, Provider.of<UserProvider>(context, listen: false).user!.uid);
-                                            showSnackBar(context, 'Left the group successfully');
-                                            // Optionally, you can navigate back or refresh the UI
-                                            Navigator.of(context).pop(); // Close the screen or navigate as needed
-                                          } catch (e) {
-                                            showSnackBar(context, 'Error leaving group: $e', isError: true);
-                                          }
-                                        },
-                                        child: const Text('Leave Group'),
-                                      ),
-                                    ],
-                                    if (!isMember && !isAdmin) ...[
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          if (group == null) {
-                                            showSnackBar(context, 'Group is not available', isError: true);
-                                            return;
-                                          }
-
-                                          final groupProvider = Provider.of<GroupProvider>(context, listen: false);
-                                          final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-                                          try {
-                                            await groupProvider.joinGroup(group!.groupId, userProvider.user!.uid);
-                                            showSnackBar(context, 'Joined group successfully!');
-                                            
-                                            // Optionally, you can refresh the UI or navigate back
-                                            setState(() {}); // Ensure this is necessary based on your widget's state management
-                                          } catch (e) {
-                                            showSnackBar(context, 'Error joining group: $e', isError: true);
-                                          }
-                                        },
-                                        child: const Text('Join Group'),
-                                      ),
-                                    ],
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8.0),
-                                        border: Border.all(color: Theme.of(context).colorScheme.primary),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  _selectedIndex = 0;
-                                                });
-                                              },
-                                              child: const Text('Goals'),
-                                              style: ElevatedButton.styleFrom(
-                                                foregroundColor: _selectedIndex == 0 ? Colors.white : Colors.black,
-                                                backgroundColor:
-                                                    _selectedIndex == 0 ? Theme.of(context).colorScheme.primary : Colors.white,
-                                                shape: const RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.only(
-                                                    topLeft: Radius.circular(8.0),
-                                                    bottomLeft: Radius.circular(8.0),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            width: 1,
-                                            height: 48,
-                                            color: Theme.of(context).colorScheme.primary,
-                                          ),
-                                          Expanded(
-                                            child: ElevatedButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  _selectedIndex = 1;
-                                                });
-                                              },
-                                              child: const Text('Habits'),
-                                              style: ElevatedButton.styleFrom(
-                                                foregroundColor: _selectedIndex == 1 ? Colors.white : Colors.black,
-                                                backgroundColor:
-                                                    _selectedIndex == 1 ? Theme.of(context).colorScheme.primary : Colors.white,
-                                                shape: const RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.only(
-                                                    topRight: Radius.circular(8.0),
-                                                    bottomRight: Radius.circular(8.0),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    
-                                    if (_selectedIndex == 0) ...[
-                                      SizedBox(height: 16.0),
-                                      Text('Group Goals:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      GroupGoalList(groupId: group!.groupId),
-                                    ],
-                                    if (_selectedIndex == 1) ...[
-                                      SizedBox(height: 16.0),
-                                      Text('Group Habits:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                      GroupHabitList(groupId: group!.groupId),
-                                    ],                          
-                                  ],
+                                border: Border.all(
+                                  color: Colors.transparent, // No background color for the border itself
+                                  width: 1.0, // Set the thickness of the border
                                 ),
                               ),
+                              child: Container(
+                                // This inner container provides the transparent background effect
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent, // Outer container transparent
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(30.0),
+                                    bottomRight: Radius.circular(30.0),
+                                  ),
+                                ),
+                                child: GroupInfoSection(
+                                  group: group!,
+                                  creatorName: creatorName,
+                                  isAdmin: isAdmin,
+                                  onMemberRemoved: (memberId) {
+                                    // Handle member removal here
+                                  },
+                                  onEditGroupInfo: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => CreateGroupScreen(
+                                          groupToEdit: group,
+                                          onGroupUpdated: () {
+                                            setState(() {
+                                              // Update UI
+                                            });
+                                          }, user: widget.user,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                            
+                              ),
                             ),
-                          ),
-              
-                        ],
-                      )
-                    : Center(
-                      child: CircularProgressIndicator(),
+                      
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                 if (isMember && !isAdmin) ...[
+                            ElevatedButton(
+                              onPressed: () async {
+                                if (group == null) {
+                                  showSnackBar(context, 'Group is not available', isError: true);
+                                  return;
+                                }
+
+                                final groupProvider = Provider.of<GroupProvider>(context, listen: false);
+                                try {
+                                  await groupProvider.leaveGroup(group!.groupId, Provider.of<UserProvider>(context, listen: false).currentUser!.uid);
+                                  showSnackBar(context, 'Left the group successfully');
+                                  
+                                  // Close the screen to remove it from the stack
+                                  Navigator.of(context).pop();
+                                  
+                                  // Optionally refresh the UI or navigate to another screen
+                                  // You can call another method here if needed to refresh parent widget
+                                } catch (e) {
+                                  showSnackBar(context, 'Error leaving group: $e', isError: true);
+                                }
+                              },
+                              child: const Text('Leave Group'),
+                            ),
+                          ],
+    
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8.0),
+                                          border: Border.all(color: Theme.of(context).colorScheme.primary),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _selectedIndex = 0;
+                                                  });
+                                                },
+                                                child: const Text('Goals'),
+                                                style: ElevatedButton.styleFrom(
+                                                  foregroundColor: _selectedIndex == 0 ? Colors.white : Colors.black,
+                                                  backgroundColor:
+                                                      _selectedIndex == 0 ? Theme.of(context).colorScheme.primary : Colors.white,
+                                                  shape: const RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.only(
+                                                      topLeft: Radius.circular(8.0),
+                                                      bottomLeft: Radius.circular(8.0),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              width: 1,
+                                              height: 48,
+                                              color: Theme.of(context).colorScheme.primary,
+                                            ),
+                                            Expanded(
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _selectedIndex = 1;
+                                                  });
+                                                },
+                                                child: const Text('Habits'),
+                                                style: ElevatedButton.styleFrom(
+                                                  foregroundColor: _selectedIndex == 1 ? Colors.white : Colors.black,
+                                                  backgroundColor:
+                                                      _selectedIndex == 1 ? Theme.of(context).colorScheme.primary : Colors.white,
+                                                  shape: const RoundedRectangleBorder(
+                                                    borderRadius: BorderRadius.only(
+                                                      topRight: Radius.circular(8.0),
+                                                      bottomRight: Radius.circular(8.0),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      
+                                      if (_selectedIndex == 0) ...[
+                                        SizedBox(height: 16.0),
+                                        Text('Group Goals:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        GroupGoalList(groupId: group!.groupId),
+                                      ],
+                                      if (_selectedIndex == 1) ...[
+                                        SizedBox(height: 16.0),
+                                        Text('Group Habits:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                        GroupHabitList(groupId: group!.groupId),
+                                      ],                          
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            
+                            ),
+                          ],
+                        )
+                      : Center(
+                        child: CircularProgressIndicator(),
+                        ),
                       ),
-                    ),
-                    
+                      
               bottomNavigationBar: BottomNavigationBarWidget(
                 currentIndex: _currentIndex,
                 onTap: _onTap,
@@ -433,7 +412,7 @@ void showSnackBar(BuildContext context, String message, {bool isError = false}) 
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(message),
-      backgroundColor: isError ? Colors.red : Colors.green,
+      backgroundColor: isError ? Color.fromARGB(255, 224, 135, 129) : const Color.fromARGB(255, 111, 185, 114),
       duration: const Duration(seconds: 2),
     ),
   );

@@ -25,6 +25,9 @@ import 'package:provider/provider.dart';
 import 'models/user.dart';
 import 'themes/theme.dart';
 
+
+
+
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 // Centralized ValueNotifier for theme management
@@ -37,7 +40,6 @@ void main() async {
   await Firebase.initializeApp(
     options: firebaseOptions
   );
-  
 
   runApp(
     MultiProvider(
@@ -250,10 +252,10 @@ class MyApp extends StatelessWidget {
             '/dashboard': (context) => Consumer<UserProvider>(
               builder: (context, userProvider, _) {
                 // Check if user data is already available
-                if (userProvider.user != null) {
+                if (userProvider.currentUser != null) {
                   return DashboardScreen(
-                    user: userProvider.user!,
-                    groupId: userProvider.user!.groupIds.isNotEmpty ? userProvider.user!.groupIds[0] : '',
+                    user: userProvider.currentUser!,
+                    groupId: userProvider.currentUser!.groupIds.isNotEmpty ? userProvider.currentUser!.groupIds[0] : '',
                   );
                 }
 
@@ -275,7 +277,7 @@ class MyApp extends StatelessWidget {
                               const SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: () {
-                                  // Optionally, you can retry fetching user data here
+                                  // Retry fetching user data
                                   userProvider.getUserDetails();
                                 },
                                 child: const Text('Retry'),
@@ -301,19 +303,19 @@ class MyApp extends StatelessWidget {
             ),
 
             '/createGroup': (context) {
-               final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).user!;
+               final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).currentUser!;
                return CreateGroupScreen(user: user);
            
             },
             '/groupDetails': (context) {
               final HabitWiseGroup group = ModalRoute.of(context)!.settings.arguments as HabitWiseGroup;
-              final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).user!;
+              final HabitWiseUser user = Provider.of<UserProvider>(context, listen: false).currentUser!;
               
               return GroupDetailsScreen(group: group, user: user);
             },
             '/habit': (context) => Consumer<UserProvider>(
               builder: (context, userProvider, _) {
-                if (userProvider.user == null) {
+                if (userProvider.currentUser == null) {
                   return FutureBuilder<HabitWiseUser?>(
                     future: userProvider.getUserDetails(),
                       builder: (context, AsyncSnapshot<HabitWiseUser?> snapshot) {
@@ -344,7 +346,7 @@ class MyApp extends StatelessWidget {
                   } 
                   // If user is available in provider, return ProfilePage directly
                   else {
-                    return ProfilePage(user: userProvider.user!);
+                    return ProfilePage(user: userProvider.currentUser!);
                   }
                 },
               ),

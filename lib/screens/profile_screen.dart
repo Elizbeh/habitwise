@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:habitwise/main.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +13,10 @@ import 'package:provider/provider.dart';
 import 'package:habitwise/widgets/bottom_navigation_bar.dart';
 
 const List<Color> appBarGradientColors = [
-    Color.fromRGBO(134, 41, 137, 1.0),
-    Color.fromRGBO(181, 58, 185, 1),
-    Color.fromRGBO(46, 197, 187, 1.0),
+  Color.fromRGBO(134, 41, 137, 1.0),
+  Color.fromRGBO(181, 58, 185, 1),
+  Color.fromRGBO(46, 197, 187, 1.0),
 ];
-
 
 class ProfilePage extends StatefulWidget {
   final HabitWiseUser user;
@@ -32,8 +30,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   List<Map<String, dynamic>> achievements = [];
   late HabitWiseUser _currentUser;
-
-
 
   @override
   void initState() {
@@ -52,7 +48,6 @@ class _ProfilePageState extends State<ProfilePage> {
     goalProvider.addListener(_onDataChanged);
   }
 
-  
   @override
   void dispose() {
     final habitProvider = Provider.of<HabitProvider>(context, listen: false);
@@ -69,8 +64,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  
-
   void _calculateAchievements() {
     print('Calculating achievements...');
 
@@ -85,6 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     List<Map<String, dynamic>> newAchievements = [];
 
+    // Add achievement checks
     if (completedHabits >= 1) {
       newAchievements.add({
         'title': 'First Habit Completed',
@@ -92,7 +86,6 @@ class _ProfilePageState extends State<ProfilePage> {
         'color': Colors.amber,
       });
     }
-
     if (completedHabits >= 5) {
       newAchievements.add({
         'title': 'Habit Master',
@@ -100,7 +93,6 @@ class _ProfilePageState extends State<ProfilePage> {
         'color': Colors.amber[700],
       });
     }
-
     if (completedHabits >= 10) {
       newAchievements.add({
         'title': 'Habit Guru',
@@ -108,7 +100,6 @@ class _ProfilePageState extends State<ProfilePage> {
         'color': Colors.amber[900],
       });
     }
-
     if (completedGoals >= 1) {
       newAchievements.add({
         'title': 'First Goal Achieved',
@@ -116,7 +107,6 @@ class _ProfilePageState extends State<ProfilePage> {
         'color': Colors.blue,
       });
     }
-
     if (completedGoals >= 5) {
       newAchievements.add({
         'title': 'Goal Achiever',
@@ -124,7 +114,6 @@ class _ProfilePageState extends State<ProfilePage> {
         'color': Colors.blue[700],
       });
     }
-
     if (completedGoals >= 10) {
       newAchievements.add({
         'title': 'Goal Conqueror',
@@ -151,12 +140,11 @@ class _ProfilePageState extends State<ProfilePage> {
         iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
         toolbarHeight: 100,
-        titleSpacing: 0, // Set titleSpacing to 0 to close the gap
+        titleSpacing: 0,
         title: Text(
-                'Profile',
-                style: Theme.of(context).appBarTheme.titleTextStyle,
-              ),
-          
+          'Profile',
+          style: Theme.of(context).appBarTheme.titleTextStyle,
+        ),
         centerTitle: false,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -194,7 +182,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -208,6 +195,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildHabitStats(context),
                 const SizedBox(height: 8),
                 _buildGoalStats(context),
+                _buildGroupStats(context), // Include group stats
                 const SizedBox(height: 8),
                 _buildGamificationSection(context),
               ],
@@ -216,7 +204,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBarWidget(
-        currentIndex: 3, // DashboardScreen is at index 0
+        currentIndex: 3,
         onTap: (index) {
           if (index != 3) {
             if (index == 0) {
@@ -234,11 +222,38 @@ class _ProfilePageState extends State<ProfilePage> {
             }
           }
         },
-          themeNotifier: appThemeNotifier,
+        themeNotifier: appThemeNotifier,
       ),
-       
     );
   }
+
+  Widget _buildGroupStats(BuildContext context) {
+  return Consumer<UserProvider>(
+    builder: (context, provider, child) {
+      // Use the updated properties in the HabitWiseUser model
+      final createdGroups = provider.currentUser?.createdGroups ?? 0; // Default to 0 if null
+      final joinedGroups = provider.currentUser?.joinedGroups ?? 0; // Default to 0 if null
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Groups',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatCard('Created', createdGroups, Colors.blue),
+              _buildStatCard('Joined', joinedGroups, Colors.green),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+}
 
   Widget _buildProfileHeader(BuildContext context) {
     final profilePictureUrl = _currentUser.profilePictureUrl ?? '';
@@ -451,4 +466,5 @@ class _ProfilePageState extends State<ProfilePage> {
       },
     );
   }
+  
 }

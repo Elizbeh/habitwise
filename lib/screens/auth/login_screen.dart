@@ -280,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen>
     if (loginResult == AuthResult.success) {
       UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
       await userProvider.getUserDetails();
-      HabitWiseUser? user = userProvider.user;
+      HabitWiseUser? user = userProvider.currentUser;
 
       if (user != null && user.emailVerified) {
         await userProvider.fetchUserGroups();

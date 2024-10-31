@@ -11,26 +11,27 @@ import '../models/group.dart';
 class UserProvider extends ChangeNotifier {
   final AuthMethod _authMethod = AuthMethod();
   final UserDBService _userDBService = UserDBService();
-  final GroupProvider _groupProvider = GroupProvider(); // Initialize GroupProvider
+  final GroupProvider _groupProvider = GroupProvider();
 
-  HabitWiseUser? _user;
+  HabitWiseUser? _currentUser;
+
   bool _isLoading = false;
   String _errorMessage = '';
 
-  HabitWiseUser? get user => _user;
+   HabitWiseUser? get currentUser => _currentUser;
   
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   bool get isEmailVerified => _authMethod.getCurrentUser()?.emailVerified ?? false;
   List<HabitWiseGroup> get userGroups => _groupProvider.userGroups; // Use GroupProvider to access userGroups
 
- // Add this getter if you want to get the first group ID
-  String? get groupId {
-    if (_groupProvider.userGroups.isNotEmpty) {
-      return _groupProvider.userGroups.first.groupId; // Assuming each group has an 'id'
-    }
-    return null; // If no group is available, return null
-  }
+ // Getter to get the first group ID
+ String? get groupId {
+    return _groupProvider.userGroups.isNotEmpty 
+           ? _groupProvider.userGroups.first.groupId 
+           : null; 
+}
+
 
   UserProvider() {
     _checkUserSession();
@@ -55,33 +56,34 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<HabitWiseUser?> getUserDetails() async {
-  _isLoading = true;
-  _errorMessage = '';
-  notifyListeners();
-
-  try {
-    final currentUser = _authMethod.getCurrentUser();
-    if (currentUser != null) {
-      final userDetails = await _userDBService.getUserDetailsById(currentUser.uid);
-      if (userDetails != null) {
-        _user = HabitWiseUser.fromMap(userDetails);
-        
-        // Fetch user groups without expecting a return value
-        await _groupProvider.fetchGroups(currentUser.uid);
-      } else {
-        _errorMessage = 'User details not found.';
-      }
-    } else {
-      _errorMessage = 'Current user is null.';
-    }
-  } catch (e) {
-    _errorMessage = 'Error getting user details: ${e.toString()}'; // Consider using e.toString() for better clarity
-  } finally {
-    _isLoading = false;
+    _isLoading = true;
+    _errorMessage = '';
     notifyListeners();
-  }
 
-  return _user;
+    try {
+        final currentUser = _authMethod.getCurrentUser();
+        if (currentUser != null) {
+            final userDetails = await _userDBService.getUserDetailsById(currentUser.uid);
+            if (userDetails != null) {
+                _currentUser = HabitWiseUser.fromMap(userDetails);
+                await _groupProvider.fetchGroups(currentUser.uid);
+            } else {
+                _errorMessage = 'User details not found.';
+                _currentUser = null; // Explicitly set to null to avoid using an uninitialized user
+            }
+        } else {
+            _errorMessage = 'Current user is null.';
+            _currentUser = null; // Explicitly set to null to avoid using an uninitialized user
+        }
+    } catch (e) {
+        _errorMessage = 'Error getting user details: ${e.toString()}';
+        _currentUser = null; // Explicitly set to null to avoid using an uninitialized user
+    } finally {
+        _isLoading = false;
+        notifyListeners();
+    }
+
+    return _currentUser;
 }
 
    Future<void> fetchUserGroups() async {
@@ -102,6 +104,7 @@ class UserProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
 
   Future<void> resendVerificationEmail() async {
     try {
@@ -125,7 +128,7 @@ class UserProvider extends ChangeNotifier {
       AuthResult result = await _authMethod.login(email: email, password: password);
       if (result == AuthResult.success) {
         await getUserDetails();
-        if (_user != null && !_user!.emailVerified) {
+        if (_currentUser != null && !_currentUser!.emailVerified) {
           _errorMessage = 'Please verify your email address.';
         }
       } else {
@@ -203,7 +206,7 @@ class UserProvider extends ChangeNotifier {
 
     try {
       await _authMethod.logout();
-      _user = null;
+      _currentUser = null;
       _groupProvider.clearUserGroups(); // Clear user groups in GroupProvider
     } catch (e) {
       _errorMessage = 'Error logging out: $e';
@@ -257,7 +260,7 @@ class UserProvider extends ChangeNotifier {
 
     try {
       await _userDBService.updateUserProfile(user);
-      _user = user;
+      _currentUser = user;
     } catch (e) {
       _errorMessage = 'Error updating user profile: $e';
     } finally {
@@ -265,4 +268,12 @@ class UserProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+  
+   void updateGroupCount(int newCount) {
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(joinedGroups: newCount);
+      notifyListeners();
+    }
+  }
+  
 }

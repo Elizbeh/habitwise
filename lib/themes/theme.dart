@@ -9,7 +9,6 @@ const Color lightTextInputColor = Colors.white;
 const Color darkTextInputColor = Color.fromARGB(255, 93, 93, 93); // Darkened for dark mode input fields
 
 double getAdaptiveFontSize(BuildContext context, double size) {
-  // Calculate font size based on screen width
   double baseWidth = 375; // Base width (for design reference)
   double scaleFactor = MediaQuery.of(context).size.width / baseWidth;
   return size * scaleFactor;
@@ -83,6 +82,12 @@ ThemeData lightTheme(BuildContext context) {
         ),
       ),
     ),
+    navigationRailTheme: NavigationRailThemeData(
+      minWidth: 100, // Customize width
+      selectedIconTheme: IconThemeData(size: 30), // Selected icon size
+      unselectedIconTheme: IconThemeData(size: 24), // Unselected icon size
+      labelType: NavigationRailLabelType.all, // Show labels for all items
+    ),
   );
 }
 
@@ -153,6 +158,12 @@ ThemeData darkTheme(BuildContext context) {
           borderRadius: BorderRadius.circular(8.0),
         ),
       ),
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      minWidth: 100, // Customize width
+      selectedIconTheme: IconThemeData(size: 30), // Selected icon size
+      unselectedIconTheme: IconThemeData(size: 24), // Unselected icon size
+      labelType: NavigationRailLabelType.all, // Show labels for all items
     ),
   );
 }

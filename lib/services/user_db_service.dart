@@ -97,4 +97,14 @@ class UserDBService {
       throw Exception('Failed to update email verification status');
     }
   }
+
+  // Method to update the user's group count
+  Future<void> updateUserGroupCount(String userId, {required bool decrement}) async {
+    final userRef = _firestore.collection('users').doc(userId);
+    final incrementValue = decrement ? -1 : 1;
+
+    await userRef.update({
+      'joinedGroups': FieldValue.increment(incrementValue),
+    });
+  }
 }

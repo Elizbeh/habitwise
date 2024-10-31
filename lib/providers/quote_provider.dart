@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/services/quote_service.dart';
 
+
 class QuoteProvider extends ChangeNotifier {
   final QuoteService _quoteService = QuoteService();
   String _quote = 'Loading...';

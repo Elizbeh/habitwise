@@ -106,7 +106,7 @@ class _EditHabitDialogState extends State<EditHabitDialog> {
           Provider.of<HabitProvider>(context, listen: false)
               .updateHabit(updatedHabit, groupId: widget.groupId); // Update group habit
         } else {
-          final userId = Provider.of<UserProvider>(context, listen: false).user?.uid;
+          final userId = Provider.of<UserProvider>(context, listen: false).currentUser?.uid;
           if (userId != null) {
             Provider.of<HabitProvider>(context, listen: false)
                 .updateHabit(updatedHabit, groupId: ''); // Update user habit

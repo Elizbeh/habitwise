@@ -14,6 +14,8 @@ class HabitWiseUser {
   final bool canCreateGroup;
   bool canJoinGroups;
   bool emailVerified;
+    int createdGroups;
+  int joinedGroups;
   
 
   // Constructor to initialize the HabitWiseUser instance
@@ -30,6 +32,8 @@ class HabitWiseUser {
     required this.canCreateGroup,
     required this.canJoinGroups,
     required this.emailVerified,
+    this.createdGroups = 0,
+    this.joinedGroups = 0,
   
   });
 
@@ -48,6 +52,8 @@ class HabitWiseUser {
       canCreateGroup: data['canCreateGroup'] ?? false,
       canJoinGroups: data['canJoinGroups'] ?? false,
       emailVerified: data['emailVerified'] ?? false,
+       createdGroups: data['createdGroups'] ?? 0, // Handle null values
+      joinedGroups: data['joinedGroups'] ?? 0,  
     );
   }
 
@@ -66,6 +72,8 @@ class HabitWiseUser {
       'canCreateGroup': canCreateGroup,
       'canJoinGroups': canJoinGroups,
       'emailVerified': emailVerified,
+      'createdGroups': createdGroups,
+      'joinedGroups': joinedGroups,
     };
   }
 
@@ -83,6 +91,8 @@ class HabitWiseUser {
     bool? canCreateGroup,
     bool? canJoinGroups,
     bool? emailVerified,
+    int? createdGroups,
+    int? joinedGroups,
   }) {
     return HabitWiseUser(
       uid: uid ?? this.uid,
@@ -97,6 +107,8 @@ class HabitWiseUser {
       canCreateGroup: canCreateGroup ?? this.canCreateGroup,
       canJoinGroups: canJoinGroups ?? this.canJoinGroups,
       emailVerified: emailVerified ?? this.emailVerified,
+      createdGroups: createdGroups ?? this.createdGroups,
+      joinedGroups: joinedGroups ?? this.joinedGroups,
     );
   }
   //Convert HabitWiseUser to Member
