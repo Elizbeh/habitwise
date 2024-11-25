@@ -8,13 +8,13 @@ import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
-import 'package:habitwise/screens/goals_screen.dart';
+import 'package:habitwise/screens/personal_goal.dart';
 import 'package:habitwise/screens/group/group_info.dart';
 import 'package:habitwise/screens/group/group_widgets.dart';
-import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/personal_habits.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:habitwise/screens/setting_screen.dart';
-import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:habitwise/screens/widgets/bottom_navigation_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/screens/group/create_group_screen.dart';
 
@@ -197,13 +197,13 @@ void initState() {
                         child: Text(
                           group!.description != null
                               ? _isDescriptionExpanded
-                                  ? group!.description! // Show full text when expanded
+                                  ? group!.description // Show full text when expanded
                                   : (group!.description!.length > 30
                                       ? '${group!.description!.substring(0, 30)}...' // Show first 20 chars + ellipsis
                                       : group!.description!) // Show complete if it's less than or equal to 20 chars
                               : 'No description available',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             color: Colors.white,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -379,7 +379,7 @@ void initState() {
                                       if (_selectedIndex == 0) ...[
                                         SizedBox(height: 16.0),
                                         Text('Group Goals:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                        GroupGoalList(groupId: group!.groupId),
+                                        GroupGoalList(groupId: group!.groupId, isAdmin: true,),
                                       ],
                                       if (_selectedIndex == 1) ...[
                                         SizedBox(height: 16.0),

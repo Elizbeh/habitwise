@@ -100,11 +100,17 @@ class UserDBService {
 
   // Method to update the user's group count
   Future<void> updateUserGroupCount(String userId, {required bool decrement}) async {
-    final userRef = _firestore.collection('users').doc(userId);
-    final incrementValue = decrement ? -1 : 1;
+  final userRef = _firestore.collection('users').doc(userId);
 
-    await userRef.update({
-      'joinedGroups': FieldValue.increment(incrementValue),
-    });
-  }
+  await _firestore.runTransaction((transaction) async {
+    DocumentSnapshot snapshot = await transaction.get(userRef);
+    if (snapshot.exists) {
+      int currentCount = snapshot.get('joinedGroups') ?? 0;
+      transaction.update(userRef, {
+        'joinedGroups': currentCount + (decrement ? -1 : 1),
+      });
+    }
+  });
+}
+
 }

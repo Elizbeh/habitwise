@@ -11,16 +11,16 @@ import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/quote_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
-import 'package:habitwise/screens/goals_screen.dart';
-import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/personal_goal.dart';
+import 'package:habitwise/screens/personal_habits.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:habitwise/screens/group/create_group_screen.dart';
-import 'package:habitwise/widgets/geometricBorder.dart';
+import 'package:habitwise/screens/widgets/geometricBorder.dart';
 import 'package:provider/provider.dart';
 import 'package:confetti/confetti.dart';
-import '../widgets/goalPie_chart_widget.dart';
-import '../widgets/habitPie_chart_widget.dart';
-import '../widgets/bottom_navigation_bar.dart';
+import 'widgets/goalPie_chart_widget.dart';
+import 'widgets/habitPie_chart_widget.dart';
+import 'widgets/bottom_navigation_bar.dart';
 import '../main.dart';
 
 const List<Color> appBarGradientColors = [
@@ -134,7 +134,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 
     // Set heights based on orientation
-    final appBarHeight = isLargeScreen ? 200.0 : 300.0;
+    final appBarHeight = isLargeScreen ? 200.0 : 250.0;
     final imageHeight = isLargeScreen ? 90.0 : 180.0;
 
     // Set font sizes based on orientation and screen width
@@ -214,7 +214,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Image.asset('assets/images/logo.png'),
+                    child: Image.asset('assets/images/logo1.png', height: 40,),
                   ),
                 ),
               ),
@@ -251,7 +251,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // App Title
               Positioned(
                 top: appBarHeight * 0.5,
-                left: 70,
+                left: 65,
                 child: Text(
                   'HabitWize',
                   style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
@@ -263,9 +263,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // Welcome text
               Positioned(
                 top: appBarHeight * 0.75,
-                left: 0,
+                left: 26,
                 right: 0,
-                child: Center(
+                //child: Center(
                   child: _isFirstLogin
                       ? Text(
                           'Welcome, ${widget.user.username}!',
@@ -274,7 +274,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             fontWeight: FontWeight.bold,
                             color: const Color.fromARGB(255, 250, 229, 41),
                           ),
-                          textAlign: TextAlign.center, // Center text
+                          textAlign: TextAlign.start,
                         )
                       : Text(
                           'Welcome Back, ${widget.user.username}!',
@@ -283,9 +283,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             fontWeight: FontWeight.bold,
                             color: const Color.fromARGB(255, 250, 229, 41),
                           ),
-                          textAlign: TextAlign.center, // Center text
+                          textAlign: TextAlign.start,
                         ),
-                ),
+                //),
               ),
             ],
           ),
@@ -303,6 +303,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       
         ),
+        
         body: SafeArea(
           top: false,
           child: Padding(

@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:logger/logger.dart';
 
 class HabitDBService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Logger logger = Logger(); // Initialize the logger
 
   // Method to get the habit collection for a specific group
   CollectionReference _getGroupHabitCollection(String groupId) {
@@ -31,7 +33,7 @@ class HabitDBService {
       DocumentReference docRef = _getGroupHabitCollection(groupId).doc();
       await docRef.set(habit.toMap()..['id'] = docRef.id); // Store the habit with the generated ID
     } catch (e) {
-      print('Error adding group habit: $e');
+      logger.e('Error adding group habit: $e');
       rethrow; // Rethrow to handle it in the UI if necessary
     }
   }
@@ -42,7 +44,7 @@ class HabitDBService {
       DocumentReference docRef = _getUserHabitCollection().doc(); // Generate a new document reference
       await docRef.set(habit.toMap()..['id'] = docRef.id); // Store the habit with the generated ID
     } catch (e) {
-      print('Error adding user habit: $e');
+      logger.e('Error adding user habit: $e');
     }
   }
 
@@ -64,7 +66,7 @@ class HabitDBService {
       if (habitId.isEmpty) throw ArgumentError('Invalid habit ID');
       await _getUserHabitCollection().doc(habitId).delete();
     } catch (e) {
-      print('Error removing user habit: $e');
+      logger.e('Error removing user habit: $e');
     }
   }
 
@@ -74,7 +76,7 @@ class HabitDBService {
       if (habitId.isEmpty || groupId.isEmpty) throw ArgumentError('Invalid habit ID or group ID');
       await _getGroupHabitCollection(groupId).doc(habitId).delete();
     } catch (e) {
-      print('Error removing group habit: $e');
+      logger.e('Error removing group habit: $e');
     }
   }
 
@@ -84,7 +86,7 @@ class HabitDBService {
       if (updatedHabit.id.isEmpty) throw ArgumentError('Invalid habit ID');
       await _getUserHabitCollection().doc(updatedHabit.id).update(updatedHabit.toMap());
     } catch (e) {
-      print('Error updating user habit: $e');
+      logger.e('Error updating user habit: $e');
     }
   }
 
@@ -94,7 +96,7 @@ class HabitDBService {
       if (updatedHabit.id.isEmpty || groupId.isEmpty) throw ArgumentError('Invalid habit ID or group ID');
       await _getGroupHabitCollection(groupId).doc(updatedHabit.id).update(updatedHabit.toMap());
     } catch (e) {
-      print('Error updating group habit: $e');
+      logger.e('Error updating group habit: $e');
     }
   }
 }

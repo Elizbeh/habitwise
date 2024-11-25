@@ -13,7 +13,7 @@ class GoalProvider with ChangeNotifier {
   StreamSubscription<List<Goal>>? _goalSubscription; // Subscription for real-time updates
 
   // Constructor that initializes fetching goals based on groupId
-  GoalProvider({required this.userId, this.groupId}) {
+  GoalProvider({required this.userId, this.groupId, GoalDBService? dbService})  {
     if (groupId != null && groupId!.isNotEmpty) {
       fetchGroupGoals(groupId!);
     } else {
@@ -30,7 +30,7 @@ class GoalProvider with ChangeNotifier {
     super.dispose();
   }
 
-  // Add an individual goal to the database// Add an individual goal to the database
+  // Add an individual goal to the database
   Future<void> addGoal(Goal goal) async {
     try {
       // Call the GoalDBService to add the goal

@@ -6,11 +6,11 @@ import 'package:habitwise/main.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
-import 'package:habitwise/screens/goals_screen.dart';
-import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/personal_goal.dart';
+import 'package:habitwise/screens/personal_habits.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import 'package:habitwise/screens/setting_screen.dart';
-import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:habitwise/screens/widgets/bottom_navigation_bar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:habitwise/providers/group_provider.dart';
 import 'package:habitwise/models/group.dart';
@@ -308,7 +308,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 const SizedBox(height: 8),
                 _buildTextField(_groupTypeController, 'Group Type', Icons.category),
                 const SizedBox(height: 8),
-                _buildTextField(_descriptionController, 'Description', Icons.description, maxLines: 3, maxLength: 300),
+                _buildTextField(_descriptionController, 'Description', Icons.description, maxLines: 3, maxLength:   150),
                 const SizedBox(height: 8),
                 _buildTextField(TextEditingController(text: _createGroupCode()), 'Group Code', Icons.vpn_key, enabled: false),
                 const SizedBox(height: 8),

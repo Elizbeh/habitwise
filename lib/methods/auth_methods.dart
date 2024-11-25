@@ -30,25 +30,38 @@ class AuthMethod {
 
   Future<AuthResult> login({required String email, required String password}) async {
   try {
+    // Attempt to sign in the user using the provided email and password
     UserCredential authResult = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
 
+    // Check if the user was successfully authenticated
     User? user = authResult.user;
     if (user != null) {
-      await user.reload(); // Ensure we have the latest information
-      // Reload user again to get updated status
-      user = _auth.currentUser; 
-      return user!.emailVerified ? AuthResult.success : AuthResult.emailNotVerified;
+      // Reload user data to ensure it is up to date
+      await user.reload();
+      user = _auth.currentUser;
+
+      // If the user's email is verified, proceed with token retrieval
+      if (user!.emailVerified) {
+        // Fetch the ID token for the authenticated user
+        String? idToken = await user.getIdToken();
+        logger.i('ID Token: $idToken');
+
+        // Return success with an ID token or just success
+        return AuthResult.success;
+      } else {
+        return AuthResult.emailNotVerified; // Email is not verified yet
+      }
     }
-    return AuthResult.unknownError;
+    return AuthResult.unknownError; // Unknown error, user not authenticated
   } on FirebaseAuthException catch (e) {
     logger.e('Firebase Auth Error: ${e.message}');
-    return _handleFirebaseAuthError(e);
+    return _handleFirebaseAuthError(e); // Handle specific FirebaseAuth errors
   } catch (e) {
     logger.e('Error signing in: $e');
-    return AuthResult.unknownError;
+    return AuthResult.unknownError; // Handle any unexpected errors
   }
 }
 
@@ -67,7 +80,7 @@ class AuthMethod {
     }
 
     if (password != confirmPassword) {
-      return AuthResult.invalidInput; // Passwords don't match
+      return AuthResult.invalidInput;
     }
 
     try {
@@ -160,6 +173,15 @@ class AuthMethod {
     }
   }
 
+  // Method to reset password
+Future<void> resetPassword(String email) async {
+  try {
+    await _auth.sendPasswordResetEmail(email: email);
+  } catch (e) {
+    throw Exception("Error sending password reset email: $e");
+  }
+}
+
   User? getCurrentUser() {
     return _auth.currentUser;
   }
@@ -198,3 +220,4 @@ class AuthMethod {
     }
   }
 }
+

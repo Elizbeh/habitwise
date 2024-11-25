@@ -16,6 +16,9 @@ class BottomNavigationBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the current brightness (light or dark mode)
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (index) {
@@ -29,8 +32,9 @@ class BottomNavigationBarWidget extends StatelessWidget {
           onTap(index);
         }
       },
-      selectedItemColor: Theme.of(context).colorScheme.primary,
-      unselectedItemColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+      // Set the colors based on the theme mode
+      selectedItemColor: isDarkMode ? Colors.white : Theme.of(context).colorScheme.primary,
+      unselectedItemColor: isDarkMode ? Colors.white.withOpacity(0.7) : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.dashboard),

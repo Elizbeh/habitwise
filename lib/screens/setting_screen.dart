@@ -10,8 +10,21 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Settings'),
-        backgroundColor: Color.fromRGBO(134, 41, 137, 1.0),
-      ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color.fromRGBO(134, 41, 137, 1.0), // Purple
+                Color.fromRGBO(181, 58, 185, 1),   // Light Purple
+                Color.fromRGBO(46, 197, 187, 1.0), // Aqua
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        ),
+      
       body: ListView(
         padding: const EdgeInsets.all(8.0),
         children: [

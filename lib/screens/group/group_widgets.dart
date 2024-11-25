@@ -4,14 +4,15 @@ import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 import 'package:habitwise/services/goals_db_service.dart';
 import 'package:habitwise/services/habit_db_service.dart';
-import 'package:habitwise/widgets/goal_tile.dart';
-import 'package:habitwise/widgets/habit_tile.dart';
+import 'package:habitwise/screens/widgets/goal_tile.dart';
+import 'package:habitwise/screens/widgets/habit_tile.dart';
 import 'package:provider/provider.dart';
 
 class GroupGoalList extends StatelessWidget {
   final String groupId;
+  final bool isAdmin;
 
-  GroupGoalList({required this.groupId});
+  GroupGoalList({required this.groupId, required this.isAdmin});
 
   @override
   Widget build(BuildContext context) {
@@ -28,17 +29,19 @@ class GroupGoalList extends StatelessWidget {
           return Center(child: Text('No group goals yet.'));
         } else {
           List<Goal> goals = snapshot.data ?? [];
-          print('Fetched goals: ${goals.map((goal) => goal.toMap())}');
-          return goals.isEmpty
-            ? Center(child: Text('No goals found.'))
-            : Column(
-                children: goals.map((goal) => GoalTile(goal: goal, groupId: groupId)).toList(),
-              );
+          return Column(
+            children: goals.map((goal) => GoalTile(
+              goal: goal,
+              groupId: groupId,
+              isAdmin: true,
+            )).toList(),
+          );
         }
       },
     );
   }
 }
+
 class GroupHabitList extends StatelessWidget {
   final String groupId;
 

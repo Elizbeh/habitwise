@@ -50,4 +50,5 @@ class Member {
   }
 
   bool get isAdmin => role == MemberRole.admin; 
+
 }

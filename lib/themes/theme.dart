@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 const Color primaryColor = Color(0xFF862989); // First color for gradient
 const Color secondaryColor = Color(0xFF2EC5BB); // Second color for gradient
+const Color thirdColor = Color.fromRGBO(181, 58, 185, 1);
 const Color lightTextColor = Colors.white;
 const Color darkTextColor = Colors.black;
 const Color lightTextInputColor = Colors.white;
@@ -33,7 +34,7 @@ ThemeData lightTheme(BuildContext context) {
       titleTextStyle: GoogleFonts.roboto(
         textStyle: TextStyle(
           color: lightTextColor,
-          fontSize: getAdaptiveFontSize(context, 26), // Title font size
+          fontSize: getAdaptiveFontSize(context, 20), // Title font size
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -110,7 +111,7 @@ ThemeData darkTheme(BuildContext context) {
       titleTextStyle: GoogleFonts.roboto(
         textStyle: TextStyle(
           color: lightTextColor,
-          fontSize: getAdaptiveFontSize(context, 26), // Title font size
+          fontSize: getAdaptiveFontSize(context, 20), // Title font size
           fontWeight: FontWeight.bold,
         ),
       ),

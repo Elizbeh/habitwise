@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/user_provider.dart';
+import 'package:habitwise/themes/theme.dart';
 import 'package:provider/provider.dart';
 import '../dashboard_screen.dart';
 import '../../methods/auth_methods.dart';
@@ -72,24 +73,37 @@ class _LoginScreenState extends State<LoginScreen>
                     fontSize: 32,
                   ),
                 ),
-                const SizedBox(height: 8),
+            
                 Image.asset(
-                  'assets/images/logo.png',
-                  width: 60,
-                  height: 60,
+                  'assets/images/logo1.png',
+                  width: 100,
+                  height: 100,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: FadeTransition(
-                    opacity: _opacityAnimation,
-                    child: const Text(
-                      'Build habits, reach goals. Log in to begin.',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                Padding(
+              Padding(
+  padding: const EdgeInsets.all(8.0),
+  child: RichText(
+    textAlign: TextAlign.center,
+    text: TextSpan(
+      style: const TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 22,
+        color: Colors.black,
+      ),
+      children: [
+        const TextSpan(
+          text: 'Build habits, reach goals. ',
+        ),
+        TextSpan(
+          text: 'Log in to begin.',
+          style: TextStyle(
+            color: thirdColor
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+ Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Column(
                     children: [

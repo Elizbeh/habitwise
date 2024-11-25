@@ -14,7 +14,7 @@ class CustomAnimatedSubtitle extends StatefulWidget {
     required this.icon,
     this.iconColor,
     this.textStyle,
-    required this.iconSize, required MaterialColor lightbulbColor,
+    required this.iconSize,
   });
 
   @override
@@ -57,6 +57,9 @@ class _CustomAnimatedSubtitleState extends State<CustomAnimatedSubtitle>
     final textStyle = widget.textStyle ?? Theme.of(context).textTheme.displaySmall!;
     final iconColor = widget.iconColor ?? (isDarkMode ? Colors.white : Colors.black);
 
+    // Get the thirdColor from your theme
+    final thirdColor = Theme.of(context).colorScheme.secondary;
+
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
@@ -67,10 +70,10 @@ class _CustomAnimatedSubtitleState extends State<CustomAnimatedSubtitle>
               TextSpan(
                 text: widget.text,
                 style: textStyle.copyWith(
-                  // Animate text color from white to amber, adapting for dark mode
+                  // Animate text color from white to thirdColor (thirdColor defined in your theme)
                   color: Color.lerp(
                     isDarkMode ? Colors.grey[300] : Colors.black, 
-                    Colors.amber, 
+                    thirdColor, 
                     _textAnimation.value,
                   ),
                 ),

@@ -2,18 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/screens/dialogs/edit_goal_dialog.dart';
+import 'package:habitwise/themes/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/screens/dialogs/celebration.dart';
 
 class GoalTile extends StatelessWidget {
   final Goal goal;
   final String? groupId;
+  final bool isAdmin;
   final Function(Goal)? onUpdateGoal;
   final Function(String)? onDeleteGoal;
 
   const GoalTile({
     required this.goal,
     this.groupId,
+    required this.isAdmin,
     this.onUpdateGoal,
     this.onDeleteGoal,
   });
@@ -28,7 +31,7 @@ class GoalTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.background, // Use theme's background color
+        color: Theme.of(context).colorScheme.background,
         borderRadius: BorderRadius.circular(10.0),
         boxShadow: [
           BoxShadow(
@@ -42,7 +45,7 @@ class GoalTile extends StatelessWidget {
         contentPadding: EdgeInsets.zero,
         title: Text(
           goal.title ?? '',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +87,7 @@ class GoalTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               'Progress: $progress/$target',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Color.fromRGBO(105, 105, 105, 1.0),),
             ),
             const SizedBox(height: 8),
             Row(
@@ -94,61 +97,84 @@ class GoalTile extends StatelessWidget {
                 Text(
                   'Due: ${goal.targetDate?.toLocal().toString().split(' ')[0] ?? ''}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: thirdColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
+
               ],
             ),
           ],
         ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => EditGoalDialog(
-                    goal: goal,
-                    addGoalToGroup: (newGoal) {
-                      if (groupId != null && groupId!.isNotEmpty) {
-                        Provider.of<GoalProvider>(context, listen: false)
-                            .addGoalToGroup(newGoal, groupId!);
-                      } else {
-                        Provider.of<GoalProvider>(context, listen: false).addGoal(newGoal);
-                      }
-                    },
-                    groupId: groupId ?? "",
-                    onUpdateGoal: (updatedGoal) {
-                      Provider.of<GoalProvider>(context, listen: false)
-                          .updateGoal(updatedGoal);
-                    },
-                    onDeleteGoal: (goalId) {
-                      Provider.of<GoalProvider>(context, listen: false)
-                          .removeGoal(goalId);
+        trailing: isAdmin
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => EditGoalDialog(
+                          goal: goal,
+                          addGoalToGroup: (newGoal) {
+                            if (groupId != null && groupId!.isNotEmpty) {
+                              Provider.of<GoalProvider>(context, listen: false)
+                                  .addGoalToGroup(newGoal, groupId!);
+                            } else {
+                              Provider.of<GoalProvider>(context, listen: false).addGoal(newGoal);
+                            }
+                          },
+                          groupId: groupId ?? "",
+                          onUpdateGoal: (updatedGoal) {
+                            Provider.of<GoalProvider>(context, listen: false)
+                                .updateGoal(updatedGoal);
+                          },
+                          onDeleteGoal: (goalId) {
+                            Provider.of<GoalProvider>(context, listen: false)
+                                .removeGoal(goalId);
+                          },
+                        ),
+                      );
                     },
                   ),
-                );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                if (groupId != null && groupId!.isNotEmpty) {
-                  // Delete group goal
-                  Provider.of<GoalProvider>(context, listen: false)
-                      .removeGroupGoal(groupId!, goal.id ?? '');
-                } else {
-                  // Delete individual goal
-                  Provider.of<GoalProvider>(context, listen: false)
-                      .removeGoal(goal.id ?? '');
-                }
-              },
-            ),
-          ],
-        ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Confirm Deletion'),
+                            content: Text('Are you sure you want to delete this goal?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  if (groupId != null && groupId!.isNotEmpty) {
+                                    Provider.of<GoalProvider>(context, listen: false)
+                                        .removeGroupGoal(groupId!, goal.id ?? '');
+                                  } else {
+                                    Provider.of<GoalProvider>(context, listen: false)
+                                        .removeGoal(goal.id ?? '');
+                                  }
+                                  Navigator.of(context).pop(); // Close the dialog
+                                },
+                                child: Text('Delete'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+              
+                ],
+              )
+            : null,
       ),
     );
   }

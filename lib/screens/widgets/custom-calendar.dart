@@ -27,33 +27,33 @@ class _CustomCalendarState extends State<CustomCalendar> {
       onDaySelected: (selectedDay, focusedDay) {
         setState(() {
           _selectedDay = selectedDay;
-          _focusedDay = focusedDay; // Update the focused day as well
+          _focusedDay = focusedDay;
         });
       },
       headerStyle: HeaderStyle(
         titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: Color.fromRGBO(134, 41, 137, 1.0), // Primary color
+          color:  Color.fromRGBO(181, 58, 185, 1),
         ),
         formatButtonTextStyle: TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 16,
         ),
         formatButtonDecoration: BoxDecoration(
           color: Color.fromRGBO(46, 197, 187, 1.0), // Secondary color
           borderRadius: BorderRadius.circular(8.0),
         ),
-        leftChevronIcon: Icon(Icons.chevron_left, color: Color.fromRGBO(134, 41, 137, 1.0)),
-        rightChevronIcon: Icon(Icons.chevron_right, color: Color.fromRGBO(134, 41, 137, 1.0)),
+        leftChevronIcon: Icon(Icons.chevron_left),
+        rightChevronIcon: Icon(Icons.chevron_right),
       ),
       calendarStyle: CalendarStyle(
         selectedDecoration: BoxDecoration(
-          color: Color.fromRGBO(46, 197, 187, 1.0), // Secondary color
+          color: Color.fromRGBO(46, 197, 187, 1.0),
           shape: BoxShape.circle,
         ),
         todayDecoration: BoxDecoration(
-          color: Color.fromRGBO(134, 41, 137, 1.0), // Primary color
+          color:  Color.fromRGBO(181, 58, 185, 1),
           shape: BoxShape.circle,
         ),
         todayTextStyle: TextStyle(
@@ -61,11 +61,11 @@ class _CustomCalendarState extends State<CustomCalendar> {
           fontWeight: FontWeight.bold,
         ),
         selectedTextStyle: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
+          color: Colors.black,
         ),
         weekendTextStyle: TextStyle(
-          color: Colors.red,
+          color: Color.fromRGBO(255, 69, 58, 1.0) // Bright red
+,
         ),
         outsideDaysVisible: false,
         outsideDecoration: BoxDecoration(
@@ -74,13 +74,19 @@ class _CustomCalendarState extends State<CustomCalendar> {
         ),
       ),
       daysOfWeekStyle: DaysOfWeekStyle(
-        weekdayStyle: TextStyle(
-          color: Color.fromRGBO(134, 41, 137, 1.0), // Primary color
-        ),
-        weekendStyle: TextStyle(
-          color: Color.fromRGBO(46, 197, 187, 1.0), // Secondary color
-        ),
-      ),
+  weekdayStyle: TextStyle(
+    color: Color.fromRGBO(105, 105, 105, 1.0),
+    fontWeight: FontWeight.bold,
+    fontSize: 14.0, // Reduce font size if necessary
+  ),
+  weekendStyle: TextStyle(
+    color:  Color.fromRGBO(181, 58, 185, 1),
+    fontWeight: FontWeight.bold,
+    fontSize: 14.0,
+  ),
+),
+
+      
     );
   }
 }

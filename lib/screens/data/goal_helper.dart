@@ -57,7 +57,7 @@ class GoalHelper {
     GoalTemplate(
     title: 'Meditate Daily',
     description: 'Practice meditation for 10 minutes every morning to start your day with mindfulness.',
-    category: 'Self-Care',
+    category: 'Self Care',
     target: 10,
     startDate: DateTime.now(),
     endDate: DateTime.now().add(Duration(days: 30)),
@@ -85,7 +85,7 @@ class GoalHelper {
     'Health & Fitness': Icons.fitness_center,
     'Work & Productivity': Icons.work,
     'Personal Development': Icons.lightbulb_outline,
-    'Self-Care': Icons.spa,
+    'Self Care': Icons.spa,
     'Finance': Icons.attach_money,
     'Education': Icons.school,
     'Relationships': Icons.favorite,

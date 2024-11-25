@@ -34,54 +34,70 @@ class GroupInfoSection extends StatefulWidget {
 
 class _GroupInfoSectionState extends State<GroupInfoSection> {
   void _confirmMemberRemoval(String memberId) {
-    // confirmation dialog code...
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Remove Member'),
+          content: Text('Are you sure you want to remove this member?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                widget.onMemberRemoved(memberId);
+                Navigator.of(context).pop();
+              },
+              child: Text('Remove'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showMemberDetails(Member member) {
-  _showDetailDialog(
-    title: '${member.name ?? 'Member Details'}${member.id == widget.group.creatorId ? " (Admin)" : ""}',
-    content: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircleAvatar(
-          backgroundImage: member.profilePictureUrl != null
-              ? NetworkImage(member.profilePictureUrl!)
-              : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
-          radius: 60,
-        ),
-        SizedBox(height: 16.0),
-        Text('Username: ${member.name}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,),), // Add this line
-        SizedBox(height: 8.0),
-        Text('Email: ${member.email}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,),
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          'Joined on: ${DateFormat('yyyy-MM-dd').format(member.joinedDate ?? DateTime.now())}',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,),
-        ),
-      ],
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: Text('Close', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,),),
+    _showDetailDialog(
+      title: '${member.name ?? 'Member Details'}${member.id == widget.group.creatorId ? " (Admin)" : ""}',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            backgroundImage: member.profilePictureUrl != null
+                ? NetworkImage(member.profilePictureUrl!)
+                : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
+            radius: 60,
+          ),
+          SizedBox(height: 16.0),
+          Text('Username: ${member.name}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+          SizedBox(height: 8.0),
+          Text('Email: ${member.email}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+          SizedBox(height: 8.0),
+          Text(
+            'Joined on: ${DateFormat('yyyy-MM-dd').format(member.joinedDate ?? DateTime.now())}',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
+          ),
+        ],
       ),
-      if (widget.isAdmin && member.id != widget.group.creatorId)
+      actions: [
         TextButton(
-          onPressed: () {
-            _confirmMemberRemoval(member.id);
-            Navigator.of(context).pop();
-          },
-          child: Text('Remove', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,),),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Close', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
         ),
-    ],
-  );
-}
+        if (widget.isAdmin && member.id != widget.group.creatorId)
+          TextButton(
+            onPressed: () {
+              _confirmMemberRemoval(member.id);
+              Navigator.of(context).pop();
+            },
+            child: Text('Remove', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+          ),
+      ],
+    );
+  }
+
   void _showDetailDialog({
     required String title,
     required Widget content,
@@ -98,9 +114,7 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
           ),
           title: Text(
             title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-            ),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
           ),
           content: SizedBox(width: 300, child: content),
           actions: actions,
@@ -110,63 +124,61 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
   }
 
   void _showMembersList() {
-  _showDetailDialog(
-    title: 'Members (${widget.group.members.length})',
-    content: Container(
-      width: 300,
-      height: 400,
-      child: ListView.builder(
-        itemCount: widget.group.members.length,
-        itemBuilder: (context, index) {
-          final member = widget.group.members[index];
-          return Container(
-            margin: EdgeInsets.symmetric(vertical: 4.0),
-            decoration: BoxDecoration(
-              color: primaryColor,
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child: ListTile(
-              leading: CircleAvatar(
-                radius: 24,
-                backgroundImage: member.profilePictureUrl != null
-                    ? NetworkImage(member.profilePictureUrl!)
-                    : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
+    _showDetailDialog(
+      title: 'Members (${widget.group.members.length})',
+      content: Container(
+        width: 300,
+        height: 400,
+        child: ListView.builder(
+          itemCount: widget.group.members.length,
+          itemBuilder: (context, index) {
+            final member = widget.group.members[index];
+            return Container(
+              margin: EdgeInsets.symmetric(vertical: 4.0),
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(12.0),
               ),
-              title: Text(
-                '${member.name ?? 'No Name'}${member.id == widget.group.creatorId ? " (Admin)" : "(Member)"}',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,),
+              child: ListTile(
+                leading: CircleAvatar(
+                  radius: 24,
+                  backgroundImage: member.profilePictureUrl != null
+                      ? NetworkImage(member.profilePictureUrl!)
+                      : AssetImage('assets/images/default_profilePic.png') as ImageProvider,
+                ),
+                title: Text(
+                  '${member.name ?? 'No Name'}${member.id == widget.group.creatorId ? " (Admin)" : "(Member)"}',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                ),
+                onTap: () => _showMemberDetails(member),
+                trailing: widget.isAdmin && member.id != widget.group.creatorId
+                    ? Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800], // Background color for contrast
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.white, size: 28),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            _confirmMemberRemoval(member.id);
+                          },
+                        ),
+                      )
+                    : null,
               ),
-              onTap: () => _showMemberDetails(member),
-              trailing: widget.isAdmin && member.id != widget.group.creatorId
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800], // Background color for contrast
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.delete, color: Colors.white, size: 28),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _confirmMemberRemoval(member.id);
-                        },
-                      ),
-                    )
-                  : null,
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.of(context).pop(),
-        child: Text('Close', style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,),),
-      ),
-    ],
-  );
-}
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text('Close', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white)),
+        ),
+      ],
+    );
+  }
 
   Stream<List<Goal>> _fetchGoals() {
     return GoalDBService().getGroupGoalsStream(widget.group.groupId);
@@ -202,9 +214,9 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
                     Text(
                       '${group.groupType ?? 'Group Type'}',
                       style: Theme.of(context).textTheme.headline6?.copyWith(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 4.0),
                     Text(
@@ -311,69 +323,89 @@ class _GroupInfoSectionState extends State<GroupInfoSection> {
         SizedBox(height: 8.0),
         // Add Goal and Habit Buttons (always visible)
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Add Goal Button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: secondaryColor,
-                minimumSize: Size(110, 40),
-                padding: EdgeInsets.symmetric(horizontal: 8),
-              ),
-              icon: Icon(Icons.add, size: 20, color: Colors.white),
-              label: Text('Goal', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-              onPressed: () async {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AddGoalDialog(
-                      addGoalToGroup: (Goal goal) async {
-                        final goalProvider = Provider.of<GoalProvider>(context, listen: false);
-                        try {
-                          await goalProvider.addGoalToGroup(goal, group!.groupId);
-                          showSnackBar(context, 'Goal added to group successfully!');
-                        } catch (e) {
-                          showSnackBar(context, 'Error adding goal: $e', isError: true);
-                        }
-                      },
-                      groupId: group!.groupId,
-                    );
-                  },
-                );
-              },
-            ),
-            SizedBox(width: 8.0),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                minimumSize: Size(110, 40),
-                padding: EdgeInsets.symmetric(horizontal: 8),
-              ),
-              icon: Icon(Icons.visibility, size: 20, color: Colors.white),
-              label: Text('Members', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-              onPressed: _showMembersList,
-            ),
-            SizedBox(width: 8.0),
-            // Add Habit Button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: secondaryColor,
-                minimumSize: Size(110, 40),
-                padding: EdgeInsets.symmetric(horizontal: 8),
-              ),
-              icon: Icon(Icons.add, size: 20, color: Colors.white),
-              label: Text('Habit', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-              onPressed: () async {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AddHabitDialog(isGroupHabit: true, groupId: group!.groupId);
-                  },
-                );
-              },
-            ),
-          ],
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    if (widget.isAdmin) ...[
+      // Add Goal Button
+      ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: secondaryColor,
+          minimumSize: Size(110, 40),
+          padding: EdgeInsets.symmetric(horizontal: 8),
         ),
+        icon: Icon(Icons.add, size: 20, color: Colors.white),
+        label: Text(
+          'Goal',
+          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        onPressed: () async {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AddGoalDialog(
+                addGoalToGroup: (Goal goal) async {
+                  final goalProvider = Provider.of<GoalProvider>(context, listen: false);
+                  try {
+                    await goalProvider.addGoalToGroup(goal, widget.group.groupId);
+                    showSnackBar(context, 'Goal added to group successfully!');
+                  } catch (e) {
+                    showSnackBar(context, 'Error adding goal: $e', isError: true);
+                  }
+                },
+                groupId: widget.group.groupId,
+              );
+            },
+          );
+        },
+      ),
+      SizedBox(width: 8.0),
+      // Add Habit Button
+      ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          minimumSize: Size(110, 40),
+          padding: EdgeInsets.symmetric(horizontal: 8),
+        ),
+        icon: Icon(Icons.add, size: 20, color: Colors.white),
+        label: Text(
+          'Habit',
+          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        onPressed: () async {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AddHabitDialog(
+                groupId: widget.group.groupId,
+                onHabitAdded: (habit) {
+                  // Show a success message or handle added habit
+                  showSnackBar(context, 'Habit added successfully!');
+                }, isGroupHabit: true,
+              );
+            },
+          );
+        },
+      ),
+
+],
+    // Members Button
+    SizedBox(width: 8.0),
+    ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        minimumSize: Size(110, 40),
+        padding: EdgeInsets.symmetric(horizontal: 8),
+      ),
+      icon: Icon(Icons.visibility, size: 20, color: Colors.white),
+      label: Text(
+        'Members',
+        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+      ),
+      onPressed: _showMembersList,
+    ),
+  ],
+),
+       
         ],
       ),
     );

@@ -1,14 +1,15 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:habitwise/methods/FirebaseOptions.dart';
 import 'package:habitwise/models/group.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/quote_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/providers/group_provider.dart';
+import 'package:habitwise/screens/auth/forgot_password_screen.dart';
 import 'package:habitwise/screens/auth/login_screen.dart';
 import 'package:habitwise/screens/auth/signup_screen.dart';
 import 'package:habitwise/screens/auth/verify_email_screen.dart';
@@ -35,11 +36,20 @@ final ValueNotifier<ThemeMode> appThemeNotifier = ValueNotifier<ThemeMode>(Theme
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load();
   
   // Initialize Firebase
   await Firebase.initializeApp(
-    options: firebaseOptions
+    options: FirebaseOptions(
+      apiKey: dotenv.env['API_KEY']!,
+      appId: dotenv.env['APP_ID']!,
+      messagingSenderId: dotenv.env['MESSAGING_SENDER_ID']!,
+      projectId: dotenv.env['PROJECT_ID']!,
+      storageBucket: dotenv.env['STORAGE_BUCKET']!,
+    ),
   );
+
 
   runApp(
     MultiProvider(
@@ -139,61 +149,37 @@ class MyApp extends StatelessWidget {
               themeNotifier: appThemeNotifier,
             ),
             '/verifyEmail': (context) => VerifyEmailScreen(),
+            '/forgot_password': (context) => ForgotPasswordScreen(), // Your Forgot Password screen
+      
             '/login': (context) => LoginScreen(
               onLoginSuccess: (String username) async {
                 UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);
-
                 try {
                   HabitWiseUser? user = await userProvider.getUserDetails();
-
-                  if (user != null) {
-                    if (user.emailVerified) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => DashboardScreen(
-                            user: user,
-                            groupId: user.groupIds.isNotEmpty ? user.groupIds[0] : '',
-                          ),
-                        ),
-                      );
-                    } else {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        scaffoldMessengerKey.currentState?.showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Please verify your email address.',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        );
-                      });
-                    }
-                  } else {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      scaffoldMessengerKey.currentState?.showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'User data not found. Please try again.',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      );
-                    });
-                  }
-                } catch (error) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    scaffoldMessengerKey.currentState?.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Error retrieving user details: $error',
-                          style: const TextStyle(color: Colors.red),
+                  if (user != null && user.emailVerified) {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => DashboardScreen(
+                          user: user,
+                          groupId: user.groupIds.isNotEmpty ? user.groupIds[0] : '',
                         ),
                       ),
                     );
-                  });
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => VerifyEmailScreen(),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // Handle any errors here, maybe show a snackbar
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Login failed: ${e.toString()}')),
+                  );
                 }
               },
-            ),
+            ),           
             '/signup': (context) => SignUpScreen(
               onSignupSuccess: (String username) async {
                 UserProvider userProvider = Provider.of<UserProvider>(context, listen: false);

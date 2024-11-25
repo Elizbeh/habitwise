@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
@@ -8,54 +9,39 @@ import 'package:uuid/uuid.dart';
 class StorageService {
   final firebase_storage.FirebaseStorage _storage = firebase_storage.FirebaseStorage.instance;
 
-
-  /*Future<String> uploadFile(File file) async {
+  Future<String> uploadFile(File file, {String folder = 'images', int maxWidth = 500, int quality = 85}) async {
     try {
+      // Read the original image and decode it
+      img.Image? image = img.decodeImage(await file.readAsBytes());
+      if (image == null) {
+        throw Exception("Failed to decode image");
+      }
+
+      // Resize and compress the image
+      img.Image resizedImage = img.copyResize(image, width: maxWidth);
+      List<int> compressedImage = img.encodeJpg(resizedImage, quality: quality);
+
+      // Create a temporary file for the compressed image
       var uuid = Uuid();
       String fileName = '${uuid.v4()}_${path.basename(file.path)}';
-      firebase_storage.Reference ref = _storage.ref().child('images/$fileName');
-      firebase_storage.UploadTask uploadTask = ref.putFile(file);
+      final tempDir = Directory.systemTemp;
+      final tempFile = File('${tempDir.path}/$fileName.jpg');
+      await tempFile.writeAsBytes(compressedImage);
 
+      // Upload the compressed image
+      firebase_storage.Reference ref = _storage.ref().child('$folder/$fileName');
+      firebase_storage.UploadTask uploadTask = ref.putFile(tempFile);
       firebase_storage.TaskSnapshot snapshot = await uploadTask;
       String downloadUrl = await snapshot.ref.getDownloadURL();
 
+      // Delete the temporary file after upload
+      await tempFile.delete();
       return downloadUrl;
     } catch (e) {
       print('Error uploading file to Firebase Storage: $e');
       throw e;
     }
   }
-
-  // Method to upload a file to Firebase Storage and return the download URL
-  Future<String> uploadGroupPhoto(File file) async {
-    try {
-      var uuid = Uuid();
-      String fileName = '${uuid.v4()}_${path.basename(file.path)}';
-      firebase_storage.Reference ref = _storage.ref().child('group_images/$fileName');
-      firebase_storage.UploadTask uploadTask = ref.putFile(file);
-
-      firebase_storage.TaskSnapshot snapshot = await uploadTask;
-      String downloadUrl = await snapshot.ref.getDownloadURL();
-
-      return downloadUrl;
-    } catch (e) {
-      print('Error uploading group photo to Firebase Storage: $e');
-      throw e;
-    }
-  }*/
-  Future<String> uploadFile(File file, {String folder = 'images'}) async {
-  try {
-    var uuid = Uuid();
-    String fileName = '${uuid.v4()}_${path.basename(file.path)}';
-    firebase_storage.Reference ref = _storage.ref().child('$folder/$fileName');
-    firebase_storage.UploadTask uploadTask = ref.putFile(file);
-    firebase_storage.TaskSnapshot snapshot = await uploadTask;
-    return await snapshot.ref.getDownloadURL();
-  } catch (e) {
-    print('Error uploading file to Firebase Storage: $e');
-    throw e;
-  }
-}
 
   Future<String> uploadGroupPhoto(File file) async {
   return await uploadFile(file, folder: 'group_images');

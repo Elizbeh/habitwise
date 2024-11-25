@@ -118,7 +118,7 @@ final Map<String, List<Map<String, dynamic>>> habitTemplates = {
     {
       'title': 'Review Budget',
       'description': 'Review and adjust your budget.',
-      'frequency': 1,
+      'frequency': 3,
     },
     {
       'title': 'Save Money',

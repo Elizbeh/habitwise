@@ -7,10 +7,10 @@ import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
 import 'package:habitwise/screens/dialogs/edit_profile_dialogue.dart';
-import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/personal_habits.dart';
 import 'package:habitwise/themes/theme.dart';
 import 'package:provider/provider.dart';
-import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:habitwise/screens/widgets/bottom_navigation_bar.dart';
 
 const List<Color> appBarGradientColors = [
   Color.fromRGBO(134, 41, 137, 1.0),
@@ -65,72 +65,82 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _calculateAchievements() {
-    print('Calculating achievements...');
+  print('Calculating achievements...');
 
-    final habitProvider = Provider.of<HabitProvider>(context, listen: false);
-    final goalProvider = Provider.of<GoalProvider>(context, listen: false);
+  final habitProvider = Provider.of<HabitProvider>(context, listen: false);
+  final goalProvider = Provider.of<GoalProvider>(context, listen: false);
 
-    final completedHabits = habitProvider.personalHabits.where((habit) => habit.isCompleted).length;
-    final completedGoals = goalProvider.goals.where((goal) => goal.isCompleted).length;
-
-    print('Completed Habits: $completedHabits');
-    print('Completed Goals: $completedGoals');
-
-    List<Map<String, dynamic>> newAchievements = [];
-
-    // Add achievement checks
-    if (completedHabits >= 1) {
-      newAchievements.add({
-        'title': 'First Habit Completed',
-        'icon': Icons.star,
-        'color': Colors.amber,
-      });
-    }
-    if (completedHabits >= 5) {
-      newAchievements.add({
-        'title': 'Habit Master',
-        'icon': Icons.star_half,
-        'color': Colors.amber[700],
-      });
-    }
-    if (completedHabits >= 10) {
-      newAchievements.add({
-        'title': 'Habit Guru',
-        'icon': Icons.star_border,
-        'color': Colors.amber[900],
-      });
-    }
-    if (completedGoals >= 1) {
-      newAchievements.add({
-        'title': 'First Goal Achieved',
-        'icon': Icons.flag,
-        'color': Colors.blue,
-      });
-    }
-    if (completedGoals >= 5) {
-      newAchievements.add({
-        'title': 'Goal Achiever',
-        'icon': Icons.flag_outlined,
-        'color': Colors.blue[700],
-      });
-    }
-    if (completedGoals >= 10) {
-      newAchievements.add({
-        'title': 'Goal Conqueror',
-        'icon': Icons.flag_rounded,
-        'color': Colors.blue[900],
-      });
-    }
-
-    if (mounted) {
-      setState(() {
-        achievements.clear();
-        achievements.addAll(newAchievements);
-      });
-
-      print('Achievements updated: $achievements');
-    }
+  if (habitProvider.personalHabits.isEmpty || goalProvider.goals.isEmpty) {
+    print('No habits or goals available.');
+    return;
   }
+
+  // Directly check isCompleted
+  final completedHabits = habitProvider.personalHabits
+      .where((habit) => habit.isCompleted)
+      .length;
+  final completedGoals = goalProvider.goals
+      .where((goal) => goal.isCompleted)
+      .length;
+
+  print('Completed Habits: $completedHabits');
+  print('Completed Goals: $completedGoals');
+
+  List<Map<String, dynamic>> newAchievements = [];
+
+  if (completedHabits >= 1) {
+    newAchievements.add({
+      'title': 'First Habit Completed',
+      'icon': Icons.star,
+      'color': Colors.amber,
+    });
+  }
+  if (completedHabits >= 5) {
+    newAchievements.add({
+      'title': 'Habit Master',
+      'icon': Icons.star_half,
+      'color': Colors.amber[700],
+    });
+  }
+  if (completedHabits >= 10) {
+    newAchievements.add({
+      'title': 'Habit Guru',
+      'icon': Icons.star_border,
+      'color': Colors.amber[900],
+    });
+  }
+  if (completedGoals >= 1) {
+    newAchievements.add({
+      'title': 'First Goal Achieved',
+      'icon': Icons.flag,
+      'color': Colors.blue,
+    });
+  }
+  if (completedGoals >= 5) {
+    newAchievements.add({
+      'title': 'Goal Achiever',
+      'icon': Icons.flag_outlined,
+      'color': Colors.blue[700],
+    });
+  }
+  if (completedGoals >= 10) {
+    newAchievements.add({
+      'title': 'Goal Conqueror',
+      'icon': Icons.flag_rounded,
+      'color': Colors.blue[900],
+    });
+  }
+
+  if (mounted) {
+    setState(() {
+      achievements.clear();
+      achievements.addAll(newAchievements);
+    });
+
+    print('Achievements updated: $achievements');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +181,12 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // This will navigate back to the previous screen
+          },
+        ),
         actions: [
           IconButton(
             color: Colors.white,
@@ -182,6 +198,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -256,68 +273,72 @@ class _ProfilePageState extends State<ProfilePage> {
 }
 
   Widget _buildProfileHeader(BuildContext context) {
-    final profilePictureUrl = _currentUser.profilePictureUrl ?? '';
+  // Check if profilePictureUrl is null or empty
+  final profilePictureUrl = _currentUser.profilePictureUrl;
+  final hasProfilePicture = profilePictureUrl?.isNotEmpty ?? false;
 
-    return GestureDetector(
-      onTap: () => _navigateToEditProfile(context), // Handle taps on the entire profile header
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 8.0,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: () => _navigateToEditProfile(context),
-              child: CircleAvatar(
-                radius: 60,
-                backgroundImage: profilePictureUrl.isNotEmpty
-                    ? NetworkImage(profilePictureUrl)
-                    : const AssetImage('assets/images/default_profilePic.png') as ImageProvider,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _currentUser.username,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _currentUser.email,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: secondaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: Icon(Icons.edit, color: Theme.of(context).primaryColor),
-              onPressed: () => _navigateToEditProfile(context),
-            ),
-          ],
-        ),
+  // Fallback for missing or empty profile picture
+  final profileImage = hasProfilePicture
+      ? NetworkImage(profilePictureUrl!)
+      : const AssetImage('assets/images/default_profilePic.png') as ImageProvider;
+
+  // Validate username and email fields
+  final username = _currentUser.username.isNotEmpty ? _currentUser.username : 'No Username';
+  final email = _currentUser.email.isNotEmpty ? _currentUser.email : 'No Email';
+
+  return GestureDetector(
+    onTap: () => _navigateToEditProfile(context), // Handle taps on the entire profile header
+    child: Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        
       ),
-    );
-  }
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () => _navigateToEditProfile(context),
+            child: CircleAvatar(
+              radius: 60,
+              backgroundImage: profileImage,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  username, // Show validated username
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: thirdColor
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email, // Show validated email
+                  style: TextStyle(
+                    fontSize: 16,
+                  
+                  ),
+                ),
+              ],
+            ),
+          ),
+        IconButton(
+          icon: Icon(Icons.edit, color: secondaryColor),
+          onPressed: () => _navigateToEditProfile(context),
+        ),
+      ],
+      
+      ),
+    ),
+  );
+}
+
 
   void _navigateToEditProfile(BuildContext context) {
     Navigator.push(

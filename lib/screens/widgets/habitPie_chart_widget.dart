@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:habitwise/models/habit.dart';
+import 'package:habitwise/themes/theme.dart';
 
 class PieChartWidget extends StatelessWidget {
   final List<Habit> habits;
@@ -25,12 +26,9 @@ class PieChartWidget extends StatelessWidget {
                           value: percentage,
                           color: _getColorForCategory(habit.category, context),
                           radius: 80,
-                          titlePositionPercentageOffset: 0.7, // Adjust title position
-                          titleStyle: Theme.of(context).textTheme.bodyText2!.copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onBackground,
-                          ),
+                          titlePositionPercentageOffset: 0.5,
+                          titleStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold, color: lightTextColor, fontSize: 14),                   
+                        
                           // Display percentage as a label for accessibility
                           title: '${percentage.toStringAsFixed(1)}%',
                         );
@@ -44,9 +42,7 @@ class PieChartWidget extends StatelessWidget {
                       child: Text(
                         'Total\n${habits.length} Habits',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headline6?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold, fontSize: 14)
                       ),
                     ),
                   ),
@@ -86,7 +82,7 @@ class PieChartWidget extends StatelessWidget {
   Color _getColorForCategory(String? category, BuildContext context) {
     switch (category) {
       case 'Health & Fitness':
-        return Color.fromRGBO(19, 188, 249, 0.482);
+        return Color.fromRGBO(34, 19, 249, 0.478);
       case 'Work & Productivity':
         return Color.fromARGB(255, 209, 17, 155);
       case 'Personal Development':

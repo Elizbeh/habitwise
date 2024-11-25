@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class Habit {
@@ -78,10 +79,10 @@ class Habit {
       'id': id,
       'title': title,
       'description': description,
-      'createdAt': createdAt.toIso8601String(),
-      'startDate': startDate.toIso8601String(),
-      'endDate': endDate?.toIso8601String(),
-      'completionDate': completionDate?.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt),
+      'startDate': Timestamp.fromDate(startDate),
+      'endDate': endDate != null ? Timestamp.fromDate(endDate!) : null,
+      'completionDate': completionDate != null ? Timestamp.fromDate(completionDate!) : null,
       'progress': progress,
       'frequency': frequency,
       'isCompleted': isCompleted,
@@ -99,10 +100,10 @@ class Habit {
       id: map['id'] ?? '',
       title: map['title'] ?? '',
       description: map['description'] ?? '',
-      createdAt: DateTime.parse(map['createdAt'] ?? ''),
-      startDate: DateTime.parse(map['startDate'] ?? ''),
-      endDate: map['endDate'] != null ? DateTime.parse(map['endDate']) : null,
-      completionDate: map['completionDate'] != null ? DateTime.parse(map['completionDate']) : null,
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      startDate: (map['startDate'] as Timestamp).toDate(),
+      endDate: map['endDate'] != null ? (map['endDate'] as Timestamp).toDate() : null,
+      completionDate: map['completionDate'] != null ? (map['completionDate'] as Timestamp).toDate() : null,
       progress: map['progress'] ?? 0,
       frequency: map['frequency'] ?? 1,
       isCompleted: map['isCompleted'] ?? false,

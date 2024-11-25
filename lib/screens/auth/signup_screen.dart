@@ -15,19 +15,20 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
-  String _message = ''; // Combined message for success and error
-  Color _messageColor = Colors.red; // Default message color
+  String _message = '';
+  Color _messageColor = Colors.red;
 
   late AnimationController _animationController;
   late Animation<Color?> _colorAnimation;
-   late TextEditingController emailController;
+  late TextEditingController emailController;
   late TextEditingController usernameController;
   late TextEditingController passwordController;
   late TextEditingController passwordConfirmController;
-
+  
   @override
   void initState() {
     super.initState();
@@ -35,6 +36,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
     usernameController = TextEditingController();
     passwordController = TextEditingController();
     passwordConfirmController = TextEditingController();
+
     _animationController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -76,9 +78,9 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                   ),
                 ),
                 Image.asset(
-                  'assets/images/logo.png',
-                  width: 60,
-                  height: 60,
+                  'assets/images/logo1.png',
+                  width: 100,
+                  height: 100,
                 ),
                 const SizedBox(height: 8),
                 Padding(
@@ -279,6 +281,7 @@ class _SignUpScreenState extends State<SignUpScreen> with SingleTickerProviderSt
                           ),
                         ),
                       ),
+                     
                       // Display error or success message
                       Text(
                         _message,

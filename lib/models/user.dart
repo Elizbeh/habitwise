@@ -14,7 +14,7 @@ class HabitWiseUser {
   final bool canCreateGroup;
   bool canJoinGroups;
   bool emailVerified;
-    int createdGroups;
+  int createdGroups;
   int joinedGroups;
   
 

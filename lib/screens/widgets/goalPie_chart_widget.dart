@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:habitwise/models/goal.dart';
+import 'package:habitwise/themes/theme.dart';
 
 class GoalPieChartWidget extends StatelessWidget {
   final List<Goal> goals;
@@ -25,11 +26,11 @@ class GoalPieChartWidget extends StatelessWidget {
                           value: percentage,
                           color: _getColorForCategory(goal.category, context),
                           radius: 80,
-                          titlePositionPercentageOffset: 0.7, // Adjust title position
-                          titleStyle: Theme.of(context).textTheme.bodyText2!.copyWith(
+                          titlePositionPercentageOffset: 0.5, // Adjust title position
+                          titleStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onBackground,
+                            color: lightTextColor,
                           ),
                           // Display percentage as a label for accessibility
                           title: '${percentage.toStringAsFixed(1)}%',
@@ -44,9 +45,7 @@ class GoalPieChartWidget extends StatelessWidget {
                       child: Text(
                         'Total\n${goals.length} Goals',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.headline6?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontWeight: FontWeight.bold)
                       ),
                     ),
                   ),

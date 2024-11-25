@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:habitwise/models/goal.dart';
+import 'package:habitwise/methods/auth_methods.dart';
 import 'package:habitwise/models/group.dart';
 import 'package:habitwise/models/member.dart';
 import 'package:habitwise/services/member_db_service.dart';
@@ -17,7 +17,7 @@ class GroupDBService {
     DocumentReference docRef = await groupsCollection.add({
       ...group.toMap(),
       'members': membersMap,
-      'memberIds': group.members.map((member) => member.id).toList(), // Add this line
+      'memberIds': group.members.map((member) => member.id).toList(),
       'creatorId': group.creatorId,
     });
 
@@ -30,7 +30,7 @@ class GroupDBService {
 
     return docRef.id;
   } catch (e) {
-    print('Error creating group: $e');
+  logger.e('Error creating group: $e');
     throw e;
   }
 }
@@ -134,15 +134,23 @@ Future<void> leaveGroup(String groupId, String userId) async {
 
     Map<String, dynamic> data = groupDoc.data() as Map<String, dynamic>;
     List<dynamic> membersData = data['members'] ?? [];
+    List<dynamic> memberIds = data['memberIds'] ?? []; // Assuming memberIds is stored separately
 
+    // Update members list by removing the user
     List<dynamic> updatedMembers = membersData.where((member) {
       return (member as Map<String, dynamic>)['id'] != userId;
     }).toList();
 
+    // Update memberIds list by removing the userId
+    List<dynamic> updatedMemberIds = memberIds.where((id) => id != userId).toList();
+
+    // Update the group document in Firestore
     transaction.update(groupRef, {
       'members': updatedMembers,
+      'memberIds': updatedMemberIds, // Ensure you update this as well
     });
 
+    // remove the user from any member-specific collections, if needed
     await _memberDBService.removeMemberFromGroup(groupId, userId);
   });
 }
@@ -154,7 +162,6 @@ Future<void> leaveGroup(String groupId, String userId) async {
       DocumentSnapshot doc = await _firestore.collection('groups').doc(groupId).get();
 
       if (doc.exists) {
-        // Assuming your HabitWiseGroup model has a fromMap constructor
         return HabitWiseGroup.fromMap(doc.data() as Map<String, dynamic>);
       } else {
         print('Group not found');
@@ -163,50 +170,6 @@ Future<void> leaveGroup(String groupId, String userId) async {
     } catch (e) {
       print('Error getting group by ID: $e');
       return null;
-    }
-  }
-
-  Future<List<Goal>> fetchGoalsByIds(List<String> goalIds) async {
-    List<Goal> goals = [];
-    try {
-      for (String goalId in goalIds) {
-        DocumentSnapshot goalDoc = await _firestore.collection('goals').doc(goalId).get();
-        if (goalDoc.exists) {
-          // Call fromMap with only the map data
-          goals.add(Goal.fromMap(goalDoc.data() as Map<String, dynamic>));
-        } else {
-          print('Goal not found: $goalId');
-        }
-      }
-    } catch (e) {
-      print('Error fetching goals: $e');
-    }
-    return goals;
-  }
-
-  Future<void> addGoalToGroup(String groupId, String goalId) async {
-    try {
-      await groupsCollection.doc(groupId).update({
-        'goals': FieldValue.arrayUnion([goalId]),
-      });
-    } catch (e) {
-      print('Error adding goal to group: $e');
-      throw e;
-    }
-  }
-
-  Future<List<String>> getGroupGoals(String groupId) async {
-    try {
-      DocumentSnapshot doc = await groupsCollection.doc(groupId).get();
-      if (doc.exists) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return List<String>.from(data['goals'] ?? []);
-      } else {
-        throw Exception('Group not found');
-      }
-    } catch (e) {
-      print('Error fetching group goals: $e');
-      throw e;
     }
   }
 
@@ -222,38 +185,6 @@ Future<void> leaveGroup(String groupId, String userId) async {
     } catch (e) {
       print("Error updating group: $e");
       throw e;
-    }
-  }
-
-  Future<void> markGoalAsCompleted(String groupId, String goalId) async {
-    try {
-      await groupsCollection.doc(groupId).update({
-        'goals': FieldValue.arrayRemove([goalId]), // Remove the goal from active goals
-        'completedGoals': FieldValue.arrayUnion([goalId]), // Optionally keep track of completed goals
-      });
-    } catch (e) {
-      print('Error marking goal as completed: $e');
-      throw e;
-    }
-  }
-
-  // Method to update group goal progress in Firestore
-  Future<void> updateGroupGoalProgress(String goalId, int progress, {required String groupId}) async {
-    try {
-      // Reference to the specific group goal document in Firestore
-      DocumentReference goalRef = FirebaseFirestore.instance
-          .collection('groups')
-          .doc(groupId)
-          .collection('goals')
-          .doc(goalId);
-
-      // Update the progress field of the group goal
-      await goalRef.update({
-        'progress': progress,
-      });
-    } catch (error) {
-      print("Error updating group goal progress: $error");
-      throw error; // Rethrow the error for further handling if needed
     }
   }
 }

@@ -6,13 +6,13 @@ import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/habit_provider.dart';
 import 'package:habitwise/providers/user_provider.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
-import 'package:habitwise/screens/goals_screen.dart';
+import 'package:habitwise/screens/personal_goal.dart';
 import 'package:habitwise/screens/profile_screen.dart';
-import 'package:habitwise/widgets/custom-calendar.dart';
-import 'package:habitwise/widgets/habit_tile.dart';
+import 'package:habitwise/screens/widgets/custom-calendar.dart';
+import 'package:habitwise/screens/widgets/habit_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:habitwise/screens/widgets/bottom_navigation_bar.dart';
 import 'package:habitwise/screens/dialogs/add_habit_dialog.dart';
 import 'package:habitwise/screens/data/icons/category_icons.dart';
 
@@ -142,10 +142,10 @@ class _HabitScreenState extends State<HabitScreen> {
                   child: Row(
                     children: <String>[
                       'All',
-                      'Health',
-                      'Work',
-                      'Personal',
-                      'Self-Care',
+                      'Health & Fitness',
+                      'Work and Productivity',
+                      'Personal Developement',
+                      'Self Care',
                       'Finance',
                       'Education',
                       'Relationships',
@@ -162,12 +162,13 @@ class _HabitScreenState extends State<HabitScreen> {
                           margin: EdgeInsets.symmetric(horizontal: 4), // Reduced margin
                           decoration: BoxDecoration(
                             color: selectedCategory == category ? Colors.white : Colors.transparent,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             category,
                             style: TextStyle(
                               color: selectedCategory == category ? Colors.black : Colors.white,
+                              fontSize: 18,
                             ),
                           ),
                         ),
@@ -207,8 +208,9 @@ class _HabitScreenState extends State<HabitScreen> {
           body: SafeArea(
             child: Column(
               children: [
+                
                 CustomCalendar(),
-                Divider(height: 10.0, thickness: 2.0),
+                Divider(color: Colors.grey,),
                 Expanded(
                   child: Consumer<HabitProvider>(
                     builder: (context, habitProvider, child) {

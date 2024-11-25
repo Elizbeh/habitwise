@@ -4,14 +4,14 @@ import 'package:habitwise/models/goal.dart';
 import 'package:habitwise/models/user.dart';
 import 'package:habitwise/providers/goal_provider.dart';
 import 'package:habitwise/screens/dialogs/add_goal_dialog.dart';
-import 'package:habitwise/widgets/custom-calendar.dart';
+import 'package:habitwise/screens/widgets/custom-calendar.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:habitwise/screens/dialogs/edit_goal_dialog.dart';
-import 'package:habitwise/widgets/goal_tile.dart';
-import 'package:habitwise/widgets/bottom_navigation_bar.dart';
+import 'package:habitwise/screens/widgets/goal_tile.dart';
+import 'package:habitwise/screens/widgets/bottom_navigation_bar.dart';
 import 'package:habitwise/screens/dashboard_screen.dart';
-import 'package:habitwise/screens/habit_screen.dart';
+import 'package:habitwise/screens/personal_habits.dart';
 import 'package:habitwise/screens/profile_screen.dart';
 import '../main.dart';
 
@@ -77,127 +77,129 @@ class _GoalScreenState extends State<GoalScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        automaticallyImplyLeading: false, // Remove default back button
-        iconTheme: IconThemeData(color: Colors.white), // White icons
-        elevation: 0,
-        toolbarHeight: 120, // Increase height to create space for title and categories
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // Align items to the start
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pop(); // Navigate back
-                  },
-                  child: Icon(Icons.arrow_back, color: Colors.white), // Custom back arrow icon
-                ),
-                const SizedBox(width: 10), // Space between the back icon and title
-                Text(
-                  'Personal Goal Board',
-                  style: theme.appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title
-                ),
-                const Spacer(), 
-                const SizedBox(width: 20),
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert, color: Colors.white),
-                  onSelected: (String result) {
-                    setState(() {
-                      sortingCriteria = result;
-                    });
-                  },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                      value: 'Priority',
-                      child: Text('Priority'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'Completion Status',
-                      child: Text('Completion Status'),
-                    ),
-                    const PopupMenuItem<String>(
-                      value: 'Category',
-                      child: Text('Category'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 10), // Space between title and categories
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: <String>[
-                  'All',
-                  'Health',
-                  'Work',
-                  'Personal',
-                  'Self-Care',
-                  'Finance',
-                  'Education',
-                  'Relationships',
-                  'Hobbies',
-                ].map((category) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedCategory = category;
-                      });
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5), // Reduced padding
-                      margin: EdgeInsets.symmetric(horizontal: 4), // Reduced margin
-                      decoration: BoxDecoration(
-                        color: selectedCategory == category ? Colors.white : Colors.transparent,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        category,
-                        style: TextStyle(
-                          color: selectedCategory == category ? Colors.black : Colors.white,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-        ),
-        centerTitle: false,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(0),
-              bottomRight: Radius.circular(50),
-            ),
-            gradient: LinearGradient(
-              colors: appBarGradientColors,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+        
+  automaticallyImplyLeading: false, // Remove default back button
+  iconTheme: Theme.of(context).iconTheme.copyWith(color: Colors.white), // White icons from theme
+  elevation: 0,
+  toolbarHeight: 120, // Increase height to create space for title and categories
+  title: Column(
+    crossAxisAlignment: CrossAxisAlignment.start, // Align items to the start
+    children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop(); // Navigate back
+            },
+            child: Icon(Icons.arrow_back, color: Colors.white), // Custom back arrow icon
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(0),
-              bottomRight: Radius.circular(50),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+          const SizedBox(width: 10), // Space between the back icon and title
+          Text(
+            'Personal Goal Board',
+            style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(color: Colors.white), // White title from theme
+          ),
+          const Spacer(), 
+          const SizedBox(width: 16),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (String result) {
+              setState(() {
+                sortingCriteria = result;
+              });
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(
+                value: 'Priority',
+                child: Text('Priority'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'Completion Status',
+                child: Text('Completion Status'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'Category',
+                child: Text('Category'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      const SizedBox(height: 10), // Space between title and categories
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: <String>[
+            'All',
+            'Health & Fitness',
+            'Work & Productivity',
+            'Personal Development',
+            'Self-Care',
+            'Finance',
+            'Education',
+            'Relationships',
+            'Hobbies',
+          ].map((category) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedCategory = category;
+                });
+              },
               child: Container(
-                color: Colors.transparent,
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 5), // Reduced padding
+                margin: EdgeInsets.symmetric(horizontal: 4), // Reduced margin
+                decoration: BoxDecoration(
+                  color: selectedCategory == category ? Colors.white : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    color: selectedCategory == category ? Colors.black : Colors.white,
+                    fontSize: 18
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          }).toList(),
         ),
       ),
+    ],
+  ),
+  centerTitle: false,
+  flexibleSpace: Container(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(0),
+        bottomRight: Radius.circular(50),
+      ),
+      gradient: LinearGradient(
+        colors: appBarGradientColors,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.only(
+        bottomLeft: Radius.circular(0),
+        bottomRight: Radius.circular(50),
+      ),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          color: Colors.transparent,
+        ),
+      ),
+    ),
+  ),
+),
 
       body: SafeArea(
         child: Column(
           children: [
             CustomCalendar(),
-            Divider(height: 10.0, thickness: 2.0),
+            Divider(color: Colors.grey),
             Expanded(
               child: Consumer<GoalProvider>(
                 builder: (context, provider, child) {
@@ -226,7 +228,7 @@ class _GoalScreenState extends State<GoalScreen> {
                             ),
                           );
                         },
-                        child: GoalTile(goal: goal, groupId: widget.groupId ?? ''),
+                        child: GoalTile(goal: goal, groupId: widget.groupId ?? '', isAdmin: true,),
                       );
                     },
                   );

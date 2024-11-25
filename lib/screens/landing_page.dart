@@ -25,7 +25,7 @@ class _LandingPageState extends State<LandingPage> {
         children: [
           // Background Image
           Image.asset(
-            'assets/images/background_image.png',
+            'assets/images/backgroundImg.png',
             fit: BoxFit.cover,
           ),
           // Black Overlay
@@ -54,16 +54,16 @@ class _LandingPageState extends State<LandingPage> {
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: Colors.white.withOpacity(0.5),
-                    width: 4,
+                    width: 1,
                   ),
                 ),
                 child: ClipOval(
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(2.0),
                     child: Image.asset(
-                      'assets/images/logo.png',
-                      width: screenWidth * 0.07,
-                      height: screenWidth * 0.07,
+                      'assets/images/logo1.png',
+                      width: screenWidth * 0.20,
+                      height: screenWidth * 0.20,
                     ),
                   ),
                 ),

@@ -292,7 +292,7 @@ Widget build(BuildContext context) {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).primaryColor, // Use primary color for button
                 ),
-                child: Text('Add Goal', style: TextStyle(color: Colors.white)), // Add goal button
+                child: Text('Add Goal', style: TextStyle(color: Colors.white, fontSize: 16)), // Add goal button
               ),
             ],
           ),

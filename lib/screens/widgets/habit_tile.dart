@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:habitwise/themes/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:habitwise/models/habit.dart';
 import 'package:habitwise/providers/habit_provider.dart';
@@ -19,7 +20,7 @@ class HabitTile extends StatefulWidget {
     this.onCompleted,
     this.backgroundColor = Colors.white, // Default to white
     this.shadowColor = const Color.fromRGBO(126, 35, 191, 0.498), // Default shadow color
-    this.progressColor = const Color.fromRGBO(126, 35, 191, 0.498), // Default progress color
+    this.progressColor = const Color.fromRGBO(46, 197, 187, 1.0), // Default progress color
   });
 
   @override
@@ -55,7 +56,7 @@ class _HabitTileState extends State<HabitTile> {
       child: ListTile(
         contentPadding: EdgeInsets.zero,
         leading: Icon(widget.leadingIcon),
-        title: Text(widget.habit.title),
+        title: Text(widget.habit.title, style: TextStyle(color: Color.fromRGBO(134, 41, 137, 1.0))), // Heading color
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -94,33 +95,36 @@ class _HabitTileState extends State<HabitTile> {
           ],
         ),
         trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                _showEditHabitDialog(context, widget.habit); // Show edit habit dialog
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                Provider.of<HabitProvider>(context, listen: false)
-                    .removeHabit(widget.habit.id, groupId: widget.groupId); // Remove habit from provider
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.check_circle),
-              onPressed: () {
-                Provider.of<HabitProvider>(context, listen: false)
-                    .markHabitAsComplete(widget.habit.id, groupId: widget.groupId); // Mark habit as complete
-                if (widget.onCompleted != null) {
-                  widget.onCompleted!(); // Invoke onCompleted callback
-                }
-              },
-            ),
-          ],
-        ),
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    IconButton(
+      icon: const Icon(Icons.edit),
+      onPressed: () {
+        _showEditHabitDialog(context, widget.habit); // Show edit habit dialog
+      },
+    ),
+    IconButton(
+      icon: const Icon(Icons.delete),
+      onPressed: () {
+        Provider.of<HabitProvider>(context, listen: false)
+            .removeHabit(widget.habit.id, groupId: widget.groupId); // Remove habit from provider
+      },
+    ),
+    // Show check circle only if progress is equal to frequency
+    if (widget.habit.progress == widget.habit.frequency)
+      IconButton(
+        icon: const Icon(Icons.check_circle, color: secondaryColor),
+        onPressed: () {
+          Provider.of<HabitProvider>(context, listen: false)
+              .markHabitAsComplete(widget.habit.id, groupId: widget.groupId); // Mark habit as complete
+          if (widget.onCompleted != null) {
+            widget.onCompleted!(); // Invoke onCompleted callback
+          }
+        },
+      ),
+  ],
+),
+
       ),
     );
   }
