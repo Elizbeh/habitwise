@@ -1,6 +1,6 @@
 # HabitWise  
 
-<img src="assets/images/screenshots/dashboard.png" alt="HabitWise Banner" width="50"/>  
+<img src="assets/images/screenshots/dashboard.png" alt="HabitWise Banner" width="250"/>  
 *Empowering Consistency, Together!*  
 
 ## Table of Contents  
@@ -48,7 +48,7 @@
 *View progress and stay on top of your goals.*  
 
 ### 2. Group Collaboration  
-<img src="assets/images/screenshots/group_details.png" alt="Group Collaboration" width="50"/> 
+<img src="assets/images/screenshots/group_details.png" alt="Group Collaboration" width="250"/> 
 *Work with your team to achieve shared goals.*  
 
 ---
@@ -63,7 +63,7 @@ markdown
 Copy code
 # HabitWise  
 
-<img src="assets/images/screenshots/dashboard.png" alt="HabitWise Banner" width="50"/>  
+<img src="assets/images/screenshots/dashboard.png" alt="HabitWise Banner" width="250"/>  
 *Empowering Consistency, Together!*  
 
 ## Table of Contents  
@@ -105,18 +105,18 @@ Copy code
 ## Screenshots  
 
 ### 1. Personal Habit Tracking  
-<img src="assets/images/screenshots/routine_builder.png" alt="Habit Tracking" width="50"/>  
+<img src="assets/images/screenshots/routine_builder.png" alt="Habit Tracking" width="250"/>  
 *View progress and stay on top of your goals.*  
 
 ### 2. Group Collaboration  
-<img src="assets/images/screenshots/group_details.png" alt="Group Collaboration" width="50"/>  
+<img src="assets/images/screenshots/group_details.png" alt="Group Collaboration" width="250"/>  
 *Work with your team to achieve shared goals.*  
 
 ---
 
 ## Architecture  
 
-<img src="assets/images/screenshots/architecture.png" alt="Architecture Diagram" width="50"/>
+<img src="assets/images/screenshots/architecture.png" alt="Architecture Diagram" width="250"/>
 _HabitWise leverages Flutter for cross-platform UI, Firebase for backend services, and Provider for state management._  
 
 ---
