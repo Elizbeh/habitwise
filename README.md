@@ -1,6 +1,6 @@
 # HabitWise  
 
-![HabitWise Banner](assets/images/screenshorts/dashboard.png)  
+![HabitWise Banner](assets/images/screenshots/dashboard.png)  
 *Empowering Consistency, Together!*  
 
 ## Table of Contents  
@@ -44,18 +44,18 @@
 
 
 ### 1. Personal Habit Tracking
-![Habit Tracking](assets/images/screenshorts/routine_builder.png)  
+![Habit Tracking](assets/images/screenshots/routine_builder.png)  
 *View progress and stay on top of your goals.*  
 
 ### 2. Group Collaboration  
-![Group Collaboration](assets/images/screenshorts/group_details.png)  
+![Group Collaboration](assets/images/screenshots/group_details.png)  
 *Work with your team to achieve shared goals.*  
 
 ---
 
 ## Architecture  
 
-![Architecture Diagram](assets/images/screenshorts/architecture.png)  
+![Architecture Diagram](assets/images/screenshots/architecture.png)  
 _HabitWise leverages Flutter for cross-platform UI, Firebase for backend services, and Provider for state management._  
 
 ---
