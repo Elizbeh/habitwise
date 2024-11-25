@@ -1,6 +1,6 @@
 # HabitWise  
 
-![HabitWise Banner](assets/images/screenshots/dashboard.png)  
+<img src="assets/images/screenshots/dashboard.png" alt="HabitWise Banner" width="500"/>  
 *Empowering Consistency, Together!*  
 
 ## Table of Contents  
@@ -44,18 +44,79 @@
 
 
 ### 1. Personal Habit Tracking
-![Habit Tracking](assets/images/screenshots/routine_builder.png)  
+<img src="assets/images/screenshots/routine_builder.png" alt="Habit Tracking" width="500"/>
 *View progress and stay on top of your goals.*  
 
 ### 2. Group Collaboration  
-![Group Collaboration](assets/images/screenshots/group_details.png)  
+<img src="assets/images/screenshots/group_details.png" alt="Group Collaboration" width="500"/> 
 *Work with your team to achieve shared goals.*  
 
 ---
 
 ## Architecture  
 
-![Architecture Diagram](assets/images/screenshots/architecture.png)  
+
+To resize images in your GitHub README, you can use HTML <img> tags, as Markdown does not natively support resizing images. Here's how you can adjust the size of the images while keeping them in your README:
+
+Updated Markdown with Resized Images Using HTML
+markdown
+Copy code
+# HabitWise  
+
+<img src="assets/images/screenshots/dashboard.png" alt="HabitWise Banner" width="500"/>  
+*Empowering Consistency, Together!*  
+
+## Table of Contents  
+- [Overview](#overview)  
+- [Features](#features)  
+- [Screenshots](#screenshots)  
+- [Architecture](#architecture)  
+- [Setup Instructions](#setup-instructions)  
+- [Technologies Used](#technologies-used)  
+- [Future Enhancements](#future-enhancements)  
+- [Contributing](#contributing)  
+- [License](#license)  
+
+---
+
+## Overview  
+**HabitWise** is a habit and goal-tracking app designed to help users develop positive habits and achieve personal or group goals. Combining simplicity and accountability, HabitWise ensures that users stay motivated and consistent in their journey to success.  
+
+---
+
+## Features  
+### Currently Implemented  
+- **Individual Goals and Habits**:  
+  Monitor personal goals and habit progress.  
+- **Group Goals**:  
+  Collaborate and stay accountable with group members.  
+- **User Stats**:  
+  Automatic tracking of completed goals and habits.  
+- **Celebratory Messages**:  
+  Motivational prompts for achievements.  
+
+### Planned Features  
+- **Habit Streaks**: Track consecutive habit completions.  
+- **Gamification**: Earn rewards and badges for milestones.  
+- **Custom Notifications**: Never miss a habit or deadline.  
+
+---
+
+## Screenshots  
+
+### 1. Personal Habit Tracking  
+<img src="assets/images/screenshots/routine_builder.png" alt="Habit Tracking" width="600"/>  
+*View progress and stay on top of your goals.*  
+
+### 2. Group Collaboration  
+<img src="assets/images/screenshots/group_details.png" alt="Group Collaboration" width="500"/>  
+*Work with your team to achieve shared goals.*  
+
+---
+
+## Architecture  
+
+<img src="assets/images/screenshots/architecture.png" alt="Architecture Diagram" width="500"/>
 _HabitWise leverages Flutter for cross-platform UI, Firebase for backend services, and Provider for state management._  
 
 ---
@@ -137,9 +198,3 @@ We welcome contributions to improve HabitWise! Follow these steps to contribute:
 
 5. **Submit a Pull Request**:
   Open a pull request on the original repository and provide a detailed description of your changes.
-
-
-
-
-
-
